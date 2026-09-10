@@ -412,13 +412,6 @@ function AdminStudentView() {
 
     return (
         <div className="AdminStudentView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Просмотр студента"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
                     <h2>Цифровой портрет студента</h2>
 
                     <StudentSearch onSelectStudent={setSelectedStudentId} />
@@ -437,11 +430,9 @@ function AdminStudentView() {
                     {!loading && !studentPortrait && selectedStudentId && (
                         <div className="no-data-large">Не удалось загрузить данные студента</div>
                     )}
-                </Content>
-            </SidebarLayout>
             <ToastContainer
                 position="bottom-right"
-                autoClose={2000}
+                autoClose={3000}
                 hideProgressBar={true}
                 newestOnTop={false}
                 closeOnClick={true}

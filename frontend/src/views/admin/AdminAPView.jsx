@@ -204,16 +204,9 @@ function AdminAPView() {
     const resetFilters = () => {
         setFilters_({ institute: '', specialty: '', year: '' });
     }
-    
+
     return (
         <div className="AdminAPView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Академические показатели и компетенции"
-                    name="Админимтратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
                     <div className="filters-cont">
                         <FilterHeader
                             onFilterChange={updateFilter}
@@ -290,8 +283,6 @@ function AdminAPView() {
                         filters={filters}
                     />
                     <TopCorrelationsTable filters={filters} />
-                </Content>
-            </SidebarLayout>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

@@ -17,7 +17,7 @@ export const LAYOUT_STYLE = {
 
 export function SidebarLayout({ style = LAYOUT_STYLE.MODEUS }) {
     return (
-        <div className={`style--${style}`}>
+        <div className={`SidebarLayout style--${style}`}>
         <Sidebar linkTree={LINK_TREE} />
         <Content />
         </div>
@@ -50,10 +50,13 @@ export function Header({ title, name }) {
 export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();
+    const locationName = linkTree.filter(i => !!i.links?.find(link => link.to === location.pathname));
+    let title = locationName.length ? locationName[0].links.find(link => link.to === location.pathname).title : '';
+
     if (!isOpen) {
         return (<>
             <Header
-                title={`${location.title}`}
+                title={`${title}`}
                 name="Администратор"
             />
             <div
@@ -73,7 +76,7 @@ export function Sidebar({ links, linkTree }) {
     if (linkTree) {
         return (<>
             <Header
-                title={`${location.title}`}
+                title={`${title}`}
                 name="Администратор"
             />
             <div className='Sidebar-scroll'>
@@ -113,7 +116,7 @@ export function Sidebar({ links, linkTree }) {
         return (
             <>
             <Header
-                title={`${location.title}`}
+                title={`${title}`}
                 name="Администратор"
             />
             <div className='Sidebar-scroll'>

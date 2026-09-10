@@ -162,13 +162,6 @@ function AdminCoursesView() {
 
     return (
         <div className="AdminCoursesView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Образовательные курсы"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
                     <div className="courses-container">
                         <div className="courses-header">
                             <h2>Результаты образовательных курсов</h2>
@@ -299,8 +292,6 @@ function AdminCoursesView() {
                             </Label>
                         </FlexRow>
                     </div>
-                </Content>
-            </SidebarLayout>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

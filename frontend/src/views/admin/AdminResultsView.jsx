@@ -473,13 +473,6 @@ function AdminResultsView() {
 
     return (
         <div className="AdminResultsView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Результаты тестирования"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
                     <div className="results-container">
                         <div className="results-header">
                             <h2>Результаты тестирования</h2>
@@ -707,8 +700,6 @@ function AdminResultsView() {
                             )}
                         </FlexRow>
                     </div>
-                </Content>
-            </SidebarLayout>
 
             {/* Модальное окно системы фильтров */}
             <FiltersModalWindow>

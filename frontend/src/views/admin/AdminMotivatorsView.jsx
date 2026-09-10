@@ -651,20 +651,13 @@ function AdminMotivatorsView() {
     useEffect(() => {
         requestAnimationFrame(() => window.scrollTo(0, savedY.current));
     }, [filters]);
-    
+
     const resetFilters = () => {
         setFilters({ institute: '', specialty: '', year: '' });
     }
     return (
         <div className="AdminMotivatorView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: График мотиваторов"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <div className="filters-cont">
+            <div className="filters-cont">
                         <FilterHeader
                             onFilterChange={updateFilter}
                             filters={filters}
@@ -684,8 +677,6 @@ function AdminMotivatorsView() {
                             <MotivatorStatistics filters={filters} />
                         </>
                     )}
-                </Content>
-            </SidebarLayout>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

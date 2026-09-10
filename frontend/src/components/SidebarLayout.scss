@@ -2,8 +2,8 @@
 $modeus-color: #238bc8;
 
 .SidebarLayout {
-    display: flex;
-    min-height: 100vh;
+    display: grid;
+    height: 100vh;
     margin: 0;
     width: 100vw;
     overflow: hidden;
@@ -25,7 +25,7 @@ $modeus-color: #238bc8;
 
     .Sidebar-scroll {
         height: calc(100vh - 70px);
-        width: 100px;
+        width: 250px;
         overflow: auto;
     }
 
@@ -43,9 +43,8 @@ $modeus-color: #238bc8;
 
     .Content {
         grid-area: content;
-        overflow: hidden;
         height: 100%;
-        width: 100%;
+        overflow: auto;
     }
 }
 
@@ -162,7 +161,6 @@ $modeus-color: #238bc8;
 
     .Content {
         padding: 30px;
-        height: 100%;
     }
 }
 

@@ -239,13 +239,6 @@ function AdminStatsView() {
 
     return (
         <div className="AdminStatsView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Статистика тестирования"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
                     <div className="stats-container">
                         <div className="stats-header">
                             <div className="header-left">
@@ -734,8 +727,6 @@ function AdminStatsView() {
                             </div>
                         )}
                     </div>
-                </Content>
-            </SidebarLayout>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}
