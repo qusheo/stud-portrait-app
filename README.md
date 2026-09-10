@@ -1,6 +1,6 @@
 # StudPortrait
 
-**StudPortrait** - web app for building digital student portrait and analysing the tendance of student skills.
+**StudPortrait** - веб-приложение с основным направлением на построение цифрового портрета студента и его анализа 
 
 ## Installation & launch
 
