@@ -1,0 +1,743 @@
+import { useState, useEffect, React } from 'react';
+import Chart from 'react-apexcharts';
+import 'rc-slider/assets/index.css';
+
+import FlexRow, { ALIGN, JUSTIFY, WRAP } from '../../components/FlexRow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+
+import Card from '../../components/cards/Card.jsx';
+import TitledCard from '../../components/cards/TitledCard.jsx';
+import ValueCard from '../../components/cards/ValueCard.jsx';
+
+import Button from '../../components/ui/Button.jsx';
+import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
+import { ADMIN_PALETTE } from '../../components/ui/palette.js';
+
+import { ToastContainer, toast } from 'react-toastify';
+import { postPortraitDataseshNew, postPortraitDataseshCountStats, postPortraitDataseshUpdateFilters } from '../../api.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '../../utilities.js';
+
+import './AdminStatsView.scss';
+import TabButton from '../../components/ui/TabButton';
+
+const competencyLabels = {
+    ...COMPETENCIES_NAMES,
+    ...MOTIVATORS_NAMES
+};
+
+function AdminStatsView() {
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('overview');
+    const [sessionId, setSessionId] = useState(null);
+    const [filters, setFilters] = useState([]);
+    const [pendingFilters, setPendingFilters] = useState([]);
+    const [showFilters, setShowFilters] = useState(false);
+    const [availableValues, setAvailableValues] = useState({});
+    const [showAllCenters, setShowAllCenters] = useState(false);
+    const [showAllInstitutions, setShowAllInstitutions] = useState(false);
+
+    // Базовые поля для фильтрации
+    const basicFields = ['res_year', 'part_gender', 'center', 'institution', 'edu_level', 'res_course_num', 'study_form', 'specialty'];
+
+    useEffect(() => {
+        initializeSession();
+    }, []);
+
+    // Инициализация сессии
+    const initializeSession = async () => {
+        setLoading(true);
+        postPortraitDataseshNew()
+            .onSuccess(async response => {
+                const data = await response.json();
+                if (data.status === 'success') {
+                    setSessionId(data.session.id);
+                    await fetchStats(data.session.id);
+                } else {
+                    console.error('Failed to create session:', data.message);
+                    await fetchStats();
+                }
+            })
+            .onError(async error => {
+                console.error('Error initializing session:', error);
+                await fetchStats();
+            });
+    };
+
+    const fetchStats = async (sessionIdToUse = null) => {
+        setLoading(true);
+        postPortraitDataseshCountStats(sessionIdToUse)
+            .onSuccess(async response => {
+                const data = await response.json();
+                if (data.status === 'success') {
+                    setStats(data.stats);
+                    setAvailableValues(data.stats.available_values); // Извлекаем доступные значения для фильтрации
+                }
+            })
+            .onError(error => console.error('Error fetching stats:', error))
+            .finally(() => setLoading(false));
+    };
+
+    // Обновление фильтров сессии
+    const updateSessionFilters = async newFilters => {
+        if (!sessionId) return;
+
+        postPortraitDataseshUpdateFilters(sessionId, newFilters)
+            .onSuccess(async response => {
+                const data = await response.json();
+                if (data.status === 'success') {
+                    await fetchStats(sessionId); // Перезагружаем статистику с новыми фильтрами
+                }
+            })
+            .onError(error => console.error('Error updating session filters:', error));
+    };
+
+    // Функции для работы с фильтрами
+    const addBasicFilter = field => {
+        const newFilter = {
+            id: Date.now(),
+            type: 'basic',
+            field: field,
+            selectedValues: []
+        };
+        setPendingFilters(prev => [...prev, newFilter]);
+    };
+
+    const removePendingFilter = filterId => {
+        setPendingFilters(prev => prev.filter(f => f.id !== filterId));
+    };
+
+    const updatePendingBasicFilter = (filterId, selectedValues) => {
+        setPendingFilters(prev => prev.map(f => (f.id === filterId ? { ...f, selectedValues } : f)));
+    };
+
+    const applyFilters = async () => {
+        await updateSessionFilters(pendingFilters);
+        setFilters([...pendingFilters]);
+        setShowFilters(false);
+    };
+
+    const clearAllFilters = async () => {
+        setPendingFilters([]);
+        await updateSessionFilters([]);
+        setFilters([]);
+    };
+
+    const getFilteredDataInfo = () => {
+        if (filters.length === 0) return null;
+
+        const filterDescriptions = filters.map(filter => {
+            if (filter.type === 'basic' && filter.selectedValues.length > 0) {
+                return `${FIELD_NAMES[filter.field]}: ${filter.selectedValues.length} значений`;
+            }
+            return FIELD_NAMES[filter.field];
+        });
+
+        return filterDescriptions.join(' • ');
+    };
+
+    // Опции для диаграмм
+    const barChartOptions = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: {
+                show: true
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: false
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: {
+            title: {
+                text: 'Количество участников'
+            }
+        },
+        colors: ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6']
+    };
+
+    const lineChartOptions = {
+        chart: {
+            height: 350,
+            type: 'line',
+            zoom: {
+                enabled: false
+            },
+            toolbar: {
+                show: true
+            }
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 3
+        },
+        markers: {
+            size: 5
+        },
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: {
+            title: {
+                text: 'Средняя оценка'
+            },
+            min: 200,
+            max: 800
+        }
+    };
+
+    const pieChartOptions = {
+        chart: {
+            type: 'pie',
+            height: 350
+        },
+        labels: [],
+        legend: { show: false },
+        responsive: [
+            {
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        ],
+        colors: ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1']
+    };
+
+    if (loading) {
+        return (
+            <div className="AdminStatsView">
+                <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
+                    <Header
+                        title="Админ: Статистика тестирования"
+                        name="Администратор1"
+                    />
+                    <Sidebar linkTree={LINK_TREE} />
+                    <Content>
+                        <div className="loading-content">
+                            <LoadingSpinner text="Загрузка статистики..." />
+                        </div>
+                    </Content>
+                </SidebarLayout>
+            </div>
+        );
+    }
+
+    return (
+        <div className="AdminStatsView">
+                    <div className="stats-container">
+                        <div className="stats-header">
+                            <div className="header-left">
+                                <h1>Статистика тестирования</h1>
+                                {filters.length > 0 && (
+                                    <div className="active-filters-info">
+                                        <span className="filters-badge">Фильтры: {filters.length}</span>
+                                        <span className="filters-description">{getFilteredDataInfo()}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <FlexRow wrap={WRAP.DO}>
+                                <Button
+                                    text={showFilters ? 'Скрыть фильтры' : 'Показать фильтры'}
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    palette={ADMIN_PALETTE.YELLOW}
+                                />
+                                <Button
+                                    text={loading ? 'Загрузка...' : 'Обновить'}
+                                    onClick={() => fetchStats(sessionId)}
+                                    disabled={loading}
+                                    palette={ADMIN_PALETTE.CYAN}
+                                />
+                            </FlexRow>
+                        </div>
+
+                        {/* Система фильтров */}
+                        {showFilters && (
+                            <div className="filters-system">
+                                <div className="filters-header">
+                                    <h3>Фильтры для статистики</h3>
+                                    <div className="filters-controls">
+                                        <div className="add-filter-dropdown">
+                                            <select
+                                                className="filter-select"
+                                                onChange={e => {
+                                                    const value = e.target.value;
+                                                    if (value.startsWith('basic:')) {
+                                                        addBasicFilter(value.replace('basic:', ''));
+                                                    }
+                                                    e.target.value = '';
+                                                }}
+                                                disabled={!sessionId}
+                                            >
+                                                <option value="">+ Добавить фильтр</option>
+                                                <optgroup label="Базовые сведения">
+                                                    {basicFields.map(field => (
+                                                        <option
+                                                            key={field}
+                                                            value={`basic:${field}`}
+                                                        >
+                                                            {FIELD_NAMES[field]}
+                                                        </option>
+                                                    ))}
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div className="filters-action-buttons">
+                                            {(pendingFilters.length > 0 || filters.length > 0) && (
+                                                <>
+                                                    <Button
+                                                        text={loading ? 'Загрузка...' : 'Применить'}
+                                                        onClick={applyFilters}
+                                                        disabled={pendingFilters.length === 0 || !sessionId || loading}
+                                                        palette={ADMIN_PALETTE.GREEN}
+                                                    />
+                                                    <Button
+                                                        text="Очистить"
+                                                        onClick={clearAllFilters}
+                                                        disabled={!sessionId || loading}
+                                                        palette={ADMIN_PALETTE.RED}
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Ожидающие применения фильтры */}
+                                <div className="pending-filters">
+                                    {pendingFilters.map(filter => (
+                                        <div
+                                            key={filter.id}
+                                            className="filter-item pending"
+                                        >
+                                            <div className="filter-header">
+                                                <span className="filter-name">{FIELD_NAMES[filter.field]}</span>
+                                                <button
+                                                    className="remove-filter-btn"
+                                                    onClick={() => removePendingFilter(filter.id)}
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+
+                                            {filter.type === 'basic' && (
+                                                <div className="filter-content">
+                                                    <select
+                                                        multiple
+                                                        className="multi-select"
+                                                        value={filter.selectedValues}
+                                                        onChange={e => {
+                                                            const selected = Array.from(e.target.selectedOptions, option => option.value);
+                                                            updatePendingBasicFilter(filter.id, selected);
+                                                        }}
+                                                    >
+                                                        {availableValues[filter.field] && availableValues[filter.field].length > 0 ? (
+                                                            availableValues[filter.field].map(value => (
+                                                                <option
+                                                                    key={value}
+                                                                    value={value}
+                                                                >
+                                                                    {value}
+                                                                </option>
+                                                            ))
+                                                        ) : (
+                                                            <option disabled>Нет доступных значений</option>
+                                                        )}
+                                                    </select>
+                                                    <div className="filter-hint">
+                                                        Выберите значения (удерживайте Ctrl для множественного выбора)
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Активные фильтры */}
+                                {filters.length > 0 && (
+                                    <div className="active-filters-section">
+                                        <div className="active-filters-header">
+                                            <h4>Активные фильтры:</h4>
+                                        </div>
+                                        <div className="active-filters">
+                                            {filters.map(filter => (
+                                                <div
+                                                    key={filter.id}
+                                                    className="filter-item active"
+                                                >
+                                                    <div className="filter-header">
+                                                        <span className="filter-name">{FIELD_NAMES[filter.field]}</span>
+                                                        <span className="filter-status">✓ Применен</span>
+                                                    </div>
+
+                                                    {filter.type === 'basic' && (
+                                                        <div className="filter-content">
+                                                            <div className="selected-values">
+                                                                Выбрано значений: {filter.selectedValues.length}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Навигация по разделам */}
+                        <FlexRow
+                            margin="0 0 30 0"
+                            wrap={WRAP.DO}
+                        >
+                            <TabButton
+                                text="Обзор"
+                                onClick={() => setActiveTab('overview')}
+                                isActive={activeTab === 'overview'}
+                            />
+                            <TabButton
+                                text="Компетенции"
+                                onClick={() => setActiveTab('competences')}
+                                isActive={activeTab === 'competences'}
+                            />
+                            <TabButton
+                                text="Мотиваторы"
+                                onClick={() => setActiveTab('motivators')}
+                                isActive={activeTab === 'motivators'}
+                            />
+                            <TabButton
+                                text="Ценности"
+                                onClick={() => setActiveTab('values')}
+                                isActive={activeTab === 'values'}
+                            />
+                        </FlexRow>
+
+                        {activeTab === 'overview' && (
+                            <div className="overview-tab">
+                                {/* Карточки с общей статистикой */}
+                                <div className="stats-cards">
+                                    <ValueCard
+                                        value={stats?.totalParticipants || 0}
+                                        text="Всего участников (с 2021 г.)"
+                                    />
+                                    <ValueCard
+                                        value={stats?.totalTests || 0}
+                                        text="Всего тестирований"
+                                    />
+                                    <ValueCard
+                                        value={stats?.uniqueInstitutions || 0}
+                                        text="Учебных заведений"
+                                    />
+                                    <ValueCard
+                                        value={stats?.uniqueCenters || 0}
+                                        text="Центров компетенций"
+                                    />
+                                </div>
+
+                                {/* Первый ряд диаграмм */}
+                                <div className="charts-row">
+                                    <TitledCard title="Динамика тестирований по годам">
+                                        <Chart
+                                            options={{
+                                                ...barChartOptions,
+                                                xaxis: {
+                                                    categories: stats?.testsByYear?.years || [],
+                                                    title: {
+                                                        text: 'Учебный год'
+                                                    }
+                                                },
+                                                yaxis: {
+                                                    title: {
+                                                        text: 'Количество тестирований'
+                                                    }
+                                                },
+                                                plotOptions: {
+                                                    bar: {
+                                                        borderRadius: 4,
+                                                        horizontal: false,
+                                                        columnWidth: '50%'
+                                                    }
+                                                },
+                                                colors: ['#10B981'],
+                                                dataLabels: {
+                                                    enabled: true,
+                                                    formatter: function (val) {
+                                                        return val.toFixed(0);
+                                                    },
+                                                    offsetY: -20,
+                                                    style: {
+                                                        fontSize: '12px',
+                                                        colors: ['#333']
+                                                    }
+                                                }
+                                            }}
+                                            series={[
+                                                {
+                                                    name: 'Тестирования',
+                                                    data: stats?.testsByYear?.counts || []
+                                                }
+                                            ]}
+                                            type="bar"
+                                            height={400}
+                                        />
+                                    </TitledCard>
+                                    <TitledCard title="Прохождение тестирования за текущий период"></TitledCard>
+                                </div>
+
+                                {/* Второй ряд диаграмм */}
+                                <div className="charts-row">
+                                    <TitledCard title="Топ-15 учебных заведений">
+                                        <Chart
+                                            options={{
+                                                ...barChartOptions,
+                                                xaxis: { categories: stats?.participantsByInstitution?.institutions || [] },
+                                                plotOptions: {
+                                                    bar: {
+                                                        horizontal: true
+                                                    }
+                                                }
+                                            }}
+                                            series={[
+                                                {
+                                                    name: 'Участники',
+                                                    data: stats?.participantsByInstitution?.counts || []
+                                                }
+                                            ]}
+                                            type="bar"
+                                            height={400}
+                                        />
+                                    </TitledCard>
+                                    <TitledCard title="Топ-15 центров компетенций">
+                                        <Chart
+                                            options={{
+                                                ...barChartOptions,
+                                                xaxis: { categories: stats?.participantsByCenter?.centers || [] },
+                                                plotOptions: {
+                                                    bar: {
+                                                        horizontal: true
+                                                    }
+                                                }
+                                            }}
+                                            series={[
+                                                {
+                                                    name: 'Участники',
+                                                    data: stats?.participantsByCenter?.counts || []
+                                                }
+                                            ]}
+                                            type="bar"
+                                            height={400}
+                                        />
+                                    </TitledCard>
+                                </div>
+
+                                {/* Третий ряд диаграмм */}
+                                <div className="charts-row">
+                                    <Card>
+                                        <FlexRow
+                                            margin="0 0 20 0"
+                                            align={ALIGN.CENTER}
+                                            justify={JUSTIFY.SPACE_BETWEEN}
+                                        >
+                                            <span className="card-title">Все центры компетенций ({stats?.uniqueCenters || 0})</span>
+                                            <Button
+                                                text={showAllCenters ? 'Скрыть' : 'Показать все'}
+                                                onClick={() => setShowAllCenters(!showAllCenters)}
+                                                palette={ADMIN_PALETTE.CYAN}
+                                            />
+                                        </FlexRow>
+                                        <div className="centers-list">
+                                            {stats?.available_values?.center && stats.available_values.center.length > 0 ? (
+                                                <div className={`centers-grid ${showAllCenters ? 'expanded' : 'collapsed'}`}>
+                                                    {stats.available_values.center.map((center, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="center-item"
+                                                        >
+                                                            <span className="center-name">{center}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-data">Нет данных о центрах компетенций</div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                    <Card>
+                                        <FlexRow
+                                            margin="0 0 20 0"
+                                            align={ALIGN.CENTER}
+                                            justify={JUSTIFY.SPACE_BETWEEN}
+                                        >
+                                            <span className="card-title">Все учебные заведения ({stats?.uniqueInstitutions || 0})</span>
+                                            <Button
+                                                text={showAllInstitutions ? 'Скрыть' : 'Показать все'}
+                                                onClick={() => setShowAllInstitutions(!showAllInstitutions)}
+                                                palette={ADMIN_PALETTE.CYAN}
+                                            />
+                                        </FlexRow>
+                                        <div className="institutions-list">
+                                            {stats?.available_values?.institution && stats.available_values.institution.length > 0 ? (
+                                                <div className={`institutions-grid ${showAllInstitutions ? 'expanded' : 'collapsed'}`}>
+                                                    {stats.available_values.institution.map((institution, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="institution-item"
+                                                        >
+                                                            <span className="institution-name">{institution}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="no-data">Нет данных об учебных заведениях</div>
+                                            )}
+                                        </div>
+                                    </Card>
+                                </div>
+
+                                {/* Четвёртый ряд диаграмм */}
+                                <div className="charts-row">
+                                    <TitledCard title="Распределение по специальностям">
+                                        <Chart
+                                            options={{
+                                                ...pieChartOptions,
+                                                labels: stats?.specialtiesDistribution?.specialties || []
+                                            }}
+                                            series={stats?.specialtiesDistribution?.counts || []}
+                                            type="pie"
+                                            height={400}
+                                        />
+                                    </TitledCard>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'competences' && (
+                            <div className="competences-tab">
+                                <h2>Статистика по компетенциям</h2>
+                                {filters.length > 0 && (
+                                    <div className="filtered-data-notice">Данные отображаются с применёнными фильтрами</div>
+                                )}
+                                <div className="charts-grid">
+                                    {stats?.competencesByYear?.map((competence, index) => (
+                                        <TitledCard title={competence.name}>
+                                            <Chart
+                                                options={{
+                                                    ...lineChartOptions,
+                                                    xaxis: {
+                                                        categories: competence.years,
+                                                        title: {
+                                                            text: 'Учебный год'
+                                                        }
+                                                    }
+                                                }}
+                                                series={[
+                                                    {
+                                                        name: competence.name,
+                                                        data: competence.values
+                                                    }
+                                                ]}
+                                                type="line"
+                                                height={300}
+                                            />
+                                        </TitledCard>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'motivators' && (
+                            <div className="motivators-tab">
+                                <h2>Статистика по мотиваторам</h2>
+                                {filters.length > 0 && (
+                                    <div className="filtered-data-notice">Данные отображаются с примененными фильтрами</div>
+                                )}
+                                <div className="charts-grid">
+                                    {stats?.motivatorsByYear?.map((motivator, index) => (
+                                        <TitledCard title={motivator.name}>
+                                            <Chart
+                                                options={{
+                                                    ...lineChartOptions,
+                                                    xaxis: {
+                                                        categories: motivator.years,
+                                                        title: {
+                                                            text: 'Учебный год'
+                                                        }
+                                                    }
+                                                }}
+                                                series={[
+                                                    {
+                                                        name: motivator.name,
+                                                        data: motivator.values
+                                                    }
+                                                ]}
+                                                type="line"
+                                                height={300}
+                                            />
+                                        </TitledCard>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'values' && (
+                            <div className="values-tab">
+                                <h2>Статистика по ценностям</h2>
+                                {filters.length > 0 && (
+                                    <div className="filtered-data-notice">Данные отображаются с примененными фильтрами</div>
+                                )}
+                                <div className="charts-grid">
+                                    {stats?.valuesByYear?.map((value, index) => (
+                                        <TitledCard title={value.name}>
+                                            <Chart
+                                                options={{
+                                                    ...lineChartOptions,
+                                                    xaxis: {
+                                                        categories: value.years,
+                                                        title: {
+                                                            text: 'Учебный год'
+                                                        }
+                                                    }
+                                                }}
+                                                series={[
+                                                    {
+                                                        name: value.name,
+                                                        data: value.values
+                                                    }
+                                                ]}
+                                                type="line"
+                                                height={300}
+                                            />
+                                        </TitledCard>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+            <ToastContainer
+                position="bottom-right"
+                autoClose={2000}
+                hideProgressBar={true}
+                newestOnTop={false}
+                closeOnClick={true}
+                rtl={false}
+                theme="light"
+            />
+        </div>
+    );
+}
+
+export default AdminStatsView;

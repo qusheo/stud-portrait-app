@@ -1,0 +1,14 @@
+@use 'palette';
+
+input[type='number'].NumberField {
+    padding: 8px 16px !important;
+    border-radius: 4px;
+    white-space: nowrap;
+    user-select: none;
+    cursor: pointer;
+
+    font-size: 14px !important;
+    font-weight: 500 !important;
+
+    @include palette.paletted($bg: false);
+}

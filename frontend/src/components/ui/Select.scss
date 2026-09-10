@@ -1,0 +1,44 @@
+.Option {
+    margin: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+
+    &.selected {
+        padding: 1px 7px;
+
+        color: var(--activeFg);
+        background: var(--activeBg);
+        border: var(--activeBorder);
+        text-shadow: var(--activeTextShadow);
+        box-shadow: var(--activeBoxShadow);
+        transform: var(--activeTransform);
+    }
+
+    &:hover {
+        padding: 1px 7px;
+
+        color: var(--hoverFg);
+        background: var(--hoverBg);
+        border: var(--hoverBorder);
+        text-shadow: var(--hoverTextShadow);
+        box-shadow: var(--hoverBoxShadow);
+        transform: var(--hoverTransform);
+    }
+
+    &:active {
+        padding: 1px 7px;
+
+        color: var(--activeFg);
+        background: var(--activeBg);
+        border: var(--activeBorder);
+        text-shadow: var(--activeTextShadow);
+        box-shadow: var(--activeBoxShadow);
+        transform: var(--activeTransform);
+    }
+}
+
+.OptionGroup .group-label {
+    font-weight: 600 !important;
+}
