@@ -3,6 +3,7 @@
   "tasks": [
     {
       "name": "prettier",
+      "group": "pre-commit",
       "command": "npx",
       "args": ["prettier", "--ignore-unknown", "--write", "${staged}"],
       "pathMode": "absolute"
