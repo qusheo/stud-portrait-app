@@ -162,136 +162,134 @@ function AdminCoursesView() {
 
     return (
         <div className="AdminCoursesView">
-                    <div className="courses-container">
-                        <div className="courses-header">
-                            <h2>Результаты образовательных курсов</h2>
-                            <FlexRow>
-                                <Label>
-                                    Участников: {new Set(coursesData.map(c => c.participant?.part_id)).size} • Всего записей:{' '}
-                                    {coursesData.length} • Выбрано: {selectedRows.size}
-                                </Label>
-                                <Button
-                                    text="Обновить"
-                                    onClick={fetchCoursesData}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                            </FlexRow>
+            <div className="courses-container">
+                <div className="courses-header">
+                    <h2>Результаты образовательных курсов</h2>
+                    <FlexRow>
+                        <Label>
+                            Участников: {new Set(coursesData.map(c => c.participant?.part_id)).size} • Всего записей: {coursesData.length} •
+                            Выбрано: {selectedRows.size}
+                        </Label>
+                        <Button
+                            text="Обновить"
+                            onClick={fetchCoursesData}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                    </FlexRow>
+                </div>
+
+                {/* Общая статистика */}
+                <div className="stats-overview">
+                    <ValueCard
+                        value={new Set(coursesData.map(c => c.participant?.part_id)).size}
+                        text="Участников"
+                    />
+                    <ValueCard
+                        value={Object.keys(COURSES_NAMES).length}
+                        text="Всего курсов"
+                    />
+                </div>
+
+                {/* Таблица с курсами */}
+                <div className="table-scroll-container">
+                    {!loading && coursesData.length === 0 ? (
+                        <div className="no-data">
+                            <div className="no-data-icon">📚</div>
+                            <div className="no-data-text">
+                                <strong>Нет данных по курсам</strong>
+                                <br />
+                                Загрузите данные через раздел "Загрузка данных"
+                            </div>
                         </div>
-
-                        {/* Общая статистика */}
-                        <div className="stats-overview">
-                            <ValueCard
-                                value={new Set(coursesData.map(c => c.participant?.part_id)).size}
-                                text="Участников"
-                            />
-                            <ValueCard
-                                value={Object.keys(COURSES_NAMES).length}
-                                text="Всего курсов"
-                            />
-                        </div>
-
-                        {/* Таблица с курсами */}
-                        <div className="table-scroll-container">
-                            {!loading && coursesData.length === 0 ? (
-                                <div className="no-data">
-                                    <div className="no-data-icon">📚</div>
-                                    <div className="no-data-text">
-                                        <strong>Нет данных по курсам</strong>
-                                        <br />
-                                        Загрузите данные через раздел "Загрузка данных"
-                                    </div>
-                                </div>
-                            ) : (
-                                <Table>
-                                    <TableHeader>
-                                        <TableItem>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedRows.size === coursesData.length && coursesData.length > 0}
-                                                onChange={handleSelectAll}
-                                            />
-                                        </TableItem>
-                                        <TableItem onClick={() => handleSort('participant')}>
-                                            Участник {getSortIcon('participant')}
-                                        </TableItem>
-                                        {Object.keys(COURSES_NAMES).map(courseKey => (
-                                            <TableItem
-                                                onClick={() => handleSort(courseKey)}
-                                                title={COURSES_NAMES[courseKey]}
-                                            >
-                                                {COURSES_NAMES[courseKey]} {getSortIcon(courseKey)}
-                                            </TableItem>
-                                        ))}
-                                    </TableHeader>
-                                    {coursesData.map(course => (
-                                        <TableRow
-                                            key={course.course_id}
-                                            className={selectedRows.has(course.course_id) ? 'selected' : ''}
-                                        >
-                                            <TableItem>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedRows.has(course.course_id)}
-                                                    onChange={() => handleRowSelect(course.course_id)}
-                                                />
-                                            </TableItem>
-                                            <TableItem>
-                                                <div>{course.participant?.part_name}</div>
-                                                <div>
-                                                    Пройдено: {calculateActualCompletedCoursesNumber_(course)}/
-                                                    {calculateParticipantStats(course.participant?.part_id).total} курсов
-                                                </div>
-                                            </TableItem>
-                                            {Object.keys(COURSES_NAMES).map(courseKey => (
-                                                <TableItem
-                                                    key={courseKey}
-                                                    className={getProgressClass(course[courseKey] || 0)}
-                                                    title={`${COURSES_NAMES[courseKey]}: ${course[courseKey] ? (course[courseKey] * 100).toFixed(1) + '%' : 'Не пройден'}`}
-                                                >
-                                                    {renderTableCell(course, courseKey)}
-                                                </TableItem>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </Table>
-                            )}
-
-                            {}
-                        </div>
-
-                        {/* Легенда прогресса */}
-                        <FlexRow margin="15 0 0 0">
-                            <Label>
-                                <FlexRow
-                                    gap="20"
-                                    wrap={WRAP.DO}
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableItem>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedRows.size === coursesData.length && coursesData.length > 0}
+                                        onChange={handleSelectAll}
+                                    />
+                                </TableItem>
+                                <TableItem onClick={() => handleSort('participant')}>Участник {getSortIcon('participant')}</TableItem>
+                                {Object.keys(COURSES_NAMES).map(courseKey => (
+                                    <TableItem
+                                        onClick={() => handleSort(courseKey)}
+                                        title={COURSES_NAMES[courseKey]}
+                                    >
+                                        {COURSES_NAMES[courseKey]} {getSortIcon(courseKey)}
+                                    </TableItem>
+                                ))}
+                            </TableHeader>
+                            {coursesData.map(course => (
+                                <TableRow
+                                    key={course.course_id}
+                                    className={selectedRows.has(course.course_id) ? 'selected' : ''}
                                 >
-                                    <span>↸ Легенда:</span>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.GRAY} />
-                                        <span>Не начат (0%)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.RED} />
-                                        <span>Низкий (1-29%)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.YELLOW} />
-                                        <span>Средний (30-69%)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.BLUE} />
-                                        <span>Высокий (70-89%)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.GREEN} />
-                                        <span>Завершен (90-100%)</span>
-                                    </FlexRow>
-                                </FlexRow>
-                            </Label>
+                                    <TableItem>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRows.has(course.course_id)}
+                                            onChange={() => handleRowSelect(course.course_id)}
+                                        />
+                                    </TableItem>
+                                    <TableItem>
+                                        <div>{course.participant?.part_name}</div>
+                                        <div>
+                                            Пройдено: {calculateActualCompletedCoursesNumber_(course)}/
+                                            {calculateParticipantStats(course.participant?.part_id).total} курсов
+                                        </div>
+                                    </TableItem>
+                                    {Object.keys(COURSES_NAMES).map(courseKey => (
+                                        <TableItem
+                                            key={courseKey}
+                                            className={getProgressClass(course[courseKey] || 0)}
+                                            title={`${COURSES_NAMES[courseKey]}: ${course[courseKey] ? (course[courseKey] * 100).toFixed(1) + '%' : 'Не пройден'}`}
+                                        >
+                                            {renderTableCell(course, courseKey)}
+                                        </TableItem>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </Table>
+                    )}
+
+                    {}
+                </div>
+
+                {/* Легенда прогресса */}
+                <FlexRow margin="15 0 0 0">
+                    <Label>
+                        <FlexRow
+                            gap="20"
+                            wrap={WRAP.DO}
+                        >
+                            <span>↸ Легенда:</span>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.GRAY} />
+                                <span>Не начат (0%)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.RED} />
+                                <span>Низкий (1-29%)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.YELLOW} />
+                                <span>Средний (30-69%)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.BLUE} />
+                                <span>Высокий (70-89%)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.GREEN} />
+                                <span>Завершен (90-100%)</span>
+                            </FlexRow>
                         </FlexRow>
-                    </div>
+                    </Label>
+                </FlexRow>
+            </div>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

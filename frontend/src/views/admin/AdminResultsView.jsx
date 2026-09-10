@@ -473,233 +473,233 @@ function AdminResultsView() {
 
     return (
         <div className="AdminResultsView">
-                    <div className="results-container">
-                        <div className="results-header">
-                            <h2>Результаты тестирования</h2>
-                            <FlexRow wrap={WRAP.DO}>
+            <div className="results-container">
+                <div className="results-header">
+                    <h2>Результаты тестирования</h2>
+                    <FlexRow wrap={WRAP.DO}>
+                        <Button
+                            text="Фильтры..."
+                            onClick={() => setFiltersModalWindowVisible(filters)}
+                            palette={ADMIN_PALETTE.YELLOW}
+                        />
+                        <Button
+                            text="Колонки"
+                            onClick={() => setShowColumnSelector(!showColumnSelector)}
+                            disabled={!sessionId}
+                            palette={ADMIN_PALETTE.PURPLE}
+                        />
+                        <Button
+                            text="Группировка"
+                            onClick={handleGrouping}
+                            disabled={!sessionId || selectedRows.size === 0}
+                            palette={ADMIN_PALETTE.PURPLE}
+                        />
+                        <Button
+                            text={exportLoading ? 'Загрузка...' : `Выгрузить выделенные (${selectedRows.size})`}
+                            onClick={handleExportSelected}
+                            disabled={!sessionId || exportLoading || selectedRows.size === 0}
+                            palette={ADMIN_PALETTE.GREEN}
+                        />
+                        <Button
+                            text={loading ? 'Загрузка...' : 'Обновить'}
+                            onClick={() => loadSessionData()}
+                            disabled={!sessionId || loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                        <Label>
+                            {sessionId ? (
+                                <>
+                                    Показано: {results.length} из {totalCount} записей
+                                    {filters.length > 0 && ` • Активных фильтров: ${filters.length}`}
+                                    {hiddenColumns.size > 0 && ` • Скрыто колонок: ${hiddenColumns.size}`}
+                                    {selectedRows.size > 0 && ` • Выбрано: ${selectedRows.size}`}
+                                </>
+                            ) : (
+                                'Инициализация...'
+                            )}
+                        </Label>
+                    </FlexRow>
+                </div>
+
+                {/* Селектор колонок */}
+                {showColumnSelector && (
+                    <div className="column-selector">
+                        <div className="column-selector-header">
+                            <h3>Управление колонками</h3>
+                            <div className="column-selector-controls">
                                 <Button
-                                    text="Фильтры..."
-                                    onClick={() => setFiltersModalWindowVisible(filters)}
-                                    palette={ADMIN_PALETTE.YELLOW}
-                                />
-                                <Button
-                                    text="Колонки"
-                                    onClick={() => setShowColumnSelector(!showColumnSelector)}
-                                    disabled={!sessionId}
-                                    palette={ADMIN_PALETTE.PURPLE}
-                                />
-                                <Button
-                                    text="Группировка"
-                                    onClick={handleGrouping}
-                                    disabled={!sessionId || selectedRows.size === 0}
-                                    palette={ADMIN_PALETTE.PURPLE}
-                                />
-                                <Button
-                                    text={exportLoading ? 'Загрузка...' : `Выгрузить выделенные (${selectedRows.size})`}
-                                    onClick={handleExportSelected}
-                                    disabled={!sessionId || exportLoading || selectedRows.size === 0}
-                                    palette={ADMIN_PALETTE.GREEN}
-                                />
-                                <Button
-                                    text={loading ? 'Загрузка...' : 'Обновить'}
-                                    onClick={() => loadSessionData()}
+                                    text="Показать все"
+                                    onClick={showAllColumns}
                                     disabled={!sessionId || loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                                <Label>
-                                    {sessionId ? (
-                                        <>
-                                            Показано: {results.length} из {totalCount} записей
-                                            {filters.length > 0 && ` • Активных фильтров: ${filters.length}`}
-                                            {hiddenColumns.size > 0 && ` • Скрыто колонок: ${hiddenColumns.size}`}
-                                            {selectedRows.size > 0 && ` • Выбрано: ${selectedRows.size}`}
-                                        </>
-                                    ) : (
-                                        'Инициализация...'
-                                    )}
-                                </Label>
-                            </FlexRow>
-                        </div>
-
-                        {/* Селектор колонок */}
-                        {showColumnSelector && (
-                            <div className="column-selector">
-                                <div className="column-selector-header">
-                                    <h3>Управление колонками</h3>
-                                    <div className="column-selector-controls">
-                                        <Button
-                                            text="Показать все"
-                                            onClick={showAllColumns}
-                                            disabled={!sessionId || loading}
-                                            palette={ADMIN_PALETTE.BLUE}
-                                        />
-                                        <Button
-                                            text="Скрыть все"
-                                            onClick={hideAllColumns}
-                                            disabled={!sessionId || loading}
-                                            palette={ADMIN_PALETTE.BLUE}
-                                        />
-                                        <Button
-                                            text="✕"
-                                            onClick={() => setShowColumnSelector(false)}
-                                            palette={ADMIN_PALETTE.RED}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="column-groups">
-                                    {Object.entries(columnGroups).map(([groupName, groupColumns]) => {
-                                        const visibleCount = groupColumns.filter(col => !hiddenColumns.has(col)).length;
-                                        const totalCount = groupColumns.length;
-                                        return (
-                                            <div
-                                                key={groupName}
-                                                className="column-group"
-                                            >
-                                                <div className="group-header">
-                                                    <label className="group-checkbox">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={visibleCount > 0}
-                                                            onChange={() => toggleColumnGroup(groupColumns)}
-                                                            disabled={!sessionId || loading}
-                                                            ref={el => {
-                                                                if (el) {
-                                                                    el.indeterminate = visibleCount > 0 && visibleCount < totalCount;
-                                                                }
-                                                            }}
-                                                        />
-                                                        <span className="group-name">
-                                                            {groupName} ({visibleCount}/{totalCount})
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                                <div className="group-columns">
-                                                    {groupColumns.map(columnKey => (
-                                                        <label
-                                                            key={columnKey}
-                                                            className="column-checkbox"
-                                                        >
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={!hiddenColumns.has(columnKey)}
-                                                                onChange={() => toggleColumn(columnKey)}
-                                                                disabled={!sessionId || loading}
-                                                            />
-                                                            <span className="column-name">{FIELD_NAMES[columnKey]}</span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Таблица с прокруткой */}
-                        {loading || !results.length ? (
-                            <div className="loading">
-                                <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
-                            </div>
-                        ) : (
-                            <div className="table-scroll-container">
-                                <Table>
-                                    <TableHeader>
-                                        <TableItem>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedRows.size === results.length && results.length > 0}
-                                                onChange={handleSelectAll}
-                                                disabled={!sessionId}
-                                            />
-                                        </TableItem>
-                                        {visibleColumns.map(fieldKey => (
-                                            <TableItem
-                                                onClick={() => handleSort(fieldKey)}
-                                                className={getProfileColorClass(fieldKey)}
-                                                title={FIELD_NAMES[fieldKey]}
-                                            >
-                                                {FIELD_NAMES[fieldKey]} {getSortIcon(fieldKey)}
-                                            </TableItem>
-                                        ))}
-                                    </TableHeader>
-                                    {results.map(result => (
-                                        <TableRow
-                                            key={result.res_id}
-                                            className={selectedRows.has(result.res_id) ? 'selected' : ''}
-                                        >
-                                            <TableItem>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedRows.has(result.res_id)}
-                                                    onChange={() => handleRowSelect(result.res_id)}
-                                                    disabled={!sessionId}
-                                                />
-                                            </TableItem>
-                                            {visibleColumns.map(fieldKey => (
-                                                <TableItem
-                                                    key={fieldKey}
-                                                    className={getValueColorClass(getFieldValue(result, fieldKey), fieldKey)}
-                                                    title={renderTableCell(result, fieldKey)}
-                                                >
-                                                    {renderTableCell(result, fieldKey)}
-                                                </TableItem>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </Table>
-
-                                {results.length === 0 && !loading && sessionId && (
-                                    <div className="no-data">
-                                        <div className="no-data-icon">📊</div>
-                                        <div className="no-data-text">
-                                            <strong>Нет данных для отображения</strong>
-                                            <br />
-                                            {filters.length > 0
-                                                ? 'Попробуйте изменить параметры фильтрации'
-                                                : 'Загрузите данные или создайте фильтры'}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Подсказка снизу */}
-                        <FlexRow>
-                            <Label>
-                                <FlexRow gap="20">
-                                    <span>↸ Категории результатов:</span>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.GREEN} />
-                                        <span>Высокий (600-800)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.LIME} />
-                                        <span>Средний (400-599)</span>
-                                    </FlexRow>
-                                    <FlexRow>
-                                        <ColorBox color={BOX_COLOR.YELLOW} />
-                                        <span>Низкий (200-399)</span>
-                                    </FlexRow>
-                                </FlexRow>
-                            </Label>
-
-                            <Label>
-                                Колонок: {visibleColumns.length}/{columnOrder.length} • Записей: {results.length}
-                                {hasMore && '+'} • Выбрано: {selectedRows.size}
-                            </Label>
-
-                            {/* Кнопка загрузки дополнительных данных */}
-                            {hasMore && (
-                                <Button
-                                    text={loading ? 'Загрузка...' : 'Загрузить ещё'}
-                                    onClick={loadMoreData}
-                                    disabled={loading}
                                     palette={ADMIN_PALETTE.BLUE}
                                 />
-                            )}
-                        </FlexRow>
+                                <Button
+                                    text="Скрыть все"
+                                    onClick={hideAllColumns}
+                                    disabled={!sessionId || loading}
+                                    palette={ADMIN_PALETTE.BLUE}
+                                />
+                                <Button
+                                    text="✕"
+                                    onClick={() => setShowColumnSelector(false)}
+                                    palette={ADMIN_PALETTE.RED}
+                                />
+                            </div>
+                        </div>
+                        <div className="column-groups">
+                            {Object.entries(columnGroups).map(([groupName, groupColumns]) => {
+                                const visibleCount = groupColumns.filter(col => !hiddenColumns.has(col)).length;
+                                const totalCount = groupColumns.length;
+                                return (
+                                    <div
+                                        key={groupName}
+                                        className="column-group"
+                                    >
+                                        <div className="group-header">
+                                            <label className="group-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={visibleCount > 0}
+                                                    onChange={() => toggleColumnGroup(groupColumns)}
+                                                    disabled={!sessionId || loading}
+                                                    ref={el => {
+                                                        if (el) {
+                                                            el.indeterminate = visibleCount > 0 && visibleCount < totalCount;
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="group-name">
+                                                    {groupName} ({visibleCount}/{totalCount})
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <div className="group-columns">
+                                            {groupColumns.map(columnKey => (
+                                                <label
+                                                    key={columnKey}
+                                                    className="column-checkbox"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={!hiddenColumns.has(columnKey)}
+                                                        onChange={() => toggleColumn(columnKey)}
+                                                        disabled={!sessionId || loading}
+                                                    />
+                                                    <span className="column-name">{FIELD_NAMES[columnKey]}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
+                )}
+
+                {/* Таблица с прокруткой */}
+                {loading || !results.length ? (
+                    <div className="loading">
+                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
+                    </div>
+                ) : (
+                    <div className="table-scroll-container">
+                        <Table>
+                            <TableHeader>
+                                <TableItem>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedRows.size === results.length && results.length > 0}
+                                        onChange={handleSelectAll}
+                                        disabled={!sessionId}
+                                    />
+                                </TableItem>
+                                {visibleColumns.map(fieldKey => (
+                                    <TableItem
+                                        onClick={() => handleSort(fieldKey)}
+                                        className={getProfileColorClass(fieldKey)}
+                                        title={FIELD_NAMES[fieldKey]}
+                                    >
+                                        {FIELD_NAMES[fieldKey]} {getSortIcon(fieldKey)}
+                                    </TableItem>
+                                ))}
+                            </TableHeader>
+                            {results.map(result => (
+                                <TableRow
+                                    key={result.res_id}
+                                    className={selectedRows.has(result.res_id) ? 'selected' : ''}
+                                >
+                                    <TableItem>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRows.has(result.res_id)}
+                                            onChange={() => handleRowSelect(result.res_id)}
+                                            disabled={!sessionId}
+                                        />
+                                    </TableItem>
+                                    {visibleColumns.map(fieldKey => (
+                                        <TableItem
+                                            key={fieldKey}
+                                            className={getValueColorClass(getFieldValue(result, fieldKey), fieldKey)}
+                                            title={renderTableCell(result, fieldKey)}
+                                        >
+                                            {renderTableCell(result, fieldKey)}
+                                        </TableItem>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </Table>
+
+                        {results.length === 0 && !loading && sessionId && (
+                            <div className="no-data">
+                                <div className="no-data-icon">📊</div>
+                                <div className="no-data-text">
+                                    <strong>Нет данных для отображения</strong>
+                                    <br />
+                                    {filters.length > 0
+                                        ? 'Попробуйте изменить параметры фильтрации'
+                                        : 'Загрузите данные или создайте фильтры'}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Подсказка снизу */}
+                <FlexRow>
+                    <Label>
+                        <FlexRow gap="20">
+                            <span>↸ Категории результатов:</span>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.GREEN} />
+                                <span>Высокий (600-800)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.LIME} />
+                                <span>Средний (400-599)</span>
+                            </FlexRow>
+                            <FlexRow>
+                                <ColorBox color={BOX_COLOR.YELLOW} />
+                                <span>Низкий (200-399)</span>
+                            </FlexRow>
+                        </FlexRow>
+                    </Label>
+
+                    <Label>
+                        Колонок: {visibleColumns.length}/{columnOrder.length} • Записей: {results.length}
+                        {hasMore && '+'} • Выбрано: {selectedRows.size}
+                    </Label>
+
+                    {/* Кнопка загрузки дополнительных данных */}
+                    {hasMore && (
+                        <Button
+                            text={loading ? 'Загрузка...' : 'Загрузить ещё'}
+                            onClick={loadMoreData}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.BLUE}
+                        />
+                    )}
+                </FlexRow>
+            </div>
 
             {/* Модальное окно системы фильтров */}
             <FiltersModalWindow>

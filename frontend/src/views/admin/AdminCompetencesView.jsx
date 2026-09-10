@@ -1027,7 +1027,9 @@ function AdminCompetencesView() {
         getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year)
             .onSuccess(async response => {
                 const data = await response.json();
-                if (data.status !== "success") { throw new Error(data?.message);}
+                if (data.status !== 'success') {
+                    throw new Error(data?.message);
+                }
                 setDashboardData(data);
             })
             .onError(err => {
@@ -1049,7 +1051,7 @@ function AdminCompetencesView() {
     };
     const resetFilters = () => {
         setFilters_({ institute: '', specialty: '', year: '' });
-    }
+    };
     const loadCompetencyTrend = async currentFilters => {
         setLoadingTrend(true);
         getCompetencyTrendByYear(currentFilters.institute, currentFilters.specialty)
@@ -1073,64 +1075,68 @@ function AdminCompetencesView() {
             setFilters_(savedFilters.Admin);
         }
     }, []);
-    
+
     return (
         <div className="AdminCompetencesView">
-                    <div className="filters-cont">
-                        <FilterHeader
-                            onFilterChange={updateFilter}
-                            filters={filters_}
-                            onResetFilters={resetFilters}
-                        />
-                    </div>
-                    <FlexRow
-                        margin="0 0 30 0"
-                        wrap={WRAP.DO}
-                    >
-                        <TabButton
-                            text={'Дашборд'}
-                            onClick={() => setActiveTab('dashboard')}
-                            isActive={activeTab === 'dashboard'}
-                        />
-                        <TabButton
-                            text={'Динамика'}
-                            onClick={() => setActiveTab('graphics')}
-                            isActive={activeTab === 'graphics'}
-                        />
-                        <TabButton
-                            text={'Сегментация'}
-                            onClick={() => setActiveTab('segmentation')}
-                            isActive={activeTab === 'segmentation'}
-                        />
-                    </FlexRow>
-                    
-                    {activeTab === 'dashboard' && (
-                        <> { loadingDash ? <div className="loading-content">
+            <div className="filters-cont">
+                <FilterHeader
+                    onFilterChange={updateFilter}
+                    filters={filters_}
+                    onResetFilters={resetFilters}
+                />
+            </div>
+            <FlexRow
+                margin="0 0 30 0"
+                wrap={WRAP.DO}
+            >
+                <TabButton
+                    text={'Дашборд'}
+                    onClick={() => setActiveTab('dashboard')}
+                    isActive={activeTab === 'dashboard'}
+                />
+                <TabButton
+                    text={'Динамика'}
+                    onClick={() => setActiveTab('graphics')}
+                    isActive={activeTab === 'graphics'}
+                />
+                <TabButton
+                    text={'Сегментация'}
+                    onClick={() => setActiveTab('segmentation')}
+                    isActive={activeTab === 'segmentation'}
+                />
+            </FlexRow>
+
+            {activeTab === 'dashboard' && (
+                <>
+                    {' '}
+                    {loadingDash ? (
+                        <div className="loading-content">
                             <LoadingSpinner text="Загрузка статистики..." />
-                        </div> :
+                        </div>
+                    ) : (
                         <Dashboard
                             data={dashboardData}
                             filters={filters_}
-                        /> } </>
+                        />
+                    )}{' '}
+                </>
+            )}
+            {activeTab === 'graphics' && (
+                <>
+                    {loadingTrend ? (
+                        <LoadingSpinner text="Загрузка диаграммы..." />
+                    ) : (
+                        <CompetencyTrendLine
+                            data={trendData}
+                            loading={loadingTrend}
+                        />
                     )}
-                    {activeTab === 'graphics' && (
-                        <>
-                            {loadingTrend ? (
-                                <LoadingSpinner text="Загрузка диаграммы..." />
-                            ) : (
-                                <CompetencyTrendLine
-                                    data={trendData}
-                                    loading={loadingTrend}
-                                />
-                            )}
-                        </>
-                    )}
-                    {activeTab === 'segmentation' && (
-                        <>
-                            {loadingTrend ? <LoadingSpinner text="Загрузка диаграммы..." /> : <CompetencySegmentation filters={filters_} />}
-                        </>
-                    )}
-            
+                </>
+            )}
+            {activeTab === 'segmentation' && (
+                <>{loadingTrend ? <LoadingSpinner text="Загрузка диаграммы..." /> : <CompetencySegmentation filters={filters_} />}</>
+            )}
+
             <ToastContainer
                 position="bottom-right"
                 autoClose={3000}

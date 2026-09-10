@@ -1,1 +1,5 @@
 # Ignore artifacts:
+.vite
+.git
+node_modules
+dist

@@ -101,55 +101,46 @@ function AdminGeographyView() {
 
     return (
         <div className="AdminGeographyView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: География тестирования"
-                    name="Администратор1"
+            <div className="page-header">
+                <h2>География тестирования</h2>
+                <Button
+                    text={reportLoading ? 'Формирование отчёта...' : '📊 Выгрузить отчёт DOCX'}
+                    onClick={generateReport}
+                    disabled={reportLoading || loading}
+                    palette={ADMIN_PALETTE.GREEN}
                 />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <div className="page-header">
-                        <h2>География тестирования</h2>
-                        <Button
-                            text={reportLoading ? 'Формирование отчёта...' : '📊 Выгрузить отчёт DOCX'}
-                            onClick={generateReport}
-                            disabled={reportLoading || loading}
-                            palette={ADMIN_PALETTE.GREEN}
-                        />
-                    </div>
+            </div>
 
-                    <Slider
-                        values={YEARS}
-                        initValue={selectedYear}
-                        onChange={handleYearChange}
-                        label="Учебный год"
-                        disabled={loading}
-                    />
+            <Slider
+                values={YEARS}
+                initValue={selectedYear}
+                onChange={handleYearChange}
+                label="Учебный год"
+                disabled={loading}
+            />
 
-                    <FlexRow>
-                        <ValueCard
-                            value={totalCenters}
-                            text="Всего центров"
-                        />
-                        <ValueCard
-                            value={regionData.length}
-                            text="Регионов с центрами"
-                        />
-                    </FlexRow>
+            <FlexRow>
+                <ValueCard
+                    value={totalCenters}
+                    text="Всего центров"
+                />
+                <ValueCard
+                    value={regionData.length}
+                    text="Регионов с центрами"
+                />
+            </FlexRow>
 
-                    <TitledCard title="Прохождение тестирования в РФ">
-                        <RussianFederationMap
-                            regionData={regionData}
-                            max={maxValue || 10}
-                            min={0}
-                            loading={loading}
-                            onRegionClick={handleRegionClick}
-                            highlightedRegion="Тюменская область"
-                            title={`Центры компетенций ${selectedYear}`}
-                        />
-                    </TitledCard>
-                </Content>
-            </SidebarLayout>
+            <TitledCard title="Прохождение тестирования в РФ">
+                <RussianFederationMap
+                    regionData={regionData}
+                    max={maxValue || 10}
+                    min={0}
+                    loading={loading}
+                    onRegionClick={handleRegionClick}
+                    highlightedRegion="Тюменская область"
+                    title={`Центры компетенций ${selectedYear}`}
+                />
+            </TitledCard>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

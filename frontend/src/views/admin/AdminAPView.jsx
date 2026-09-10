@@ -203,86 +203,86 @@ function AdminAPView() {
 
     const resetFilters = () => {
         setFilters_({ institute: '', specialty: '', year: '' });
-    }
+    };
 
     return (
         <div className="AdminAPView">
-                    <div className="filters-cont">
-                        <FilterHeader
-                            onFilterChange={updateFilter}
-                            filters={filters}
-                            onResetFilters={resetFilters}
-                        />
+            <div className="filters-cont">
+                <FilterHeader
+                    onFilterChange={updateFilter}
+                    filters={filters}
+                    onResetFilters={resetFilters}
+                />
+            </div>
+            <>
+                {LoadingData ? (
+                    <div className="loading-content">
+                        <LoadingSpinner text="Загрузка..." />
                     </div>
+                ) : (
                     <>
-                        {LoadingData ? (
-                            <div className="loading-content">
-                                <LoadingSpinner text="Загрузка..." />
-                            </div>
-                        ) : (
-                            <>
-                                <FlexRow
-                                    margin="0 0 30 0"
-                                    wrap={WRAP.DO}
-                                >
-                                    <TabButton
-                                        text={'ПИР'}
-                                        onClick={() => setActiveTab('pir')}
-                                        isActive={activeTab === 'pir'}
-                                    />
-                                    <TabButton
-                                        text={'УП'}
-                                        onClick={() => setActiveTab('yp')}
-                                        isActive={activeTab === 'yp'}
-                                    />
-                                    <TabButton
-                                        text={'Экспл. практика'}
-                                        onClick={() => setActiveTab('pract3')}
-                                        isActive={activeTab === 'pract3'}
-                                    />
-                                    <TabButton
-                                        text={'Преддипл. практика'}
-                                        onClick={() => setActiveTab('pract4')}
-                                        isActive={activeTab === 'pract4'}
-                                    />
-                                </FlexRow>
-                                {activeTab === 'pir' && (
-                                    <DisciplineScatterGrid
-                                        data={ScatterData?.data}
-                                        discipline={ScatterData?.names[0] || ''}
-                                    />
-                                )}
-                                {activeTab === 'yp' && (
-                                    <DisciplineScatterGrid
-                                        data={ScatterData?.data}
-                                        discipline={ScatterData?.names[1] || ''}
-                                    />
-                                )}
-                                {activeTab === 'pract3' && (
-                                    <DisciplineScatterGrid
-                                        data={ScatterData?.data}
-                                        discipline={ScatterData?.names[2] || ''}
-                                    />
-                                )}
-                                {activeTab === 'pract4' && (
-                                    <DisciplineScatterGrid
-                                        data={ScatterData?.data}
-                                        discipline={ScatterData?.names[3] || ''}
-                                    />
-                                )}
-                            </>
+                        <FlexRow
+                            margin="0 0 30 0"
+                            wrap={WRAP.DO}
+                        >
+                            <TabButton
+                                text={'ПИР'}
+                                onClick={() => setActiveTab('pir')}
+                                isActive={activeTab === 'pir'}
+                            />
+                            <TabButton
+                                text={'УП'}
+                                onClick={() => setActiveTab('yp')}
+                                isActive={activeTab === 'yp'}
+                            />
+                            <TabButton
+                                text={'Экспл. практика'}
+                                onClick={() => setActiveTab('pract3')}
+                                isActive={activeTab === 'pract3'}
+                            />
+                            <TabButton
+                                text={'Преддипл. практика'}
+                                onClick={() => setActiveTab('pract4')}
+                                isActive={activeTab === 'pract4'}
+                            />
+                        </FlexRow>
+                        {activeTab === 'pir' && (
+                            <DisciplineScatterGrid
+                                data={ScatterData?.data}
+                                discipline={ScatterData?.names[0] || ''}
+                            />
+                        )}
+                        {activeTab === 'yp' && (
+                            <DisciplineScatterGrid
+                                data={ScatterData?.data}
+                                discipline={ScatterData?.names[1] || ''}
+                            />
+                        )}
+                        {activeTab === 'pract3' && (
+                            <DisciplineScatterGrid
+                                data={ScatterData?.data}
+                                discipline={ScatterData?.names[2] || ''}
+                            />
+                        )}
+                        {activeTab === 'pract4' && (
+                            <DisciplineScatterGrid
+                                data={ScatterData?.data}
+                                discipline={ScatterData?.names[3] || ''}
+                            />
                         )}
                     </>
-                    <CorrelationHeatmap
-                        data={correlationData}
-                        loading={loadingCorr}
-                    />
-                    <CorrelationScatter
-                        correlationData={correlationData}
-                        loading={loadingCorr}
-                        filters={filters}
-                    />
-                    <TopCorrelationsTable filters={filters} />
+                )}
+            </>
+            <CorrelationHeatmap
+                data={correlationData}
+                loading={loadingCorr}
+            />
+            <CorrelationScatter
+                correlationData={correlationData}
+                loading={loadingCorr}
+                filters={filters}
+            />
+            <TopCorrelationsTable filters={filters} />
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

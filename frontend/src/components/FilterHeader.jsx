@@ -35,7 +35,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
         getFilterOptions(institute)
             .onSuccess(async res => {
                 if (id !== reqRef.current) return;
-                try { 
+                try {
                     const data = await res.json();
 
                     // если выбранная спец не в новом списке - сброс
@@ -44,7 +44,9 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                     }
                     const newSpecs = data.data.specialties || [];
                     setOptions(prev => ({ ...prev, specialties: newSpecs }));
-                } catch (e) { console.error('Ошибка загрузки опций', e) };
+                } catch (e) {
+                    console.error('Ошибка загрузки опций', e);
+                }
             })
             .onError(() => {
                 if (id === reqRef.current) setLoading(false);
@@ -103,7 +105,10 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 isLoading={loading}
             />
 
-            <TabButton text={ 'Сбросить' } onClick={onResetFilters}/>
+            <TabButton
+                text={'Сбросить'}
+                onClick={onResetFilters}
+            />
         </div>
     );
 }

@@ -412,24 +412,22 @@ function AdminStudentView() {
 
     return (
         <div className="AdminStudentView">
-                    <h2>Цифровой портрет студента</h2>
+            <h2>Цифровой портрет студента</h2>
 
-                    <StudentSearch onSelectStudent={setSelectedStudentId} />
+            <StudentSearch onSelectStudent={setSelectedStudentId} />
 
-                    {loading && <LoadingSpinner text="Загрузка портрета студента..." />}
+            {loading && <LoadingSpinner text="Загрузка портрета студента..." />}
 
-                    {!loading && studentPortrait && (
-                        <FlexColumn gap="24">
-                            <StudentInfoCard student={studentPortrait.student_info} />
-                            <TestResultsCard Results={studentPortrait.test_results} />
-                            <AcademicPerformanceCard grades={studentPortrait.academic_performance} />
-                            <CoursesCard courses={studentPortrait.courses} />
-                        </FlexColumn>
-                    )}
+            {!loading && studentPortrait && (
+                <FlexColumn gap="24">
+                    <StudentInfoCard student={studentPortrait.student_info} />
+                    <TestResultsCard Results={studentPortrait.test_results} />
+                    <AcademicPerformanceCard grades={studentPortrait.academic_performance} />
+                    <CoursesCard courses={studentPortrait.courses} />
+                </FlexColumn>
+            )}
 
-                    {!loading && !studentPortrait && selectedStudentId && (
-                        <div className="no-data-large">Не удалось загрузить данные студента</div>
-                    )}
+            {!loading && !studentPortrait && selectedStudentId && <div className="no-data-large">Не удалось загрузить данные студента</div>}
             <ToastContainer
                 position="bottom-right"
                 autoClose={3000}

@@ -5,3 +5,4 @@ node_modules/
 .env
 backend/src/portrait/management/__init__.py
 backend/src/portrait/management/commands/__init__.py
+.vite

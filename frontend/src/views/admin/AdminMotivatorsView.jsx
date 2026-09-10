@@ -620,7 +620,9 @@ function AdminMotivatorsView() {
         getMotivationCounts(currentFilters.institute, currentFilters.specialty, currentFilters.year)
             .onSuccess(async response => {
                 const data = await response.json();
-                if (data.status !== "success") { throw new Error(data?.message); }
+                if (data.status !== 'success') {
+                    throw new Error(data?.message);
+                }
                 setMotivationData(data);
             })
             .onError(err => {
@@ -654,29 +656,29 @@ function AdminMotivatorsView() {
 
     const resetFilters = () => {
         setFilters({ institute: '', specialty: '', year: '' });
-    }
+    };
     return (
         <div className="AdminMotivatorView">
             <div className="filters-cont">
-                        <FilterHeader
-                            onFilterChange={updateFilter}
-                            filters={filters}
-                            onResetFilters={resetFilters}
-                        />
-                    </div>
-                    {loadingMotDash ? (
-                        <div className="loading-content">
-                            <LoadingSpinner text="Загрузка диаграммы..." />
-                        </div>
-                    ) : (
-                        <>
-                            <MotivatorCharts
-                                chart_data={MotivationData?.data}
-                                currentFilters={filters}
-                            />
-                            <MotivatorStatistics filters={filters} />
-                        </>
-                    )}
+                <FilterHeader
+                    onFilterChange={updateFilter}
+                    filters={filters}
+                    onResetFilters={resetFilters}
+                />
+            </div>
+            {loadingMotDash ? (
+                <div className="loading-content">
+                    <LoadingSpinner text="Загрузка диаграммы..." />
+                </div>
+            ) : (
+                <>
+                    <MotivatorCharts
+                        chart_data={MotivationData?.data}
+                        currentFilters={filters}
+                    />
+                    <MotivatorStatistics filters={filters} />
+                </>
+            )}
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

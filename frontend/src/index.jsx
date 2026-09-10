@@ -34,117 +34,119 @@ import { SidebarLayout } from '@components/SidebarLayout';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 
-const router = createBrowserRouter([{
-    element: < SidebarLayout />,
-    children: [
-        {
-            path: '/', // should be excluded
-            element: <App />,
-            errorElement: <ErrorView />
-        },
+const router = createBrowserRouter([
+    {
+        element: <SidebarLayout />,
+        children: [
+            {
+                path: '/', // should be excluded
+                element: <App />,
+                errorElement: <ErrorView />
+            },
 
-        /* STUDENT VIEWS */
+            /* STUDENT VIEWS */
 
-        {
-            path: '/student/:studentId',
-            element: <StudentMainView />
-        },
-        {
-            path: '/student/:studentId/report/:reportType',
-            element: <StudentReportView />
-        },
+            {
+                path: '/student/:studentId',
+                element: <StudentMainView />
+            },
+            {
+                path: '/student/:studentId/report/:reportType',
+                element: <StudentReportView />
+            },
 
-        /* ADMIN VIEWS */
+            /* ADMIN VIEWS */
 
-        /*{
+            /*{
         path: "/admin/",
         element: <AdminMainView />
     },*/
-        {
-            path: '/admin/geography',
-            element: <AdminGeographyView />
-        },
-        {
-            path: '/admin/help',
-            element: <AdminHelpView />
-        },
-        {
-            path: '/admin/stats',
-            element: <AdminStatsView />
-        },
-        {
-            path: '/admin/results',
-            element: <AdminResultsView />
-        },
-        {
-            path: '/admin/analysis/disciplines',
-            element: <AdminAnalysisDisciplinesView />
-        },
-        {
-            path: '/admin/analysis/advanced',
-            element: <AdminAnalysisAdvancedView />
-        },
-        {
-            path: '/admin/analysis/ai-analytics',
-            element: <AdminAiAnalyticsView />
-        },
-        {
-            path: '/admin/analysis/edu-profiles',
-            element: <AdminAnalysisEduProfilesView />
-        },
-        {
-            path: '/admin/analysis/transfered-students',
-            element: <AdminTransferAnalysisView />
-        },
-        {
-            path: '/admin/analysis/dublicate-accounts',
-            element: <AdminDuplicateAccountsChecker />
-        },
-        {
-            path: '/admin/analysis/anomalous-students',
-            element: <AdminAnomalousStudentView />
-        },
-        {
-            path: '/admin/courses',
-            element: <AdminCoursesView />
-        },
-        {
-            path: '/admin/grouping',
-            element: <AdminGroupingView />
-        },
-        {
-            path: '/admin/competences',
-            element: <AdminCompetencesView />
-        },
-        {
-            path: '/admin/motivators',
-            element: <AdminMotivatorsView />
-        },
-        {
-            path: '/admin/AP',
-            element: <AdminAPView />
-        },
-        {
-            path: '/admin/student/',
-            element: <AdminStudentView />
-        },
+            {
+                path: '/admin/geography',
+                element: <AdminGeographyView />
+            },
+            {
+                path: '/admin/help',
+                element: <AdminHelpView />
+            },
+            {
+                path: '/admin/stats',
+                element: <AdminStatsView />
+            },
+            {
+                path: '/admin/results',
+                element: <AdminResultsView />
+            },
+            {
+                path: '/admin/analysis/disciplines',
+                element: <AdminAnalysisDisciplinesView />
+            },
+            {
+                path: '/admin/analysis/advanced',
+                element: <AdminAnalysisAdvancedView />
+            },
+            {
+                path: '/admin/analysis/ai-analytics',
+                element: <AdminAiAnalyticsView />
+            },
+            {
+                path: '/admin/analysis/edu-profiles',
+                element: <AdminAnalysisEduProfilesView />
+            },
+            {
+                path: '/admin/analysis/transfered-students',
+                element: <AdminTransferAnalysisView />
+            },
+            {
+                path: '/admin/analysis/dublicate-accounts',
+                element: <AdminDuplicateAccountsChecker />
+            },
+            {
+                path: '/admin/analysis/anomalous-students',
+                element: <AdminAnomalousStudentView />
+            },
+            {
+                path: '/admin/courses',
+                element: <AdminCoursesView />
+            },
+            {
+                path: '/admin/grouping',
+                element: <AdminGroupingView />
+            },
+            {
+                path: '/admin/competences',
+                element: <AdminCompetencesView />
+            },
+            {
+                path: '/admin/motivators',
+                element: <AdminMotivatorsView />
+            },
+            {
+                path: '/admin/AP',
+                element: <AdminAPView />
+            },
+            {
+                path: '/admin/student/',
+                element: <AdminStudentView />
+            },
 
-        /* SUPERADMIN VIEWS */
+            /* SUPERADMIN VIEWS */
 
-        {
-            path: '/super/audit',
-            element: <SuperAuditView />
-        },
-        {
-            path: '/super/upload',
-            element: <SuperUploadView />
-        },
-        {
-            path: '/super/sql',
-            element: <SuperSqlView />
-        }
-    ]
-}]);
+            {
+                path: '/super/audit',
+                element: <SuperAuditView />
+            },
+            {
+                path: '/super/upload',
+                element: <SuperUploadView />
+            },
+            {
+                path: '/super/sql',
+                element: <SuperSqlView />
+            }
+        ]
+    }
+]);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
