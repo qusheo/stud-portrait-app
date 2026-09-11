@@ -132,89 +132,80 @@ const AdminDuplicateAccountsChecker = () => {
 
     return (
         <div className="AdminDuplicateAccountsChecker">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Проверка дублирующихся аккаунтов"
-                    name="Администратор"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <LoadingSpinner
-                        loading={loading}
-                        text="Поиск дублирующихся аккаунтов..."
-                    />
+            <LoadingSpinner
+                loading={loading}
+                text="Поиск дублирующихся аккаунтов..."
+            />
 
-                    {!loading && (
-                        <>
-                            <FlexRow
-                                wrap={WRAP.DO}
-                                gap="12"
-                                margin="16 0"
-                            >
-                                <ValueCard
-                                    title="Точных дублей (по email)"
-                                    value={data?.length || 0}
-                                    tooltip="Студенты, у которых один email привязан к нескольким rsv_id"
-                                />
-                                <ValueCard
-                                    title="Лишних аккаунтов"
-                                    value={totalExactExtra}
-                                    tooltip="Суммарное количество лишних аккаунтов среди точных дублей"
-                                />
-                                <ValueCard
-                                    title="Возможных дублей"
-                                    value={totalPossible}
-                                    tooltip="Студенты с одинаковым ФИО и полом, но разными email"
-                                />
-                            </FlexRow>
+            {!loading && (
+                <>
+                    <FlexRow
+                        wrap={WRAP.DO}
+                        gap="12"
+                        margin="16 0"
+                    >
+                        <ValueCard
+                            title="Точных дублей (по email)"
+                            value={data?.length || 0}
+                            tooltip="Студенты, у которых один email привязан к нескольким rsv_id"
+                        />
+                        <ValueCard
+                            title="Лишних аккаунтов"
+                            value={totalExactExtra}
+                            tooltip="Суммарное количество лишних аккаунтов среди точных дублей"
+                        />
+                        <ValueCard
+                            title="Возможных дублей"
+                            value={totalPossible}
+                            tooltip="Студенты с одинаковым ФИО и полом, но разными email"
+                        />
+                    </FlexRow>
 
-                            {/* ── Точные дубли ── */}
-                            <h2>Точные дубли (один email → несколько аккаунтов)</h2>
-                            <p className="page-description">Один и тот же email привязан к разным rsv_id.</p>
-                            {data && data.length === 0 && <NoData text="✅ Точных дублей не найдено." />}
-                            <div className="duplicate-students-list">
-                                {data?.map(student => (
-                                    <StudentCard
-                                        key={student.email}
-                                        student={student}
-                                        emailKey={student.email}
-                                        expandedStudent={expandedStudent}
-                                        toggleStudent={toggleStudent}
-                                    />
-                                ))}
-                            </div>
+                    {/* ── Точные дубли ── */}
+                    <h2>Точные дубли (один email → несколько аккаунтов)</h2>
+                    <p className="page-description">Один и тот же email привязан к разным rsv_id.</p>
+                    {data && data.length === 0 && <NoData text="✅ Точных дублей не найдено." />}
+                    <div className="duplicate-students-list">
+                        {data?.map(student => (
+                            <StudentCard
+                                key={student.email}
+                                student={student}
+                                emailKey={student.email}
+                                expandedStudent={expandedStudent}
+                                toggleStudent={toggleStudent}
+                            />
+                        ))}
+                    </div>
 
-                            {/* ── Возможные дубли ── */}
-                            <h2 className="section-title-possible">⚠️ Возможные дубли (совпадение ФИО + пол, разные email)</h2>
-                            <p className="page-description">
-                                Эти студенты имеют одинаковое ФИО и пол, но разные email или аккаунты. Возможно, один человек — но могут
-                                быть и полные однофамильцы.
-                            </p>
-                            {possibleData && possibleData.length === 0 && <NoData text="✅ Возможных дублей не найдено." />}
-                            <div className="duplicate-students-list">
-                                {possibleData?.map(student => (
-                                    <StudentCard
-                                        key={student.student_name + student.gender}
-                                        student={student}
-                                        emailKey={null}
-                                        expandedStudent={expandedStudent}
-                                        toggleStudent={toggleStudent}
-                                    />
-                                ))}
-                            </div>
+                    {/* ── Возможные дубли ── */}
+                    <h2 className="section-title-possible">⚠️ Возможные дубли (совпадение ФИО + пол, разные email)</h2>
+                    <p className="page-description">
+                        Эти студенты имеют одинаковое ФИО и пол, но разные email или аккаунты. Возможно, один человек — но могут быть и
+                        полные однофамильцы.
+                    </p>
+                    {possibleData && possibleData.length === 0 && <NoData text="✅ Возможных дублей не найдено." />}
+                    <div className="duplicate-students-list">
+                        {possibleData?.map(student => (
+                            <StudentCard
+                                key={student.student_name + student.gender}
+                                student={student}
+                                emailKey={null}
+                                expandedStudent={expandedStudent}
+                                toggleStudent={toggleStudent}
+                            />
+                        ))}
+                    </div>
 
-                            <div className="duplicate-actions">
-                                <Button
-                                    text="Обновить"
-                                    onClick={fetchData}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.BLUE}
-                                />
-                            </div>
-                        </>
-                    )}
-                </Content>
-            </SidebarLayout>
+                    <div className="duplicate-actions">
+                        <Button
+                            text="Обновить"
+                            onClick={fetchData}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.BLUE}
+                        />
+                    </div>
+                </>
+            )}
         </div>
     );
 };

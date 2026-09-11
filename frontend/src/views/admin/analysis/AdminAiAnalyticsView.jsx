@@ -101,123 +101,111 @@ function AdminAiAnalyticsView() {
 
     return (
         <div className="AdminAiAnalyticsView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: AI-аналитика"
-                    name="Администратор"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <h2>Интеллектуальная аналитика</h2>
-                    <p>
-                        Выберите тип анализа и фильтры, затем нажмите "Сгенерировать отчёт". ИИ проанализирует данные и выдаст краткие
-                        выводы.
-                    </p>
+            <h2>Интеллектуальная аналитика</h2>
+            <p>Выберите тип анализа и фильтры, затем нажмите "Сгенерировать отчёт". ИИ проанализирует данные и выдаст краткие выводы.</p>
 
-                    <div
-                        className="filters-panel"
-                        style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 15, alignItems: 'end' }}
+            <div
+                className="filters-panel"
+                style={{ marginBottom: 20, display: 'flex', flexWrap: 'wrap', gap: 15, alignItems: 'end' }}
+            >
+                <div style={{ minWidth: 200 }}>
+                    <label>Тип анализа:</label>
+                    <Select
+                        initValue={analysisType}
+                        onChange={setAnalysisType}
                     >
-                        <div style={{ minWidth: 200 }}>
-                            <label>Тип анализа:</label>
-                            <Select
-                                initValue={analysisType}
-                                onChange={setAnalysisType}
-                            >
-                                <Option
-                                    value="general"
-                                    label="Общая сводка"
-                                />
-                                <Option
-                                    value="institution_comparison"
-                                    label="Сравнение вузов"
-                                />
-                                <Option
-                                    value="discipline_impact"
-                                    label="Влияние дисциплин"
-                                />
-                                <Option
-                                    value="vam_trend"
-                                    label="Динамика по курсам (VAM)"
-                                />
-                            </Select>
-                        </div>
-
-                        <MultiSelect
-                            options={filterOptions.institutions}
-                            value={selectedInstitutions}
-                            onChange={setSelectedInstitutions}
-                            placeholder="Все вузы"
-                            label="Вузы"
-                            withSearch
-                            showCounts
+                        <Option
+                            value="general"
+                            label="Общая сводка"
                         />
-
-                        <MultiSelect
-                            options={filterOptions.directions}
-                            value={selectedDirections}
-                            onChange={setSelectedDirections}
-                            placeholder="Все направления"
-                            label="Направления"
-                            withSearch
-                            showCounts
+                        <Option
+                            value="institution_comparison"
+                            label="Сравнение вузов"
                         />
-
-                        <MultiSelect
-                            options={filterOptions.courses}
-                            value={selectedCourses}
-                            onChange={setSelectedCourses}
-                            placeholder="Все курсы"
-                            label="Курсы"
-                            showCounts
+                        <Option
+                            value="discipline_impact"
+                            label="Влияние дисциплин"
                         />
-
-                        <div style={{ minWidth: 200 }}>
-                            <label>Компетенция:</label>
-                            <Select
-                                initValue={selectedCompetency}
-                                onChange={setSelectedCompetency}
-                            >
-                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                    <Option
-                                        key={key}
-                                        value={key}
-                                        label={name}
-                                    />
-                                ))}
-                            </Select>
-                        </div>
-
-                        <Button
-                            text={generating ? 'Генерация...' : 'Сгенерировать отчёт'}
-                            onClick={generateReport}
-                            disabled={generating || loading}
-                            palette={ADMIN_PALETTE.CYAN}
+                        <Option
+                            value="vam_trend"
+                            label="Динамика по курсам (VAM)"
                         />
-                    </div>
+                    </Select>
+                </div>
 
-                    <LoadingSpinner
-                        loading={loading || generating}
-                        text="Загрузка..."
-                    />
+                <MultiSelect
+                    options={filterOptions.institutions}
+                    value={selectedInstitutions}
+                    onChange={setSelectedInstitutions}
+                    placeholder="Все вузы"
+                    label="Вузы"
+                    withSearch
+                    showCounts
+                />
 
-                    {summary && (
-                        <div
-                            className="ai-summary"
-                            style={{ marginTop: 20, padding: 20, background: '#f8f9fa', borderRadius: 12, borderLeft: '4px solid #1976d2' }}
-                        >
-                            <h3>📊 Аналитический отчёт</h3>
-                            <div style={{ whiteSpace: 'pre-wrap', fontSize: '1rem', lineHeight: 1.5 }}>{summary}</div>
-                            <Button
-                                text="Копировать текст"
-                                onClick={() => navigator.clipboard.writeText(summary)}
-                                palette={ADMIN_PALETTE.GRAY}
-                                style={{ marginTop: 15 }}
+                <MultiSelect
+                    options={filterOptions.directions}
+                    value={selectedDirections}
+                    onChange={setSelectedDirections}
+                    placeholder="Все направления"
+                    label="Направления"
+                    withSearch
+                    showCounts
+                />
+
+                <MultiSelect
+                    options={filterOptions.courses}
+                    value={selectedCourses}
+                    onChange={setSelectedCourses}
+                    placeholder="Все курсы"
+                    label="Курсы"
+                    showCounts
+                />
+
+                <div style={{ minWidth: 200 }}>
+                    <label>Компетенция:</label>
+                    <Select
+                        initValue={selectedCompetency}
+                        onChange={setSelectedCompetency}
+                    >
+                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                            <Option
+                                key={key}
+                                value={key}
+                                label={name}
                             />
-                        </div>
-                    )}
-                </Content>
-            </SidebarLayout>
+                        ))}
+                    </Select>
+                </div>
+
+                <Button
+                    text={generating ? 'Генерация...' : 'Сгенерировать отчёт'}
+                    onClick={generateReport}
+                    disabled={generating || loading}
+                    palette={ADMIN_PALETTE.CYAN}
+                />
+            </div>
+
+            <LoadingSpinner
+                loading={loading || generating}
+                text="Загрузка..."
+            />
+
+            {summary && (
+                <div
+                    className="ai-summary"
+                    style={{ marginTop: 20, padding: 20, background: '#f8f9fa', borderRadius: 12, borderLeft: '4px solid #1976d2' }}
+                >
+                    <h3>📊 Аналитический отчёт</h3>
+                    <div style={{ whiteSpace: 'pre-wrap', fontSize: '1rem', lineHeight: 1.5 }}>{summary}</div>
+                    <Button
+                        text="Копировать текст"
+                        onClick={() => navigator.clipboard.writeText(summary)}
+                        palette={ADMIN_PALETTE.GRAY}
+                        style={{ marginTop: 15 }}
+                    />
+                </div>
+            )}
         </div>
     );
 }

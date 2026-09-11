@@ -589,147 +589,137 @@ function AdminAnalysisDisciplinesView() {
 
     return (
         <div className="AdminAnalysisDisciplinesView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Анализ данных"
-                    name="Администратор"
+            <h2>Анализ влияния дисциплин на компетенции</h2>
+
+            <div className="analysis-controls">
+                <MultiSelect
+                    options={filterOptions.disciplines || []}
+                    value={selectedDisciplines}
+                    onChange={setSelectedDisciplines}
+                    placeholder="Все дисциплины"
+                    searchPlaceholder="Поиск дисциплин..."
+                    label="Выберите дисциплины"
+                    showCounts
                 />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <h2>Анализ влияния дисциплин на компетенции</h2>
 
-                    <div className="analysis-controls">
-                        <MultiSelect
-                            options={filterOptions.disciplines || []}
-                            value={selectedDisciplines}
-                            onChange={setSelectedDisciplines}
-                            placeholder="Все дисциплины"
-                            searchPlaceholder="Поиск дисциплин..."
-                            label="Выберите дисциплины"
-                            showCounts
-                        />
+                <FlexRow>
+                    <Button
+                        text="Анализ влияния"
+                        onClick={loadDisciplineImpact}
+                        disabled={loading}
+                        palette={ADMIN_PALETTE.BLUE}
+                    />
+                    <Button
+                        text="Тепловая карта"
+                        onClick={loadHeatmapData}
+                        disabled={loading}
+                        palette={ADMIN_PALETTE.BROWN}
+                    />
+                    <Button
+                        text="Все дисциплины"
+                        onClick={loadAllDisciplinesImpact}
+                        disabled={loading}
+                        palette={ADMIN_PALETTE.GREEN}
+                    />
+                    <Button
+                        text="Санки влияния"
+                        onClick={showImpactSankey}
+                        disabled={!heatmapData || loading}
+                        palette={ADMIN_PALETTE.PURPLE}
+                        title={
+                            selectedHeatmapDir !== '__all__' && selectedHeatmapDir !== '__each__'
+                                ? `Санки по направлению: ${selectedHeatmapDir}`
+                                : 'Санки по всем направлениям'
+                        }
+                    />
+                </FlexRow>
+            </div>
 
-                        <FlexRow>
+            <LoadingSpinner
+                loading={loading}
+                text="Загрузка анализа дисциплин..."
+            />
+
+            {!loading && (disciplineData || heatmapData || allDisciplinesData) && (
+                <>
+                    <FlexRow>
+                        {disciplineData && (
                             <Button
-                                text="Анализ влияния"
-                                onClick={loadDisciplineImpact}
-                                disabled={loading}
-                                palette={ADMIN_PALETTE.BLUE}
+                                text="Влияние дисциплин"
+                                onClick={() => setActiveTab('impact')}
+                                palette={activeTab === 'impact' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
                             />
+                        )}
+                        {heatmapData && (
                             <Button
                                 text="Тепловая карта"
-                                onClick={loadHeatmapData}
-                                disabled={loading}
-                                palette={ADMIN_PALETTE.BROWN}
+                                onClick={() => setActiveTab('heatmap')}
+                                palette={activeTab === 'heatmap' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
                             />
+                        )}
+                        {allDisciplinesData && (
                             <Button
-                                text="Все дисциплины"
-                                onClick={loadAllDisciplinesImpact}
-                                disabled={loading}
-                                palette={ADMIN_PALETTE.GREEN}
+                                text="Комплексный анализ"
+                                onClick={() => setActiveTab('all')}
+                                palette={activeTab === 'all' ? ADMIN_PALETTE.GREEN : ADMIN_PALETTE.GRAY}
                             />
+                        )}
+                        {sankeyImpactData && (
                             <Button
                                 text="Санки влияния"
-                                onClick={showImpactSankey}
-                                disabled={!heatmapData || loading}
-                                palette={ADMIN_PALETTE.PURPLE}
-                                title={
-                                    selectedHeatmapDir !== '__all__' && selectedHeatmapDir !== '__each__'
-                                        ? `Санки по направлению: ${selectedHeatmapDir}`
-                                        : 'Санки по всем направлениям'
-                                }
+                                onClick={() => setActiveTab('sankey')}
+                                palette={activeTab === 'sankey' ? ADMIN_PALETTE.PURPLE : ADMIN_PALETTE.GRAY}
                             />
-                        </FlexRow>
+                        )}
+                    </FlexRow>
+
+                    <div className="tab-content">
+                        {activeTab === 'impact' && renderDisciplineImpact()}
+                        {activeTab === 'heatmap' && renderHeatmap()}
+                        {activeTab === 'all' && renderAllDisciplinesImpact()}
+                        {activeTab === 'sankey' && sankeyImpactData && (
+                            <>
+                                <SankeyDiagram
+                                    data={sankeyImpactData}
+                                    title={`Влияние дисциплин на компетенции${selectedHeatmapDir !== '__all__' ? ` — ${selectedHeatmapDir}` : ''}`}
+                                    height={500}
+                                />
+                                <details
+                                    style={{
+                                        marginTop: 16,
+                                        background: '#f8f9fa',
+                                        borderRadius: 6,
+                                        padding: '10px 14px',
+                                        border: '1px solid #e9ecef'
+                                    }}
+                                >
+                                    <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#2c3e50' }}>
+                                        📖 Что показывает эта диаграмма?
+                                    </summary>
+                                    <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.5 }}>
+                                        <p>
+                                            <strong>Диаграмма Санки</strong> отображает влияние дисциплин на развитие компетенций.
+                                        </p>
+                                        <p>
+                                            🔵 <strong>Левые узлы</strong> — дисциплины, <strong>правые узлы</strong> — компетенции.
+                                        </p>
+                                        <p>
+                                            📊 <strong>Толщина потока</strong> пропорциональна величине эффекта (Cohen's d). Чем толще
+                                            линия, тем сильнее дисциплина влияет на компетенцию.
+                                        </p>
+                                        <p>
+                                            🎨 <strong>Цвет узлов</strong>: дисциплины — синий, компетенции — оранжевый.
+                                        </p>
+                                        <p>
+                                            💡 <strong>Совет:</strong> Наведите курсор на поток, чтобы увидеть точное значение Effect Size.
+                                        </p>
+                                    </div>
+                                </details>
+                            </>
+                        )}
                     </div>
-
-                    <LoadingSpinner
-                        loading={loading}
-                        text="Загрузка анализа дисциплин..."
-                    />
-
-                    {!loading && (disciplineData || heatmapData || allDisciplinesData) && (
-                        <>
-                            <FlexRow>
-                                {disciplineData && (
-                                    <Button
-                                        text="Влияние дисциплин"
-                                        onClick={() => setActiveTab('impact')}
-                                        palette={activeTab === 'impact' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
-                                    />
-                                )}
-                                {heatmapData && (
-                                    <Button
-                                        text="Тепловая карта"
-                                        onClick={() => setActiveTab('heatmap')}
-                                        palette={activeTab === 'heatmap' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
-                                    />
-                                )}
-                                {allDisciplinesData && (
-                                    <Button
-                                        text="Комплексный анализ"
-                                        onClick={() => setActiveTab('all')}
-                                        palette={activeTab === 'all' ? ADMIN_PALETTE.GREEN : ADMIN_PALETTE.GRAY}
-                                    />
-                                )}
-                                {sankeyImpactData && (
-                                    <Button
-                                        text="Санки влияния"
-                                        onClick={() => setActiveTab('sankey')}
-                                        palette={activeTab === 'sankey' ? ADMIN_PALETTE.PURPLE : ADMIN_PALETTE.GRAY}
-                                    />
-                                )}
-                            </FlexRow>
-
-                            <div className="tab-content">
-                                {activeTab === 'impact' && renderDisciplineImpact()}
-                                {activeTab === 'heatmap' && renderHeatmap()}
-                                {activeTab === 'all' && renderAllDisciplinesImpact()}
-                                {activeTab === 'sankey' && sankeyImpactData && (
-                                    <>
-                                        <SankeyDiagram
-                                            data={sankeyImpactData}
-                                            title={`Влияние дисциплин на компетенции${selectedHeatmapDir !== '__all__' ? ` — ${selectedHeatmapDir}` : ''}`}
-                                            height={500}
-                                        />
-                                        <details
-                                            style={{
-                                                marginTop: 16,
-                                                background: '#f8f9fa',
-                                                borderRadius: 6,
-                                                padding: '10px 14px',
-                                                border: '1px solid #e9ecef'
-                                            }}
-                                        >
-                                            <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#2c3e50' }}>
-                                                📖 Что показывает эта диаграмма?
-                                            </summary>
-                                            <div style={{ marginTop: 8, fontSize: 13, lineHeight: 1.5 }}>
-                                                <p>
-                                                    <strong>Диаграмма Санки</strong> отображает влияние дисциплин на развитие компетенций.
-                                                </p>
-                                                <p>
-                                                    🔵 <strong>Левые узлы</strong> — дисциплины, <strong>правые узлы</strong> — компетенции.
-                                                </p>
-                                                <p>
-                                                    📊 <strong>Толщина потока</strong> пропорциональна величине эффекта (Cohen's d). Чем
-                                                    толще линия, тем сильнее дисциплина влияет на компетенцию.
-                                                </p>
-                                                <p>
-                                                    🎨 <strong>Цвет узлов</strong>: дисциплины — синий, компетенции — оранжевый.
-                                                </p>
-                                                <p>
-                                                    💡 <strong>Совет:</strong> Наведите курсор на поток, чтобы увидеть точное значение
-                                                    Effect Size.
-                                                </p>
-                                            </div>
-                                        </details>
-                                    </>
-                                )}
-                            </div>
-                        </>
-                    )}
-                </Content>
-            </SidebarLayout>
+                </>
+            )}
         </div>
     );
 }

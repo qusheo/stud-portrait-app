@@ -1,5 +1,3 @@
-@use 'palette';
-
 .Button {
     padding: 8px 16px !important;
     border-radius: 4px;
@@ -10,5 +8,39 @@
     font-size: 14px !important;
     font-weight: 500 !important;
 
-    @include palette.paletted-activable();
+    &-cancel {
+        background-color: rgb(201, 67, 67);
+        color: beige;
+        border: solid 1px rgb(148, 48, 48);
+        box-shadow:
+            inset 0 1px #fff3,
+            0 1px 2px #0000000d;
+    }
+    &-common {
+        background-color: rgba(195, 206, 222, 0.532);
+        color: rgb(69, 69, 74);
+        border: solid 1px rgb(178, 185, 212);
+        box-shadow:
+            inset 1px 0px 0px 1px rgba(29, 38, 206, 0.2),
+            0 1px 2px #2187af0d;
+    }
+    &-accept {
+        background-color: rgb(108, 164, 132);
+        color: rgb(51, 72, 64);
+        border: solid 1px rgb(93, 142, 114);
+        box-shadow:
+            inset 0 1px #fff3,
+            0 1px 2px #0000000d;
+    }
+    &-blue {
+        color: rgb(30, 49, 81);
+        background-color: rgb(173, 194, 248);
+        border: solid 1px rgba(96, 120, 185, 0.8);
+        box-shadow:
+            inset 0 1px #fff3,
+            0 1px 2px #0000000d;
+    }
+}
+button:hover {
+    filter: brightness(95%);
 }

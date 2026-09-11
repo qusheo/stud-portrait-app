@@ -146,16 +146,7 @@ function AdminCoursesView() {
     if (loading) {
         return (
             <div className="AdminCoursesView">
-                <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                    <Header
-                        title="Админ: Образовательные курсы"
-                        name="Администратор1"
-                    />
-                    <Sidebar linkTree={LINK_TREE} />
-                    <Content>
-                        <LoadingSpinner text="Загрузка данных по курсам..." />
-                    </Content>
-                </SidebarLayout>
+                <LoadingSpinner text="Загрузка данных по курсам..." />
             </div>
         );
     }

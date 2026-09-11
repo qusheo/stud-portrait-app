@@ -313,230 +313,219 @@ function AdminTransferAnalysisView() {
     // ── Render ────────────────────────────────────────────
     return (
         <div className="AdminTransferAnalysisView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Анализ переводов"
-                    name="Администратор"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <h2>Анализ студентов, сменивших вуз или направление</h2>
-                    <p className="page-description">
-                        Анализирует как меняются компетенции у студентов после перевода. Диаграмма Санки показывает потоки между парами «вуз
-                        / направление».
-                    </p>
+            <h2>Анализ студентов, сменивших вуз или направление</h2>
+            <p className="page-description">
+                Анализирует как меняются компетенции у студентов после перевода. Диаграмма Санки показывает потоки между парами «вуз /
+                направление».
+            </p>
 
-                    {/* ── Фильтры ── */}
-                    <div className="filters-bar">
-                        <LabelledBox
-                            label="Вуз:"
-                            inrow
-                            nopad
-                        >
-                            <Select
-                                initValue=""
-                                onChange={setSelectedInst}
-                            >
-                                <Option
-                                    value=""
-                                    label="Все вузы"
-                                />
-                                {institutions.map(i => (
-                                    <Option
-                                        key={i.inst_id}
-                                        value={String(i.inst_id)}
-                                        label={i.inst_name}
-                                    />
-                                ))}
-                            </Select>
-                        </LabelledBox>
-
-                        <LabelledBox
-                            label="Компетенция:"
-                            inrow
-                            nopad
-                        >
-                            <Select
-                                initValue={selectedComp}
-                                onChange={setSelectedComp}
-                            >
-                                {Object.entries(COMPETENCIES_NAMES).map(([k, name]) => (
-                                    <Option
-                                        key={k}
-                                        value={k}
-                                        label={name}
-                                    />
-                                ))}
-                            </Select>
-                        </LabelledBox>
-
-                        <LabelledBox
-                            label="Тип перевода:"
-                            inrow
-                            nopad
-                        >
-                            <Select
-                                initValue=""
-                                onChange={setSelectedType}
-                            >
-                                <Option
-                                    value=""
-                                    label="Все типы"
-                                />
-                                <Option
-                                    value="institution"
-                                    label="Смена вуза"
-                                />
-                                <Option
-                                    value="direction"
-                                    label="Смена направления"
-                                />
-                                <Option
-                                    value="both"
-                                    label="Смена вуза и направления"
-                                />
-                            </Select>
-                        </LabelledBox>
-
-                        <Button
-                            text={loading ? 'Анализ...' : 'Запустить анализ'}
-                            onClick={runAnalysis}
-                            disabled={loading}
-                            palette={ADMIN_PALETTE.CYAN}
+            {/* ── Фильтры ── */}
+            <div className="filters-bar">
+                <LabelledBox
+                    label="Вуз:"
+                    inrow
+                    nopad
+                >
+                    <Select
+                        initValue=""
+                        onChange={setSelectedInst}
+                    >
+                        <Option
+                            value=""
+                            label="Все вузы"
                         />
+                        {institutions.map(i => (
+                            <Option
+                                key={i.inst_id}
+                                value={String(i.inst_id)}
+                                label={i.inst_name}
+                            />
+                        ))}
+                    </Select>
+                </LabelledBox>
+
+                <LabelledBox
+                    label="Компетенция:"
+                    inrow
+                    nopad
+                >
+                    <Select
+                        initValue={selectedComp}
+                        onChange={setSelectedComp}
+                    >
+                        {Object.entries(COMPETENCIES_NAMES).map(([k, name]) => (
+                            <Option
+                                key={k}
+                                value={k}
+                                label={name}
+                            />
+                        ))}
+                    </Select>
+                </LabelledBox>
+
+                <LabelledBox
+                    label="Тип перевода:"
+                    inrow
+                    nopad
+                >
+                    <Select
+                        initValue=""
+                        onChange={setSelectedType}
+                    >
+                        <Option
+                            value=""
+                            label="Все типы"
+                        />
+                        <Option
+                            value="institution"
+                            label="Смена вуза"
+                        />
+                        <Option
+                            value="direction"
+                            label="Смена направления"
+                        />
+                        <Option
+                            value="both"
+                            label="Смена вуза и направления"
+                        />
+                    </Select>
+                </LabelledBox>
+
+                <Button
+                    text={loading ? 'Анализ...' : 'Запустить анализ'}
+                    onClick={runAnalysis}
+                    disabled={loading}
+                    palette={ADMIN_PALETTE.CYAN}
+                />
+            </div>
+
+            <LoadingSpinner
+                loading={loading}
+                text="Поиск студентов с переводами..."
+            />
+
+            {/* ── Сводка ── */}
+            {summary && (
+                <FlexRow
+                    wrap={WRAP.DO}
+                    gap="12"
+                    margin="16 0"
+                >
+                    {/* Студентов с переводами */}
+                    <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                        <ValueCard
+                            title="Студентов с переводами"
+                            value={summary.total_transfer_students}
+                            tooltip="Уникальные студенты, у которых зафиксирован хотя бы один перевод (смена вуза, направления или оба)"
+                        />
+                        <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
+                            Уникальных студентов
+                        </div>
                     </div>
 
+                    {/* Смен вуза */}
+                    <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                        <ValueCard
+                            title="Смен вуза"
+                            value={(byType.institution || 0) + (byType.both || 0)}
+                            tooltip="Суммарное количество событий, где студент сменил вуз (включая одновременную смену направления)"
+                        />
+                        <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>Переводов по ВУЗам</div>
+                    </div>
+
+                    {/* Смен направления */}
+                    <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                        <ValueCard
+                            title="Смен направления"
+                            value={(byType.direction || 0) + (byType.both || 0)}
+                            tooltip="Суммарное количество событий, где студент сменил направление обучения (включая одновременную смену вуза)"
+                        />
+                        <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
+                            Переводов по направлениям
+                        </div>
+                    </div>
+
+                    {/* Средний балл ДО перевода */}
+                    {summary.avg_comp_before_transfer != null && (
+                        <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                            <ValueCard
+                                title="Ср. балл ДО перевода"
+                                value={summary.avg_comp_before_transfer}
+                                tooltip="Средний балл по выбранной компетенции за год, предшествующий переводу"
+                            />
+                            <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
+                                Баллы за год до перевода
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Средний балл ПОСЛЕ перевода */}
+                    {summary.avg_comp_after_transfer != null && (
+                        <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                            <ValueCard
+                                title="Ср. балл ПОСЛЕ перевода"
+                                value={summary.avg_comp_after_transfer}
+                                tooltip="Средний балл по выбранной компетенции за первый год после перевода"
+                            />
+                            <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
+                                Баллы за год после перевода
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Дельта (изменение) */}
+                    {summary.delta != null && (
+                        <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
+                            <ValueCard
+                                title="Δ после перевода"
+                                value={`${summary.delta > 0 ? '+' : ''}${summary.delta}`}
+                                tooltip="Разница среднего балла после перевода и до него. Положительное значение = рост компетенции."
+                            />
+                            <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
+                                Дельта (после − до)
+                            </div>
+                        </div>
+                    )}
+                </FlexRow>
+            )}
+
+            {/* ── Вкладки ── */}
+            {summary && (
+                <>
+                    <FlexRow
+                        wrap={WRAP.DO}
+                        gap="8"
+                        margin="0 0 12 0"
+                    >
+                        <Button
+                            text="Диаграмма Санки"
+                            onClick={() => setActiveTab('sankey')}
+                            palette={activeTab === 'sankey' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
+                        />
+                        <Button
+                            text={`Студенты${studentsLoaded ? ` (${students.length})` : ''}`}
+                            onClick={() => {
+                                setActiveTab('students');
+                                if (!studentsLoaded) loadStudents();
+                            }}
+                            disabled={loadingStudents}
+                            palette={activeTab === 'students' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
+                        />
+                    </FlexRow>
+
                     <LoadingSpinner
-                        loading={loading}
-                        text="Поиск студентов с переводами..."
+                        loading={loadingStudents}
+                        text="Загрузка студентов..."
                     />
 
-                    {/* ── Сводка ── */}
-                    {summary && (
-                        <FlexRow
-                            wrap={WRAP.DO}
-                            gap="12"
-                            margin="16 0"
-                        >
-                            {/* Студентов с переводами */}
-                            <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                <ValueCard
-                                    title="Студентов с переводами"
-                                    value={summary.total_transfer_students}
-                                    tooltip="Уникальные студенты, у которых зафиксирован хотя бы один перевод (смена вуза, направления или оба)"
-                                />
-                                <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                    Уникальных студентов
-                                </div>
-                            </div>
-
-                            {/* Смен вуза */}
-                            <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                <ValueCard
-                                    title="Смен вуза"
-                                    value={(byType.institution || 0) + (byType.both || 0)}
-                                    tooltip="Суммарное количество событий, где студент сменил вуз (включая одновременную смену направления)"
-                                />
-                                <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                    Переводов по ВУЗам
-                                </div>
-                            </div>
-
-                            {/* Смен направления */}
-                            <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                <ValueCard
-                                    title="Смен направления"
-                                    value={(byType.direction || 0) + (byType.both || 0)}
-                                    tooltip="Суммарное количество событий, где студент сменил направление обучения (включая одновременную смену вуза)"
-                                />
-                                <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                    Переводов по направлениям
-                                </div>
-                            </div>
-
-                            {/* Средний балл ДО перевода */}
-                            {summary.avg_comp_before_transfer != null && (
-                                <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                    <ValueCard
-                                        title="Ср. балл ДО перевода"
-                                        value={summary.avg_comp_before_transfer}
-                                        tooltip="Средний балл по выбранной компетенции за год, предшествующий переводу"
-                                    />
-                                    <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                        Баллы за год до перевода
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Средний балл ПОСЛЕ перевода */}
-                            {summary.avg_comp_after_transfer != null && (
-                                <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                    <ValueCard
-                                        title="Ср. балл ПОСЛЕ перевода"
-                                        value={summary.avg_comp_after_transfer}
-                                        tooltip="Средний балл по выбранной компетенции за первый год после перевода"
-                                    />
-                                    <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                        Баллы за год после перевода
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Дельта (изменение) */}
-                            {summary.delta != null && (
-                                <div style={{ flex: '1 1 180px', minWidth: '140px' }}>
-                                    <ValueCard
-                                        title="Δ после перевода"
-                                        value={`${summary.delta > 0 ? '+' : ''}${summary.delta}`}
-                                        tooltip="Разница среднего балла после перевода и до него. Положительное значение = рост компетенции."
-                                    />
-                                    <div style={{ fontSize: '11px', color: '#6c757d', marginTop: '4px', textAlign: 'center' }}>
-                                        Дельта (после − до)
-                                    </div>
-                                </div>
-                            )}
-                        </FlexRow>
+                    {!loading && !loadingStudents && (
+                        <div className="tab-content">
+                            {activeTab === 'sankey' && renderSankey()}
+                            {activeTab === 'students' && renderStudents()}
+                        </div>
                     )}
-
-                    {/* ── Вкладки ── */}
-                    {summary && (
-                        <>
-                            <FlexRow
-                                wrap={WRAP.DO}
-                                gap="8"
-                                margin="0 0 12 0"
-                            >
-                                <Button
-                                    text="Диаграмма Санки"
-                                    onClick={() => setActiveTab('sankey')}
-                                    palette={activeTab === 'sankey' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
-                                />
-                                <Button
-                                    text={`Студенты${studentsLoaded ? ` (${students.length})` : ''}`}
-                                    onClick={() => {
-                                        setActiveTab('students');
-                                        if (!studentsLoaded) loadStudents();
-                                    }}
-                                    disabled={loadingStudents}
-                                    palette={activeTab === 'students' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
-                                />
-                            </FlexRow>
-
-                            <LoadingSpinner
-                                loading={loadingStudents}
-                                text="Загрузка студентов..."
-                            />
-
-                            {!loading && !loadingStudents && (
-                                <div className="tab-content">
-                                    {activeTab === 'sankey' && renderSankey()}
-                                    {activeTab === 'students' && renderStudents()}
-                                </div>
-                            )}
-                        </>
-                    )}
-                </Content>
-            </SidebarLayout>
+                </>
+            )}
         </div>
     );
 }

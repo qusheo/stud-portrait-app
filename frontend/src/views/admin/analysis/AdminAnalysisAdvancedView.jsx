@@ -978,280 +978,270 @@ function AdminAnalysisAdvancedView() {
         );
     };
 
-    // -------------------- MAIN RENDER --------------------
     return (
         <div className="AdminAnalysisAdvancedView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Анализ данных"
-                    name="Администратор"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <h2>Визуализации</h2>
+            <h2>Визуализации</h2>
 
-                    {/* Общие фильтры */}
-                    <div
-                        className="filters-section"
-                        style={{ marginBottom: 20 }}
-                    >
-                        <FlexRow
-                            wrap={WRAP.DO}
-                            gap="15"
-                            alignItems="end"
-                        >
-                            <MultiSelect
-                                options={filterOptions.institutions || []}
-                                value={selectedInstitutions}
-                                onChange={setSelectedInstitutions}
-                                placeholder="Все вузы"
-                                label="Вузы"
-                                withSearch
-                                showCounts
-                            />
-                            <MultiSelect
-                                options={filterOptions.directions || []}
-                                value={selectedDirections}
-                                onChange={setSelectedDirections}
-                                placeholder="Все направления"
-                                label="Направления"
-                                withSearch
-                                showCounts
-                            />
-                            <Button
-                                text="Применить фильтры"
-                                onClick={() => {
-                                    if (activeVisualization === 'lgm') loadLGMCohortData();
-                                    else if (activeVisualization === 'flow') loadLevelFlow('course');
-                                    else if (activeVisualization === 'flow-year') loadLevelFlow('year');
-                                    else if (activeVisualization === 'vam') loadVAMData();
-                                }}
-                                palette={ADMIN_PALETTE.CYAN}
-                                disabled={loading}
-                            />
-                            <Button
-                                text="Сбросить фильтры"
-                                onClick={() => {
-                                    setSelectedInstitutions([]);
-                                    setSelectedDirections([]);
-                                    setSelectedCourses([]);
-                                    setSelectedTestAttempts([]);
-                                    setSelectedCompetencies([]);
-                                }}
-                                palette={ADMIN_PALETTE.GRAY}
-                                disabled={loading}
-                            />
-                        </FlexRow>
-                    </div>
-
-                    <FlexRow
-                        wrap={WRAP.DO}
-                        gap="10"
-                    >
-                        <Button
-                            text="Поток уровней (курсы)"
-                            onClick={() => {
-                                setActiveVisualization('flow');
-                                loadLevelFlow('course');
-                            }}
-                            disabled={loading}
-                            palette={activeVisualization === 'flow' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
-                        />
-                        <Button
-                            text="Поток уровней (года)"
-                            onClick={() => {
-                                setActiveVisualization('flow-year');
-                                loadLevelFlow('year');
-                            }}
-                            disabled={loading}
-                            palette={activeVisualization === 'flow-year' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
-                        />
-                        <Button
-                            text="LGM Когорта"
-                            onClick={() => setActiveVisualization('lgm')}
-                            disabled={loading}
-                            palette={activeVisualization === 'lgm' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
-                        />
-                        <Button
-                            text="VAM динамика"
-                            onClick={() => {
-                                setActiveVisualization('vam');
-                                loadVAMData();
-                            }}
-                            disabled={loading}
-                            palette={activeVisualization === 'vam' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
-                        />
-
-                        {activeVisualization === 'flow' && (
-                            <>
-                                <LabelledBox
-                                    label="Компетенция:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={flowCompetency}
-                                        onChange={setFlowCompetency}
-                                    >
-                                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                            <Option
-                                                key={key}
-                                                value={key}
-                                                label={name}
-                                            />
-                                        ))}
-                                    </Select>
-                                </LabelledBox>
-                                <Button
-                                    text="Загрузить"
-                                    onClick={() => loadLevelFlow('course')}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                            </>
-                        )}
-
-                        {activeVisualization === 'flow-year' && (
-                            <>
-                                <LabelledBox
-                                    label="Компетенция:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={flowCompetency}
-                                        onChange={setFlowCompetency}
-                                    >
-                                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                            <Option
-                                                key={key}
-                                                value={key}
-                                                label={name}
-                                            />
-                                        ))}
-                                    </Select>
-                                </LabelledBox>
-                                <Button
-                                    text="Загрузить"
-                                    onClick={() => loadLevelFlow('year')}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                            </>
-                        )}
-
-                        {activeVisualization === 'lgm' && (
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <LabelledBox
-                                    label="Компетенция:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={lgmCompetency}
-                                        onChange={setLgmCompetency}
-                                    >
-                                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                            <Option
-                                                key={key}
-                                                value={key}
-                                                label={name}
-                                            />
-                                        ))}
-                                    </Select>
-                                </LabelledBox>
-                                <LabelledBox
-                                    label="Группировка:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={lgmGroupBy}
-                                        onChange={setLgmGroupBy}
-                                    >
-                                        <Option
-                                            value="institution"
-                                            label="По ВУЗам"
-                                        />
-                                        <Option
-                                            value="direction"
-                                            label="По направлениям"
-                                        />
-                                    </Select>
-                                </LabelledBox>
-                                <Button
-                                    text="Загрузить LGM"
-                                    onClick={loadLGMCohortData}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                            </div>
-                        )}
-
-                        {activeVisualization === 'vam' && (
-                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                <LabelledBox
-                                    label="Компетенция:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={vamCompetency}
-                                        onChange={setVamCompetency}
-                                    >
-                                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                            <Option
-                                                key={key}
-                                                value={key}
-                                                label={name}
-                                            />
-                                        ))}
-                                    </Select>
-                                </LabelledBox>
-                                <LabelledBox
-                                    label="Группировка:"
-                                    inrow
-                                    nopad
-                                >
-                                    <Select
-                                        initValue={vamGroupBy}
-                                        onChange={setVamGroupBy}
-                                    >
-                                        <Option
-                                            value="institution"
-                                            label="По ВУЗам"
-                                        />
-                                        <Option
-                                            value="direction"
-                                            label="По направлениям"
-                                        />
-                                    </Select>
-                                </LabelledBox>
-                                <Button
-                                    text="Загрузить VAM"
-                                    onClick={loadVAMData}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.CYAN}
-                                />
-                            </div>
-                        )}
-                    </FlexRow>
-
-                    <LoadingSpinner
-                        loading={loading}
-                        text="Загрузка визуализации..."
+            {/* Общие фильтры */}
+            <div
+                className="filters-section"
+                style={{ marginBottom: 20 }}
+            >
+                <FlexRow
+                    wrap={WRAP.DO}
+                    gap="15"
+                    alignItems="end"
+                >
+                    <MultiSelect
+                        options={filterOptions.institutions || []}
+                        value={selectedInstitutions}
+                        onChange={setSelectedInstitutions}
+                        placeholder="Все вузы"
+                        label="Вузы"
+                        withSearch
+                        showCounts
                     />
+                    <MultiSelect
+                        options={filterOptions.directions || []}
+                        value={selectedDirections}
+                        onChange={setSelectedDirections}
+                        placeholder="Все направления"
+                        label="Направления"
+                        withSearch
+                        showCounts
+                    />
+                    <Button
+                        text="Применить фильтры"
+                        onClick={() => {
+                            if (activeVisualization === 'lgm') loadLGMCohortData();
+                            else if (activeVisualization === 'flow') loadLevelFlow('course');
+                            else if (activeVisualization === 'flow-year') loadLevelFlow('year');
+                            else if (activeVisualization === 'vam') loadVAMData();
+                        }}
+                        palette={ADMIN_PALETTE.CYAN}
+                        disabled={loading}
+                    />
+                    <Button
+                        text="Сбросить фильтры"
+                        onClick={() => {
+                            setSelectedInstitutions([]);
+                            setSelectedDirections([]);
+                            setSelectedCourses([]);
+                            setSelectedTestAttempts([]);
+                            setSelectedCompetencies([]);
+                        }}
+                        palette={ADMIN_PALETTE.GRAY}
+                        disabled={loading}
+                    />
+                </FlexRow>
+            </div>
 
-                    {!loading && (
-                        <div className="visualization-container">
-                            {activeVisualization === 'lgm' && renderLGMCohort()}
-                            {activeVisualization === 'flow' && renderFlowAnalysis()}
-                            {activeVisualization === 'flow-year' && renderFlowAnalysis()}
-                            {activeVisualization === 'vam' && renderVAM()}
-                        </div>
-                    )}
-                </Content>
-            </SidebarLayout>
+            <FlexRow
+                wrap={WRAP.DO}
+                gap="10"
+            >
+                <Button
+                    text="Поток уровней (курсы)"
+                    onClick={() => {
+                        setActiveVisualization('flow');
+                        loadLevelFlow('course');
+                    }}
+                    disabled={loading}
+                    palette={activeVisualization === 'flow' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
+                />
+                <Button
+                    text="Поток уровней (года)"
+                    onClick={() => {
+                        setActiveVisualization('flow-year');
+                        loadLevelFlow('year');
+                    }}
+                    disabled={loading}
+                    palette={activeVisualization === 'flow-year' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
+                />
+                <Button
+                    text="LGM Когорта"
+                    onClick={() => setActiveVisualization('lgm')}
+                    disabled={loading}
+                    palette={activeVisualization === 'lgm' ? ADMIN_PALETTE.BROWN : ADMIN_PALETTE.GRAY}
+                />
+                <Button
+                    text="VAM динамика"
+                    onClick={() => {
+                        setActiveVisualization('vam');
+                        loadVAMData();
+                    }}
+                    disabled={loading}
+                    palette={activeVisualization === 'vam' ? ADMIN_PALETTE.CYAN : ADMIN_PALETTE.GRAY}
+                />
+
+                {activeVisualization === 'flow' && (
+                    <>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={flowCompetency}
+                                onChange={setFlowCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Загрузить"
+                            onClick={() => loadLevelFlow('course')}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                    </>
+                )}
+
+                {activeVisualization === 'flow-year' && (
+                    <>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={flowCompetency}
+                                onChange={setFlowCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Загрузить"
+                            onClick={() => loadLevelFlow('year')}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                    </>
+                )}
+
+                {activeVisualization === 'lgm' && (
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={lgmCompetency}
+                                onChange={setLgmCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <LabelledBox
+                            label="Группировка:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={lgmGroupBy}
+                                onChange={setLgmGroupBy}
+                            >
+                                <Option
+                                    value="institution"
+                                    label="По ВУЗам"
+                                />
+                                <Option
+                                    value="direction"
+                                    label="По направлениям"
+                                />
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Загрузить LGM"
+                            onClick={loadLGMCohortData}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                    </div>
+                )}
+
+                {activeVisualization === 'vam' && (
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={vamCompetency}
+                                onChange={setVamCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <LabelledBox
+                            label="Группировка:"
+                            inrow
+                            nopad
+                        >
+                            <Select
+                                initValue={vamGroupBy}
+                                onChange={setVamGroupBy}
+                            >
+                                <Option
+                                    value="institution"
+                                    label="По ВУЗам"
+                                />
+                                <Option
+                                    value="direction"
+                                    label="По направлениям"
+                                />
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Загрузить VAM"
+                            onClick={loadVAMData}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.CYAN}
+                        />
+                    </div>
+                )}
+            </FlexRow>
+
+            <LoadingSpinner
+                loading={loading}
+                text="Загрузка визуализации..."
+            />
+
+            {!loading && (
+                <div className="visualization-container">
+                    {activeVisualization === 'lgm' && renderLGMCohort()}
+                    {activeVisualization === 'flow' && renderFlowAnalysis()}
+                    {activeVisualization === 'flow-year' && renderFlowAnalysis()}
+                    {activeVisualization === 'vam' && renderVAM()}
+                </div>
+            )}
         </div>
     );
 }

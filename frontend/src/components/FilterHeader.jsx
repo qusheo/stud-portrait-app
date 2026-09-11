@@ -3,19 +3,34 @@ import { getFilterOptions } from '../api';
 import Select from 'react-select';
 import './FilterHeader.scss';
 import TabButton from '@ui/TabButton';
+import Button from '@ui/Button';
 
 export default function FilterHeader({ filters, onFilterChange, onResetFilters }) {
     const [options, setOptions] = useState({ institutes: [], specialties: [], years: [] });
     const [loading, setLoading] = useState(true);
     const reqRef = useRef(0);
 
+    const noFilters = () => {
+        if (!filters) return true;
+
+        for (var key in filters) {
+            if (!filters[key] || filters[key] === '') return true;
+        }
+        return false;
+    };
     //загрузка вариантов
     useEffect(() => {
         getFilterOptions()
             .onSuccess(async response => {
-                const data = await response.json();
-                setOptions(data.data);
-                setLoading(false);
+                setLoading(true);
+                try {
+                    const data = await response.json();
+                    setOptions(data.data);
+                } catch (e) {
+                    throw new Error(e);
+                } finally {
+                    setLoading(false);
+                }
             })
             .onError(err => console.error('Ошибка загрузки опций', err));
     }, []);
@@ -25,8 +40,15 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
         if (!institute) {
             getFilterOptions()
                 .onSuccess(async response => {
-                    const data = await response.json();
-                    setOptions(data.data);
+                    setLoading(true);
+                    try {
+                        const data = await response.json();
+                        setOptions(data.data);
+                    } catch (e) {
+                        throw new Error(e);
+                    } finally {
+                        setLoading(false);
+                    }
                 })
                 .onError(err => console.error('Ошибка загрузки опций', err));
             return;
@@ -35,6 +57,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
         getFilterOptions(institute)
             .onSuccess(async res => {
                 if (id !== reqRef.current) return;
+                setLoading(true);
                 try {
                     const data = await res.json();
 
@@ -45,10 +68,13 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                     const newSpecs = data.data.specialties || [];
                     setOptions(prev => ({ ...prev, specialties: newSpecs }));
                 } catch (e) {
-                    console.error('Ошибка загрузки опций', e);
+                    throw new Error(e);
+                } finally {
+                    setLoading(false);
                 }
             })
             .onError(() => {
+                console.error('Ошибка загрузки опций', e);
                 if (id === reqRef.current) setLoading(false);
             });
     }, [filters?.institute]);
@@ -79,6 +105,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 onChange={opt => handleChange(opt, 'institute')}
                 styles={customStyles}
                 isLoading={loading}
+                loadingMessage={() => 'Загрузка...'}
             />
 
             <Select
@@ -91,6 +118,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 onChange={opt => handleChange(opt, 'specialty')}
                 styles={customStyles}
                 isLoading={loading}
+                loadingMessage={() => 'Загрузка...'}
             />
 
             <Select
@@ -103,11 +131,13 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 onChange={opt => handleChange(opt, 'year')}
                 styles={customStyles}
                 isLoading={loading}
+                loadingMessage={() => 'Загрузка...'}
             />
 
-            <TabButton
+            <Button
                 text={'Сбросить'}
                 onClick={onResetFilters}
+                disabled={noFilters()}
             />
         </div>
     );
