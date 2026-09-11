@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 const DEFAULT_PAGE = '/admin/stats';
 

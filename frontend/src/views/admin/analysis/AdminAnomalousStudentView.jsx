@@ -185,6 +185,7 @@ function AdminAnomalousStudentView() {
                         withSearch
                         showCounts
                     />
+                    <div style={{display: 'inline-flex', alignItems:'center', gap: '10px'}}>
                     <LabelledBox
                         label="Компетенция:"
                         inrow
@@ -214,7 +215,7 @@ function AdminAnomalousStudentView() {
                         onClick={resetFilters}
                         palette={ADMIN_PALETTE.GRAY}
                         disabled={loading}
-                    />
+                    /></div>
                 </FlexRow>
                 <LabelledBox
                     label="Группировка:"

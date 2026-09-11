@@ -54,10 +54,9 @@ const StudentSearch = ({ onSelectStudent }) => {
 
     return (
         <div className="student-search">
-            <Label
-                text="Поиск студента:"
-                palette={LABEL_PALETTE.BLUE}
-            />
+            <div>
+                Поиск студента:
+            </div>
             <div className="search-container">
                 <input
                     type="text"

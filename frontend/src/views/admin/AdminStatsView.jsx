@@ -221,18 +221,9 @@ function AdminStatsView() {
     if (loading) {
         return (
             <div className="AdminStatsView">
-                <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                    <Header
-                        title="Админ: Статистика тестирования"
-                        name="Администратор1"
-                    />
-                    <Sidebar linkTree={LINK_TREE} />
-                    <Content>
-                        <div className="loading-content">
-                            <LoadingSpinner text="Загрузка статистики..." />
-                        </div>
-                    </Content>
-                </SidebarLayout>
+                <div className="loading-content">
+                    <LoadingSpinner text="Загрузка статистики..." />
+                </div>
             </div>
         );
     }

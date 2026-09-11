@@ -119,7 +119,7 @@ function AdminGeographyView() {
                 disabled={loading}
             />
 
-            <FlexRow>
+            <div style={{padding: '10px', display: 'flex', gap: '10px'}}>
                 <ValueCard
                     value={totalCenters}
                     text="Всего центров"
@@ -128,7 +128,7 @@ function AdminGeographyView() {
                     value={regionData.length}
                     text="Регионов с центрами"
                 />
-            </FlexRow>
+            </div>
 
             <TitledCard title="Прохождение тестирования в РФ">
                 <RussianFederationMap

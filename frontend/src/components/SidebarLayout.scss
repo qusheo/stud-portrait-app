@@ -268,9 +268,10 @@ $modeus-color: #238bc8;
     border-right: 2px solid #c6cad9;
     box-shadow: #c2c3ca 0px 0px 10px 0;
     display: flex;
-
+    height: fit-content;
+    
     .SideBar-btn-container {
-        height: calc(100vh - 50px);
+        height: calc(100vh - 80px);
         width: 100%;
         display: flex;
         justify-content: center;
