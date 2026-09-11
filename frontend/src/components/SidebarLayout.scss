@@ -119,6 +119,7 @@ $modeus-color: #238bc8;
             margin: 0;
             padding: 10px 0;
             list-style: none;
+            transition: height 0.3s ease;
 
             li {
                 margin-top: 1px;
@@ -138,6 +139,7 @@ $modeus-color: #238bc8;
                 span {
                     padding: 12px 10px 12px $cat-ident--modeus;
                     font-variant: small-caps;
+                    cursor: pointer;
                 }
 
                 a {
@@ -152,7 +154,7 @@ $modeus-color: #238bc8;
 
                     &:hover {
                         color: #238bc8;
-                        background-color: #eaeaea9d;
+                        background-color: #eef1f5c2;
                     }
                 }
             }
@@ -249,137 +251,26 @@ $modeus-color: #238bc8;
     }
 }
 
-/* Admin style */
-.style--admin {
-    .Header {
-        border-bottom-color: rgba(255, 255, 255, 1) !important;
-        color: #fff;
-        padding: 0 20px;
-        border-width: 2px 0;
-        background-color: #37474f;
-        min-height: 46px;
-        box-sizing: border-box;
-        font-size: 13px;
-        line-height: 1.5384616;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-
-        .left-side {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            justify-content: left;
-            gap: 50px;
-
-            .logo-area {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: left;
-                gap: 5px;
-
-                img {
-                    height: 30px;
-                }
-
-                .logo-title {
-                    color: #fff;
-                    font-size: 20px; //16
-                    font-weight: 500; //500
-                }
-            }
-
-            /*.menu-toggler {
-                transition: all ease-in-out 0.15s;
-                cursor: pointer;
-                position: relative;
-                display: block;
-                padding: 15px 20px;
-
-                &:hover {
-                    background-color: rgba(0, 0, 0, 0.1);
-                }
-            }*/
-
-            .title {
-                color: #fff;
-                font-size: 16px;
-                font-weight: 200;
-            }
-        }
-    }
-
-    .Sidebar {
-        max-width: 260px;
-        background-color: #263238;
-        color: #fff;
-        font-size: 13px;
-        line-height: 1.5384616;
-
-        ul {
-            margin: 0;
-            padding: 10px 0;
-            list-style: none;
-
-            li {
-                margin-top: 1px;
-                display: list-item;
-
-                span,
-                a {
-                    color: rgba(255, 255, 255, 0.75);
-                    font-weight: 400;
-                    font-size: 14px;
-                }
-
-                $link-ident--admin: 40px;
-                $cat-ident--admin: 20px;
-
-                span {
-                    padding: 12px 10px 12px $cat-ident--admin;
-                    font-variant: small-caps;
-                }
-
-                a {
-                    padding: 12px 10px 12px $link-ident--admin;
-                    text-decoration: none;
-                    display: block;
-                    transition:
-                        background 0.15s linear,
-                        color 0.15s linear;
-                    cursor: pointer;
-
-                    &:hover {
-                        background-color: rgba(0, 0, 0, 0.1);
-                        color: #fff;
-                    }
-                }
-            }
-        }
-    }
-
-    .Content {
-        padding: 1rem;
-    }
+.icon {
+    position: relative;
+    padding: 5px;
+    display: inline-flex;
+    justify-content: center;
 }
+
 //закрытый
 .Sidebar-closed {
     max-width: 0 !important;
 }
 .Sidebar-container {
+    transition: width 0.3s ease;
     background-color: #f8f9fa;
     border-right: 2px solid #c6cad9;
     box-shadow: #c2c3ca 0px 0px 10px 0;
     display: flex;
 
     .SideBar-btn-container {
-        height: 100vh;
+        height: calc(100vh - 50px);
         width: 100%;
         display: flex;
         justify-content: center;
@@ -391,4 +282,7 @@ $modeus-color: #238bc8;
             width: 20px;
         }
     }
+}
+:root{
+  scrollbar-color: #b4c5ddc2 white;
 }

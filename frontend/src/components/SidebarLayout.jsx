@@ -4,7 +4,7 @@ import Dropdown from './ui/Dropdown';
 import logo from '../static/logo_white.png';
 
 import './SidebarLayout.scss';
-
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
@@ -50,9 +50,25 @@ export function Header({ title, name }) {
 export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();
+    const [categoryOpenState, setCategoryOpenState] = React.useState({});
+
     const locationName = linkTree.filter(i => !!i.links?.find(link => link.to === location.pathname));
     let title = locationName.length ? locationName[0].links.find(link => link.to === location.pathname).title : '';
 
+    React.useEffect(() => {
+        if (!linkTree) return;
+
+        const categories = Object.fromEntries(
+            linkTree.map((category) => [category.category, true])
+        );
+
+        setCategoryOpenState(categories);
+    }, [linkTree]);
+
+    function onCategoryClick (category) {
+        if (categoryOpenState[category] === undefined) return;
+        setCategoryOpenState({...categoryOpenState, [category]: !categoryOpenState[category]});
+    }
     if (!isOpen) {
         return (
             <>
@@ -88,9 +104,16 @@ export function Sidebar({ links, linkTree }) {
                             <ul>
                                 {linkTree.map((category, index) => (
                                     <li key={index}>
-                                        {category.category && <span>{category.category}</span>}
-                                        <ul>
-                                            {category.links.map((link, index) => (
+                                        {category.category && 
+                                            <span onClick={() => onCategoryClick(category.category)}>
+                                                {category.category}
+
+                                                <div className="icon" > 
+                                                    { categoryOpenState[category.category] === false ? <ChevronUp size={15}/> : <ChevronDown size={15}/>} 
+                                                </div>
+                                            </span>}
+                                        <ul style = { categoryOpenState[category.category] === false ? { height: '0px'} : {} }>
+                                            { categoryOpenState[category.category] !== false && category.links.map((link, index) => (
                                                 <li key={index}>
                                                     <a
                                                         href={link.to}

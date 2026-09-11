@@ -645,7 +645,7 @@ function AdminMotivatorsView() {
         savedY.current = window.scrollY;
     };
     useEffect(() => {
-        if (savedFilters?.AdminCompetences) {
+        if (savedFilters?.Admin) {
             setFilters(savedFilters.Admin);
         }
     }, []);

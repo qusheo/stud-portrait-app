@@ -178,7 +178,7 @@ function AdminAPView() {
         saveFilters('Admin', filters);
     };
     useEffect(() => {
-        if (savedFilters?.AdminCompetences) {
+        if (savedFilters?.Admin) {
             setFilters(savedFilters.Admin);
         }
     }, []);

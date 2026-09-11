@@ -1071,7 +1071,7 @@ function AdminCompetencesView() {
 
     /* подгрузка старых фильтров при маунте компонента */
     useEffect(() => {
-        if (savedFilters?.AdminCompetences) {
+        if (savedFilters?.Admin) {
             setFilters_(savedFilters.Admin);
         }
     }, []);
