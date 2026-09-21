@@ -1,8 +1,8 @@
-""" from pathlib import Path
-import threading
+from pathlib import Path
+''' import threading
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-
+'''
 DEVICE_AUTO = "auto"
 DEVICE_CUDA = "cuda"
 DEVICE_CPU = "cpu"
@@ -110,4 +110,3 @@ class MlModel:
         print(f"[model] (i): model generated response: '{response}'")
 
         return response
- """
