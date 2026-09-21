@@ -52,8 +52,6 @@ class WindowChain {
 const PROTOCOL = 'http';
 const HOST = import.meta.env.VITE_API_URL;
 
-/* *** AUDIT *** */
-
 export function getAuditSchema(tableName = null) {
     const params = new URLSearchParams();
     if (tableName) params.append('table_name', tableName);
