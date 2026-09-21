@@ -1071,10 +1071,11 @@ function AdminCompetencesView() {
 
     /* подгрузка старых фильтров при маунте компонента */
     useEffect(() => {
+        console.log(savedFilters);
         if (savedFilters?.Admin) {
             setFilters_(savedFilters.Admin);
         }
-    }, []);
+    }, savedFilters.Admin);
 
     return (
         <div className="AdminCompetencesView">
