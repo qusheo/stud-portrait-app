@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+""" from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import torch
@@ -72,7 +72,7 @@ app = FastAPI(title="Qwen Inference Service", lifespan=lifespan)
 
 
 async def load_model():
-    """Асинхронная загрузка модели"""
+    #Асинхронная загрузка модели
     global model, tokenizer, model_device
     
     try:
@@ -121,7 +121,7 @@ async def load_model():
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Проверка здоровья сервиса"""
+    #Проверка здоровья сервиса
     return HealthResponse(
         status="healthy" if model is not None else "unhealthy",
         model_loaded=model is not None,
@@ -132,7 +132,7 @@ async def health_check():
 
 @app.post("/generate", response_model=GenerationResponse)
 async def generate(request: GenerationRequest):
-    """Генерация текста моделью"""
+    #Генерация текста моделью
     import time
     
     if model is None or tokenizer is None:
@@ -203,7 +203,6 @@ async def generate(request: GenerationRequest):
 
 @app.post("/generate_batch")
 async def generate_batch(requests: List[GenerationRequest]):
-    """Пакетная генерация (опционально)"""
     import asyncio
     tasks = [generate(req) for req in requests]
     results = await asyncio.gather(*tasks)
@@ -213,3 +212,4 @@ async def generate_batch(requests: List[GenerationRequest]):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+ """

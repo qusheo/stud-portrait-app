@@ -50,7 +50,7 @@ class WindowChain {
 }
 
 const PROTOCOL = 'http';
-const HOST = 'localhost:8000';
+const HOST = import.meta.env.VITE_API_URL;
 
 /* *** AUDIT *** */
 
