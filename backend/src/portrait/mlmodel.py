@@ -1,8 +1,8 @@
 from pathlib import Path
-''' import threading
+import threading
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-'''
+
 DEVICE_AUTO = "auto"
 DEVICE_CUDA = "cuda"
 DEVICE_CPU = "cpu"
