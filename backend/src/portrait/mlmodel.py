@@ -1,4 +1,4 @@
-from pathlib import Path
+""" from pathlib import Path
 import threading
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -18,8 +18,6 @@ class MlModel:
 
     @classmethod
     def load(cls):
-        """ Try load tokenizer and model.
-        """
         with cls.LOAD_LOCK:
             try:
                 print(f"[model] (i): loading model from folder {cls.PATH}")
@@ -66,8 +64,7 @@ class MlModel:
 
     @classmethod
     def get(cls):
-        """ Get model and tokenizer if available.
-        """
+    
         if cls.AVAILABLE or cls.LOAD_ATTEMPTED:
             return cls.MODEL, cls.TOKENIZER
         cls.load()
@@ -75,8 +72,7 @@ class MlModel:
 
     @classmethod
     def waitForLoad(cls, timeout=120.) -> bool:
-        """ Wait for model to load. Get whether it was loaded.
-        """
+    
         cls.LOAD_EVENT.wait(timeout=timeout)
         return cls.AVAILABLE
 
@@ -114,3 +110,4 @@ class MlModel:
         print(f"[model] (i): model generated response: '{response}'")
 
         return response
+ """
