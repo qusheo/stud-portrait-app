@@ -1642,9 +1642,9 @@ def ai_analytics_summary(request):
         else:
             prompt = "Неизвестный тип анализа."
 
-        result = MlModel.generate(prompt, max_length=600, temperature=0.2)
-        if result is None:
-            result = "⚠️ Модель временно недоступна. Попробуйте позже."
+        #result = MlModel.generate(prompt, max_length=600, temperature=0.2)
+        #if result is None:
+        result = "⚠️ Модель временно недоступна. Попробуйте позже."
 
         return JsonResponse({
             'status': 'success',

@@ -6,7 +6,7 @@ from .mlmodel import MlModel
 
 class PortraitConfig(AppConfig):
     name = 'portrait'
-
+'''
     def ready(self):
         # Пропускаем загрузку в процессе reloader'а Django.
         # RUN_MAIN=true выставляется только в основном рабочем процессе.
@@ -21,4 +21,4 @@ class PortraitConfig(AppConfig):
                 print("[app] (i): llm hot and ready")
             else:
                 print("[app] (!): llm load failed; it'll load on request")
-        threading.Thread(target=_load, daemon=True).start()
+        threading.Thread(target=_load, daemon=True).start()'''
