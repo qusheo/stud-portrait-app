@@ -18,6 +18,7 @@ class MlModel:
 
     @classmethod
     def load(cls):
+        return False
         with cls.LOAD_LOCK:
             try:
                 print(f"[model] (i): loading model from folder {cls.PATH}")
@@ -64,6 +65,7 @@ class MlModel:
 
     @classmethod
     def get(cls):
+        return
     
         if cls.AVAILABLE or cls.LOAD_ATTEMPTED:
             return cls.MODEL, cls.TOKENIZER
@@ -72,12 +74,14 @@ class MlModel:
 
     @classmethod
     def waitForLoad(cls, timeout=120.) -> bool:
+        return
     
         cls.LOAD_EVENT.wait(timeout=timeout)
         return cls.AVAILABLE
 
     @classmethod
     def generate(cls, prompt: str, max_length=400, temperature=.15, top_p=.85):
+        return None
         model, tokenizer = cls.get()
         if model is None:
             return None
