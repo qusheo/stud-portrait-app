@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ResponsiveContainer, LineChart, Legend, Line, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
-import {
-    postAnalyzeCohortLgm,
-    postGetLgmGrowers,
-    getPortraitGetDisciplines,
-    getPortraitGetFilterOptionsWithCounts,
-    getPortraitGetInstitutionDirections,
-    postPortraitDataseshNew,
-    postGetCompetencyLevelFlow,
-    postGetVamTrendData,
-    postGetCompetencyLevelFlowYearly
-} from '../../../api';
+import { AdminService } from '@services';
 import { COMPETENCIES, COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
 
 import AiInsightPanel from '../@components/AiInsightPanel';
@@ -84,16 +74,15 @@ function AdminAnalysisAdvancedView() {
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-            postPortraitDataseshNew()
-                .onSuccess(async response => {
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        setSessionId(data.session.id);
-                        await loadFilterOptions(data.session.id);
-                    }
-                })
-                .onError(error => console.error(error))
-                .finally(() => setLoading(false));
+            try {
+                const data = await AdminService.postDataseshNew();
+                setSessionId(data.session.id);
+                await loadFilterOptions(data.session.id);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
         };
         init();
     }, []);
@@ -101,70 +90,59 @@ function AdminAnalysisAdvancedView() {
     // -------------------- ЗАГРУЗКА ОПЦИЙ ФИЛЬТРОВ --------------------
     const loadFilterOptions = async (sid, updateCounts = false) => {
         if (!sid) return;
-        (updateCounts
-            ? getPortraitGetFilterOptionsWithCounts(
-                  sid,
-                  selectedInstitutions,
-                  selectedDirections,
-                  selectedCourses,
-                  selectedTestAttempts,
-                  selectedCompetencies
-              )
-            : getPortraitGetFilterOptionsWithCounts(sid)
-        )
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    let disciplines = [];
-                    try {
-                        const discRes = getPortraitGetDisciplines();
-                        const discData = await new Promise(resolve => {
-                            discRes
-                                .onSuccess(async d => {
-                                    const json = await d.json();
-                                    resolve(json);
-                                })
-                                .onError(() => resolve({ disciplines: [] }));
-                        });
-                        if (discData.status === 'success') {
-                            disciplines = discData.disciplines || [];
-                        }
-                    } catch (e) {
-                        console.error('Error loading disciplines:', e);
-                    }
-
-                    // Приводим ID к числам, чтобы избежать дублирования
-                    const institutions = (data.data?.institutions || [])
-                        .map(i => ({
-                            id: Number(i.id),
-                            name: i.name,
-                            count: i.count
-                        }))
-                        .filter(i => !isNaN(i.id));
-
-                    const allDirections = (data.data?.directions || [])
-                        .map(d => ({
-                            id: Number(d.id),
-                            name: d.name,
-                            count: d.count
-                        }))
-                        .filter(d => !isNaN(d.id));
-
-                    setFilterOptions({
-                        institutions: institutions,
-                        directions: allDirections,
-                        allDirections: allDirections,
-                        courses: data.data?.courses || [],
-                        testAttempts: data.data?.test_attempts || [],
-                        competencies:
-                            data.data?.competencies ||
-                            Object.keys(COMPETENCIES_NAMES).map(c => ({ id: c, name: COMPETENCIES_NAMES[c], count: 0 })),
-                        students: data.data?.students || [],
-                        disciplines: disciplines
-                    });
+        try {
+            const data = await (updateCounts
+                ? AdminService.getFilterOptionsWithCounts(
+                      sid,
+                      selectedInstitutions,
+                      selectedDirections,
+                      selectedCourses,
+                      selectedTestAttempts,
+                      selectedCompetencies
+                  )
+                : AdminService.getFilterOptionsWithCounts(sid));
+            {
+                let disciplines = [];
+                try {
+                    const discData = await AdminService.getDisciplines();
+                    disciplines = discData.disciplines || [];
+                } catch (e) {
+                    console.error('Error loading disciplines:', e);
                 }
-            })
-            .onError(console.error);
+
+                // Приводим ID к числам, чтобы избежать дублирования
+                const institutions = (data.data?.institutions || [])
+                    .map(i => ({
+                        id: Number(i.id),
+                        name: i.name,
+                        count: i.count
+                    }))
+                    .filter(i => !isNaN(i.id));
+
+                const allDirections = (data.data?.directions || [])
+                    .map(d => ({
+                        id: Number(d.id),
+                        name: d.name,
+                        count: d.count
+                    }))
+                    .filter(d => !isNaN(d.id));
+
+                setFilterOptions({
+                    institutions: institutions,
+                    directions: allDirections,
+                    allDirections: allDirections,
+                    courses: data.data?.courses || [],
+                    testAttempts: data.data?.test_attempts || [],
+                    competencies:
+                        data.data?.competencies ||
+                        Object.keys(COMPETENCIES_NAMES).map(c => ({ id: c, name: COMPETENCIES_NAMES[c], count: 0 })),
+                    students: data.data?.students || [],
+                    disciplines: disciplines
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     // Обновление направлений при выборе вузов (как в рабочем VamLgmView)
@@ -174,19 +152,20 @@ function AdminAnalysisAdvancedView() {
             setFilterOptions(prev => ({ ...prev, directions: prev.allDirections }));
             return;
         }
-        getPortraitGetInstitutionDirections(selectedInstitutions)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    // Предполагаем, что API возвращает массив объектов с полями id и name
-                    const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
-                    setFilterOptions(prev => ({ ...prev, directions }));
-                    // Оставляем только те выбранные направления, которые есть в новом списке
-                    const newDirectionIds = directions.map(d => d.id);
-                    setSelectedDirections(prev => prev.filter(id => newDirectionIds.includes(id)));
-                }
-            })
-            .onError(console.error);
+        const loadDirections = async () => {
+            try {
+                const data = await AdminService.getInstitutionDirections(selectedInstitutions);
+                // Предполагаем, что API возвращает массив объектов с полями id и name
+                const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
+                setFilterOptions(prev => ({ ...prev, directions }));
+                // Оставляем только те выбранные направления, которые есть в новом списке
+                const newDirectionIds = directions.map(d => d.id);
+                setSelectedDirections(prev => prev.filter(id => newDirectionIds.includes(id)));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadDirections();
     }, [selectedInstitutions, sessionId]);
 
     // Перезагрузка фильтров при изменении выбранных значений
@@ -207,22 +186,21 @@ function AdminAnalysisAdvancedView() {
         setLoading(true);
         setActiveVisualization('lgm');
         setLgmGrowersMap({});
-        postAnalyzeCohortLgm(lgmCompetency, instIds, dirIds, lgmGroupBy)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setLgmCohortData(data);
-                } else {
-                    alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
-                    setLgmCohortData(null);
-                }
-            })
-            .onError(err => {
-                console.error(err);
-                alert('Ошибка при загрузке LGM');
+        try {
+            const data = await AdminService.postAnalyzeCohortLgm(lgmCompetency, instIds, dirIds, lgmGroupBy);
+            if (data.status === 'success') {
+                setLgmCohortData(data);
+            } else {
+                alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
                 setLgmCohortData(null);
-            })
-            .finally(() => setLoading(false));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при загрузке LGM');
+            setLgmCohortData(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // -------------------- LGM Growers --------------------
@@ -237,9 +215,9 @@ function AdminAnalysisAdvancedView() {
         const instIds = selectedInstitutions.map(id => Number(id)).filter(v => !isNaN(v));
         const dirIds = selectedDirections.map(id => Number(id)).filter(v => !isNaN(v));
 
-        postGetLgmGrowers(lgmCompetency, lgmGroupBy, groupId, instIds, dirIds)
-            .onSuccess(async response => {
-                const data = await response.json();
+        const load = async () => {
+            try {
+                const data = await AdminService.postGetLgmGrowers(lgmCompetency, lgmGroupBy, groupId, instIds, dirIds);
                 if (data.status === 'success') {
                     setLgmGrowersMap(prev => ({
                         ...prev,
@@ -257,14 +235,15 @@ function AdminAnalysisAdvancedView() {
                         [groupId]: { loading: false, loaded: true, error: data.message, fast_growers: [], slow_growers: [] }
                     }));
                 }
-            })
-            .onError(err => {
+            } catch (err) {
                 console.error(err);
                 setLgmGrowersMap(prev => ({
                     ...prev,
                     [groupId]: { loading: false, loaded: true, error: 'Ошибка загрузки', fast_growers: [], slow_growers: [] }
                 }));
-            });
+            }
+        };
+        load();
     };
 
     // -------------------- Поток уровней --------------------
@@ -274,13 +253,11 @@ function AdminAnalysisAdvancedView() {
         setFlowData(null);
         setLoading(true);
         const directionIds = selectedDirections.map(id => Number(id)).filter(v => !isNaN(v));
-        (resolvedType === 'year' ? postGetCompetencyLevelFlowYearly : postGetCompetencyLevelFlow)(
-            flowCompetency,
-            selectedInstitutions,
-            directionIds
-        )
-            .onSuccess(async response => {
-                const data = await response.json();
+        const load = async () => {
+            try {
+                const data = await (
+                    resolvedType === 'year' ? AdminService.postGetCompetencyLevelFlowYearly : AdminService.postGetCompetencyLevelFlow
+                )(flowCompetency, selectedInstitutions, directionIds);
                 if (data.status === 'success') {
                     if (!data.nodes || data.nodes.length === 0) {
                         alert('Нет данных для построения диаграммы Санки по выбранным фильтрам');
@@ -290,12 +267,14 @@ function AdminAnalysisAdvancedView() {
                 } else {
                     alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
                 }
-            })
-            .onError(err => {
+            } catch (err) {
                 console.error(err);
                 alert('Ошибка при загрузке данных потока');
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     };
 
     // -------------------- VAM --------------------
@@ -309,69 +288,68 @@ function AdminAnalysisAdvancedView() {
 
         setLoading(true);
         setActiveVisualization('vam');
-        postGetVamTrendData({
-            group_by: vamGroupBy,
-            competency: vamCompetency,
-            selected_groups: vamGroupBy === 'institution' ? cleanInstitutions : cleanDirections,
-            filter_institutions: cleanInstitutions,
-            filter_directions: cleanDirections,
-            filter_courses: selectedCourses,
-            filter_test_attempts: selectedTestAttempts
-        })
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success' && data.data) {
-                    const points = [];
-                    data.data.forEach(group => {
-                        group.courses.forEach(course => {
-                            points.push({
-                                group: group.group_name,
-                                course: course.course,
-                                value_added: course.value_added,
-                                ci_lower: course.ci_lower,
-                                ci_upper: course.ci_upper,
-                                n: course.n
-                            });
+        try {
+            const data = await AdminService.postGetVamTrendData({
+                group_by: vamGroupBy,
+                competency: vamCompetency,
+                selected_groups: vamGroupBy === 'institution' ? cleanInstitutions : cleanDirections,
+                filter_institutions: cleanInstitutions,
+                filter_directions: cleanDirections,
+                filter_courses: selectedCourses,
+                filter_test_attempts: selectedTestAttempts
+            });
+            if (data.status === 'success' && data.data) {
+                const points = [];
+                data.data.forEach(group => {
+                    group.courses.forEach(course => {
+                        points.push({
+                            group: group.group_name,
+                            course: course.course,
+                            value_added: course.value_added,
+                            ci_lower: course.ci_lower,
+                            ci_upper: course.ci_upper,
+                            n: course.n
                         });
                     });
-                    setVamData(points);
+                });
+                setVamData(points);
 
-                    // Статистика
-                    const groups = new Set(points.map(p => p.group));
-                    const coursesMap = new Map();
-                    points.forEach(p => {
-                        if (!coursesMap.has(p.course)) coursesMap.set(p.course, []);
-                        coursesMap.get(p.course).push(p.value_added);
-                    });
-                    const avgByCourse = Array.from(coursesMap.entries()).map(([course, values]) => ({
-                        course,
-                        avg: values.reduce((a, b) => a + b, 0) / values.length,
-                        count: values.length
-                    }));
-                    const firstCourse = avgByCourse.find(c => c.course === 1)?.avg || 0;
-                    const lastCourse = avgByCourse.find(c => c.course === 4)?.avg || 0;
-                    const totalStudents = points.reduce((sum, p) => sum + (p.n || 0), 0);
-                    setVamStats({
-                        groupCount: groups.size,
-                        avgFirstCourse: firstCourse,
-                        avgLastCourse: lastCourse,
-                        gain: lastCourse - firstCourse,
-                        totalStudents: totalStudents,
-                        pointsCount: points.length
-                    });
-                } else {
-                    setVamData(null);
-                    setVamStats(null);
-                    alert('Нет данных для выбранных фильтров');
-                }
-            })
-            .onError(err => {
-                console.error(err);
-                alert('Ошибка при загрузке VAM данных');
+                // Статистика
+                const groups = new Set(points.map(p => p.group));
+                const coursesMap = new Map();
+                points.forEach(p => {
+                    if (!coursesMap.has(p.course)) coursesMap.set(p.course, []);
+                    coursesMap.get(p.course).push(p.value_added);
+                });
+                const avgByCourse = Array.from(coursesMap.entries()).map(([course, values]) => ({
+                    course,
+                    avg: values.reduce((a, b) => a + b, 0) / values.length,
+                    count: values.length
+                }));
+                const firstCourse = avgByCourse.find(c => c.course === 1)?.avg || 0;
+                const lastCourse = avgByCourse.find(c => c.course === 4)?.avg || 0;
+                const totalStudents = points.reduce((sum, p) => sum + (p.n || 0), 0);
+                setVamStats({
+                    groupCount: groups.size,
+                    avgFirstCourse: firstCourse,
+                    avgLastCourse: lastCourse,
+                    gain: lastCourse - firstCourse,
+                    totalStudents: totalStudents,
+                    pointsCount: points.length
+                });
+            } else {
                 setVamData(null);
                 setVamStats(null);
-            })
-            .finally(() => setLoading(false));
+                alert('Нет данных для выбранных фильтров');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка при загрузке VAM данных');
+            setVamData(null);
+            setVamStats(null);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // -------------------- Рендер LGM --------------------

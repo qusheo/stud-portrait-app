@@ -32,8 +32,8 @@ import ReactApexChart from 'react-apexcharts';
 import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
 import FilterHeader from '@components/FilterHeader';
 
-import { getDashboardStats, getCompetencyTrendByYear } from '../../api.js';
 import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { AdminService } from '@services';
 
 import './AdminCompetencesView.scss';
 import TabButton from '@components/ui/TabButton';
@@ -1021,10 +1021,9 @@ function AdminCompetencesView() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const loadDashboardStats = async currentFilters => {
         setLoadingDash(true);
-        const data = await Service.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
+        const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
         setLoadingDash(false);
         if (!data) {
-            console.error('Ошибка при загрузке дашборда:', err);
             toast.error('Ошибка при загрузке дашборда');
             return;
         }
@@ -1046,16 +1045,14 @@ function AdminCompetencesView() {
     };
     const loadCompetencyTrend = async currentFilters => {
         setLoadingTrend(true);
-        getCompetencyTrendByYear(currentFilters.institute, currentFilters.specialty)
-            .onSuccess(async response => {
-                const data = await response.json();
-                setTrendData(data);
-            })
-            .onError(err => {
-                console.error('Ошибка при загрузке динамики:', err);
-                toast.error('Ошибка при получении данных');
-            })
-            .finally(() => setLoadingTrend(false));
+        try {
+            const data = await AdminService.getCompetencyTrendByYear(currentFilters.institute, currentFilters.specialty);
+            setTrendData(data);
+        } catch (err) {
+            console.error('Ошибка при загрузке динамики:', err);
+        } finally {
+            setLoadingTrend(false);
+        }
     };
     useEffect(() => {
         loadCompetencyTrend(filters_);

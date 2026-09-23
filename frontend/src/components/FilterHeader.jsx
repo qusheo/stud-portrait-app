@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getFilterOptions } from '../api';
+import { AdminService } from '../services';
 import Select from 'react-select';
 import './FilterHeader.scss';
 import TabButton from '@ui/TabButton';
@@ -20,61 +20,33 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
     };
     //загрузка вариантов
     useEffect(() => {
-        getFilterOptions()
-            .onSuccess(async response => {
-                setLoading(true);
-                try {
-                    const data = await response.json();
-                    setOptions(data.data);
-                } catch (e) {
-                    throw new Error(e);
-                } finally {
-                    setLoading(false);
-                }
-            })
-            .onError(err => console.error('Ошибка загрузки опций', err));
+        AdminService.getFilterOptions()
+            .then(data => setOptions(data.data))
+            .catch(err => console.error('Ошибка загрузки опций', err))
+            .finally(() => setLoading(false));
     }, []);
 
     useEffect(() => {
         const institute = filters?.institute;
         if (!institute) {
-            getFilterOptions()
-                .onSuccess(async response => {
-                    setLoading(true);
-                    try {
-                        const data = await response.json();
-                        setOptions(data.data);
-                    } catch (e) {
-                        throw new Error(e);
-                    } finally {
-                        setLoading(false);
-                    }
-                })
-                .onError(err => console.error('Ошибка загрузки опций', err));
+            AdminService.getFilterOptions()
+                .then(data => setOptions(data.data))
+                .catch(err => console.error('Ошибка загрузки опций', err))
+                .finally(() => setLoading(false));
             return;
         }
         const id = ++reqRef.current;
-        getFilterOptions(institute)
-            .onSuccess(async res => {
+        AdminService.getFilterOptions(institute)
+            .then(data => {
                 if (id !== reqRef.current) return;
-                setLoading(true);
-                try {
-                    const data = await res.json();
-
-                    // если выбранная спец не в новом списке - сброс
-                    if (filters?.specialty && !newSpecs.some(s => s.value === filters.specialty)) {
-                        onFilterChange('specialty', '');
-                    }
-                    const newSpecs = data.data.specialties || [];
-                    setOptions(prev => ({ ...prev, specialties: newSpecs }));
-                } catch (e) {
-                    throw new Error(e);
-                } finally {
-                    setLoading(false);
+                const newSpecs = data.data.specialties || [];
+                if (filters?.specialty && !newSpecs.some(s => s.value === filters.specialty)) {
+                    onFilterChange('specialty', '');
                 }
+                setOptions(prev => ({ ...prev, specialties: newSpecs }));
             })
-            .onError(() => {
-                console.error('Ошибка загрузки опций', e);
+            .catch(err => console.error('Ошибка загрузки опций', err))
+            .finally(() => {
                 if (id === reqRef.current) setLoading(false);
             });
     }, [filters?.institute]);

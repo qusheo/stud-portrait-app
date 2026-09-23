@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getDuplicateAccounts, getPossibleDuplicateAccounts } from '../../../api';
+import { AdminService } from '@services';
 import { LINK_TREE } from '../../../utilities';
 
 import FlexRow, { WRAP } from '../@components/FlexRow';
@@ -101,17 +101,9 @@ const AdminDuplicateAccountsChecker = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [r1, r2] = await Promise.all([
-                fetch('http://localhost:8000/portrait/duplicate-accounts/'),
-                fetch('http://localhost:8000/portrait/possible-duplicate-accounts/')
-            ]);
-            const [res1, res2] = await Promise.all([r1.json(), r2.json()]);
-
-            if (res1.status === 'success') setData(res1.students || []);
-            else console.error(res1.message);
-
-            if (res2.status === 'success') setPossibleData(res2.students || []);
-            else console.error(res2.message);
+            const [res1, res2] = await Promise.all([AdminService.getDuplicateAccounts(), AdminService.getPossibleDuplicateAccounts()]);
+            setData(res1.students || []);
+            setPossibleData(res2.students || []);
         } catch (err) {
             console.error(err);
         } finally {

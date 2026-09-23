@@ -1,14 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import {
-    getAnalyzeAllDisciplinesImpact,
-    getPortraitGetDisciplines,
-    getPortraitGetFilterOptionsWithCounts,
-    getPortraitGetInstitutionDirections,
-    postAnalyzeDisciplineImpactAdvanced,
-    postGetDisciplineHeatmapData,
-    postPortraitDataseshNew
-} from '../../../api';
+import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
 
 import FlexRow from '../@components/FlexRow';
@@ -59,16 +51,15 @@ function AdminAnalysisDisciplinesView() {
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-            postPortraitDataseshNew()
-                .onSuccess(async response => {
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        setSessionId(data.session.id);
-                        await loadFilterOptions(data.session.id);
-                    }
-                })
-                .onError(error => console.error(error))
-                .finally(() => setLoading(false));
+            try {
+                const data = await AdminService.postDataseshNew();
+                setSessionId(data.session.id);
+                await loadFilterOptions(data.session.id);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
         };
         init();
     }, []);
@@ -77,54 +68,43 @@ function AdminAnalysisDisciplinesView() {
 
     const loadFilterOptions = async (sid, updateCounts = false) => {
         if (!sid) return;
-        (updateCounts
-            ? getPortraitGetFilterOptionsWithCounts(
-                  sid,
-                  selectedInstitutions,
-                  selectedDirections,
-                  selectedCourses,
-                  selectedTestAttempts,
-                  selectedCompetencies
-              )
-            : getPortraitGetFilterOptionsWithCounts(sid)
-        )
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    // Загружаем дисциплины
-                    let disciplines = [];
-                    try {
-                        const discRes = getPortraitGetDisciplines();
-                        const discData = await new Promise(resolve => {
-                            discRes
-                                .onSuccess(async d => {
-                                    const json = await d.json();
-                                    resolve(json);
-                                })
-                                .onError(() => resolve({ disciplines: [] }));
-                        });
-                        if (discData.status === 'success') {
-                            disciplines = discData.disciplines || [];
-                        }
-                    } catch (e) {
-                        console.error('Error loading disciplines:', e);
-                    }
-
-                    setFilterOptions({
-                        institutions: data.data?.institutions || [],
-                        directions: data.data?.directions || [],
-                        allDirections: data.data?.directions || [],
-                        courses: data.data?.courses || [],
-                        testAttempts: data.data?.test_attempts || [],
-                        competencies:
-                            data.data?.competencies ||
-                            Object.keys(COMPETENCIES_NAMES).map(c => ({ id: c, name: COMPETENCIES_NAMES[c], count: 0 })),
-                        students: data.data?.students || [],
-                        disciplines: disciplines
-                    });
+        try {
+            const data = await (updateCounts
+                ? AdminService.getFilterOptionsWithCounts(
+                      sid,
+                      selectedInstitutions,
+                      selectedDirections,
+                      selectedCourses,
+                      selectedTestAttempts,
+                      selectedCompetencies
+                  )
+                : AdminService.getFilterOptionsWithCounts(sid));
+            {
+                // Загружаем дисциплины
+                let disciplines = [];
+                try {
+                    const discData = await AdminService.getDisciplines();
+                    disciplines = discData.disciplines || [];
+                } catch (e) {
+                    console.error('Error loading disciplines:', e);
                 }
-            })
-            .onError(console.error);
+
+                setFilterOptions({
+                    institutions: data.data?.institutions || [],
+                    directions: data.data?.directions || [],
+                    allDirections: data.data?.directions || [],
+                    courses: data.data?.courses || [],
+                    testAttempts: data.data?.test_attempts || [],
+                    competencies:
+                        data.data?.competencies ||
+                        Object.keys(COMPETENCIES_NAMES).map(c => ({ id: c, name: COMPETENCIES_NAMES[c], count: 0 })),
+                    students: data.data?.students || [],
+                    disciplines: disciplines
+                });
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     // Обновление направлений при изменении вузов
@@ -134,16 +114,17 @@ function AdminAnalysisDisciplinesView() {
             setFilterOptions(prev => ({ ...prev, directions: prev.allDirections }));
             return;
         }
-        getPortraitGetInstitutionDirections(selectedInstitutions)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    const directions = data.directions.map(name => ({ id: name, name, count: 0 }));
-                    setFilterOptions(prev => ({ ...prev, directions }));
-                    setSelectedDirections(prev => prev.filter(d => data.directions.includes(d)));
-                }
-            })
-            .onError(console.error);
+        const loadDirections = async () => {
+            try {
+                const data = await AdminService.getInstitutionDirections(selectedInstitutions);
+                const directions = data.directions.map(name => ({ id: name, name, count: 0 }));
+                setFilterOptions(prev => ({ ...prev, directions }));
+                setSelectedDirections(prev => prev.filter(d => data.directions.includes(d)));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadDirections();
     }, [selectedInstitutions, sessionId]);
 
     // Перезагрузка фильтров при изменении выбранных значений
@@ -168,20 +149,19 @@ function AdminAnalysisDisciplinesView() {
         setLoading(true);
         setActiveTab('all');
 
-        getAnalyzeAllDisciplinesImpact()
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setAllDisciplinesData(data);
-                } else {
-                    alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
-                }
-            })
-            .onError(error => {
-                console.error(error);
-                alert('Ошибка при загрузке данных: ' + error.message);
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await AdminService.getAllDisciplinesImpact();
+            if (data.status === 'success') {
+                setAllDisciplinesData(data);
+            } else {
+                alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Ошибка при загрузке данных: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const loadDisciplineImpact = async () => {
@@ -190,43 +170,47 @@ function AdminAnalysisDisciplinesView() {
 
         const competencies = selectedCompetencies.length > 0 ? selectedCompetencies : Object.keys(COMPETENCIES_NAMES).slice(0, 3); // По умолчанию первые 3 компетенции
 
-        postAnalyzeDisciplineImpactAdvanced(competencies, selectedDisciplines, selectedInstitutions, selectedDirections, 5)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setDisciplineData(data.results);
-                } else {
-                    alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
-                }
-            })
-            .onError(error => {
-                console.error(error);
-                alert('Ошибка при загрузке данных: ' + error.message);
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await AdminService.postAnalyzeDisciplineImpactAdvanced(
+                competencies,
+                selectedDisciplines,
+                selectedInstitutions,
+                selectedDirections,
+                5
+            );
+            if (data.status === 'success') {
+                setDisciplineData(data.results);
+            } else {
+                alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Ошибка при загрузке данных: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const loadHeatmapData = async () => {
         setLoading(true);
         setActiveTab('heatmap');
 
-        postGetDisciplineHeatmapData(selectedInstitutions, selectedDirections)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setHeatmapData(data.data);
-                    setHeatmapByDirection(data.data_by_direction || {});
-                    setHeatmapDirections(data.directions || []);
-                    setSelectedHeatmapDir('__all__');
-                } else {
-                    alert('Ошибка при загрузке данных тепловой карты: ' + (data.message || 'Неизвестная ошибка'));
-                }
-            })
-            .onError(error => {
-                console.error(error);
-                alert('Ошибка при загрузке данных: ' + error.message);
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await AdminService.getDisciplineHeatmapData(selectedInstitutions, selectedDirections);
+            if (data.status === 'success') {
+                setHeatmapData(data.data);
+                setHeatmapByDirection(data.data_by_direction || {});
+                setHeatmapDirections(data.directions || []);
+                setSelectedHeatmapDir('__all__');
+            } else {
+                alert('Ошибка при загрузке данных тепловой карты: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Ошибка при загрузке данных: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const renderAllDisciplinesImpact = () => {

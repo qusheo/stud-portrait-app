@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { LINK_TREE } from '../../utilities';
-import { getStudentsList, getStudentPortrait } from '../../api';
+import { StudentService } from '@services';
 
 import { ToastContainer, toast } from 'react-toastify';
 import FlexColumn from '@components/FlexColumn';
@@ -34,14 +34,9 @@ const StudentSearch = ({ onSelectStudent }) => {
 
     const searchStudents = async () => {
         setLoading(true);
-        getStudentsList(searchTerm, 20)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStudents(data.data);
-                }
-            })
-            .onError(error => console.error('Ошибка поиска:', error))
+        StudentService.getStudentsList(searchTerm, 20)
+            .then(data => setStudents(data.data))
+            .catch(error => console.error('Ошибка поиска:', error))
             .finally(() => setLoading(false));
     };
 
@@ -390,21 +385,15 @@ function AdminStudentView() {
 
     const loadStudentPortrait = async studentId => {
         setLoading(true);
-        getStudentPortrait(studentId)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStudentPortrait(data.data);
-                } else {
-                    console.error('Ошибка загрузки портрета:', data.message);
-                    toast.error('Ошибка при загрузке портрета');
-                }
-            })
-            .onError(error => {
-                console.error('Ошибка:', error);
-                toast.error('Ошибка при загрузке портрета');
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await StudentService.getStudentPortrait(studentId);
+            setStudentPortrait(data.data);
+        } catch (error) {
+            console.error('Ошибка:', error);
+            toast.error('Ошибка при загрузке портрета');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

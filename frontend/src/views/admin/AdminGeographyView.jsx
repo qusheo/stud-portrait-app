@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getPortraitCentersByRegion, getGeographyReport } from '../../api';
+import { AdminService } from '@services';
 import { LINK_TREE } from '../../utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -34,21 +34,13 @@ function AdminGeographyView() {
     const loadCentersData = useCallback(async year => {
         setLoading(true);
 
-        getPortraitCentersByRegion(year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setRegionData(data.data);
-                    setMaxValue(data.max_value);
-                    setTotalCenters(data.total_centers);
-                    console.log(`Данные за ${data.year}:`, data.data);
-                } else {
-                    console.error('Ошибка загрузки данных:', data.message);
-                    toast.error(`Ошибка загрузки данных: ${data.message}`);
-                    setRegionData([]);
-                }
+        AdminService.getCentersByRegion(year)
+            .then(data => {
+                setRegionData(data.data);
+                setMaxValue(data.max_value);
+                setTotalCenters(data.total_centers);
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Ошибка API:', error);
                 toast.error('Ошибка при загрузке данных');
                 setRegionData([]);
@@ -72,10 +64,8 @@ function AdminGeographyView() {
     // Генерация отчёта
     const generateReport = async () => {
         setReportLoading(true);
-        getGeographyReport(selectedYear)
-            .onSuccess(async response => {
-                // Получаем blob из ответа
-                const blob = await response.blob();
+        AdminService.getGeographyReport(selectedYear)
+            .then(blob => {
                 // Создаём ссылку для скачивания
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -87,7 +77,7 @@ function AdminGeographyView() {
                 window.URL.revokeObjectURL(url);
                 toast.success('Отчет создан');
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Ошибка генерации отчёта:', error);
                 toast.error('Ошибка при генерации отчёта');
             })

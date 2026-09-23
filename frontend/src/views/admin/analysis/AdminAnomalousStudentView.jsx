@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-    postGetBoxplotData,
-    getPortraitGetFilterOptionsWithCounts,
-    postPortraitDataseshNew,
-    getPortraitGetInstitutionDirections
-} from '../../../api';
+import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
 
 import AiInsightPanel from '../@components/AiInsightPanel';
@@ -48,40 +43,42 @@ function AdminAnomalousStudentView() {
     const [groupByMode, setGroupByMode] = useState('auto');
 
     useEffect(() => {
-        postPortraitDataseshNew()
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    setSessionId(data.session_id);
-                    loadFilterOptions(data.session_id);
-                }
-            })
-            .onError(console.error);
+        const init = async () => {
+            try {
+                const data = await AdminService.postDataseshNew();
+                setSessionId(data.session_id);
+                loadFilterOptions(data.session_id);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        init();
     }, []);
 
     const loadFilterOptions = async sid => {
-        getPortraitGetFilterOptionsWithCounts(sid, [], [], [], [], [])
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const institutions = (data.data?.institutions || []).map(i => ({
-                        id: Number(i.id),
-                        name: i.name,
-                        count: i.count
-                    }));
-                    const allDirections = (data.data?.directions || []).map(d => ({
-                        id: Number(d.id),
-                        name: d.name,
-                        count: d.count
-                    }));
-                    setFilterOptions({
-                        institutions,
-                        directions: allDirections,
-                        allDirections
-                    });
-                }
-            })
-            .onError(console.error);
+        const load = async () => {
+            try {
+                const data = await AdminService.getFilterOptionsWithCounts(sid, [], [], [], [], []);
+                const institutions = (data.data?.institutions || []).map(i => ({
+                    id: Number(i.id),
+                    name: i.name,
+                    count: i.count
+                }));
+                const allDirections = (data.data?.directions || []).map(d => ({
+                    id: Number(d.id),
+                    name: d.name,
+                    count: d.count
+                }));
+                setFilterOptions({
+                    institutions,
+                    directions: allDirections,
+                    allDirections
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        load();
     };
 
     useEffect(() => {
@@ -90,17 +87,18 @@ function AdminAnomalousStudentView() {
             setFilterOptions(prev => ({ ...prev, directions: prev.allDirections }));
             return;
         }
-        getPortraitGetInstitutionDirections(selectedInstitutions)
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
-                    setFilterOptions(prev => ({ ...prev, directions }));
-                    const newIds = new Set(directions.map(d => d.id));
-                    setSelectedDirections(prev => prev.filter(id => newIds.has(id)));
-                }
-            })
-            .onError(console.error);
+        const loadDirections = async () => {
+            try {
+                const data = await AdminService.getInstitutionDirections(selectedInstitutions);
+                const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
+                setFilterOptions(prev => ({ ...prev, directions }));
+                const newIds = new Set(directions.map(d => d.id));
+                setSelectedDirections(prev => prev.filter(id => newIds.has(id)));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadDirections();
     }, [selectedInstitutions, sessionId]);
 
     const loadAnomalies = () => {
@@ -109,14 +107,14 @@ function AdminAnomalousStudentView() {
             return;
         }
         setLoading(true);
-        postGetBoxplotData(
-            selectedCompetency,
-            selectedInstitutions.map(id => Number(id)),
-            selectedDirections.map(id => Number(id)),
-            groupByMode // передаём режим группировки
-        )
-            .onSuccess(async res => {
-                const data = await res.json();
+        const load = async () => {
+            try {
+                const data = await AdminService.postGetBoxplotData(
+                    selectedCompetency,
+                    selectedInstitutions.map(id => Number(id)),
+                    selectedDirections.map(id => Number(id)),
+                    groupByMode
+                );
                 if (data.status === 'success') {
                     if (data.grouped) {
                         // Группированный режим
@@ -138,12 +136,14 @@ function AdminAnomalousStudentView() {
                     setStats(null);
                     setGroupedData(null);
                 }
-            })
-            .onError(err => {
+            } catch (err) {
                 console.error(err);
                 alert('Ошибка при загрузке данных');
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     };
 
     const resetFilters = () => {

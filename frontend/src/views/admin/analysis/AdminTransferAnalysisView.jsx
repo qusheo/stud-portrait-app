@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
-import { getInstitutions, getAnalyzeTransfers, postAnalyzeTransferStudents } from '../../../api';
+import { AdminService } from '@services';
 
 import FlexRow, { WRAP } from '../@components/FlexRow';
 import LabelledBox from '../@components/LabelledBox';
@@ -74,12 +74,15 @@ function AdminTransferAnalysisView() {
 
     // ── Загрузка вузов ────────────────────────────────────
     useEffect(() => {
-        getInstitutions()
-            .onSuccess(r => r.json())
-            .onSuccess(data => {
-                if (data.status === 'success') setInstitutions(data.institutions || []);
-            })
-            .onError(console.error);
+        const load = async () => {
+            try {
+                const data = await AdminService.getInstitutions();
+                setInstitutions(data.institutions || []);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        load();
     }, []);
 
     // ── Основной анализ ───────────────────────────────────
@@ -96,39 +99,43 @@ function AdminTransferAnalysisView() {
         });
         if (selectedInst) params.set('institution_id', selectedInst);
 
-        getAnalyzeTransfers(params.toString())
-            .onSuccess(r => r.json())
-            .onSuccess(data => {
-                if (data.status === 'success') {
-                    setSummary(data.summary);
-                    setSankeyData(data.sankey?.nodes?.length ? data.sankey : null);
-                    setByType(data.by_type || {});
-                    setActiveTab('sankey');
-                }
-            })
-            .onError(console.error)
-            .finally(() => setLoading(false));
+        const load = async () => {
+            try {
+                const data = await AdminService.getAnalyzeTransfers(params.toString());
+                setSummary(data.summary);
+                setSankeyData(data.sankey?.nodes?.length ? data.sankey : null);
+                setByType(data.by_type || {});
+                setActiveTab('sankey');
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     };
 
     // ── Детальный список студентов (по кнопке) ───────────
     const loadStudents = () => {
         setLoadingStudents(true);
-        postAnalyzeTransferStudents({
-            institution_id: selectedInst || null,
-            competency: selectedComp,
-            transfer_type: selectedType,
-            limit: 100
-        })
-            .onSuccess(r => r.json())
-            .onSuccess(data => {
-                if (data.status === 'success') {
-                    setStudents(data.students || []);
-                    setStudentsLoaded(true);
-                    setActiveTab('students');
-                }
-            })
-            .onError(console.error)
-            .finally(() => setLoadingStudents(false));
+        const load = async () => {
+            try {
+                const data = await AdminService.postAnalyzeTransferStudents({
+                    institution_id: selectedInst || null,
+                    competency: selectedComp,
+                    transfer_type: selectedType,
+                    limit: 100
+                });
+                setStudents(data.students || []);
+                setStudentsLoaded(true);
+                setActiveTab('students');
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoadingStudents(false);
+            }
+        };
+        load();
     };
 
     // ── Рендер вкладки Санки ──────────────────────────────

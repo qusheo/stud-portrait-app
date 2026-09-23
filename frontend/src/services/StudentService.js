@@ -44,6 +44,10 @@ class StudentService extends BaseService {
         return this.request(() => Api.getStudentResumeData(studentId, year), 'Ошибка загрузки резюме');
     }
 
+    generateDocxResume(studentId) {
+        return Api.windowGenerateDocxResume(studentId);
+    }
+
     /**
      * Курсы
      */

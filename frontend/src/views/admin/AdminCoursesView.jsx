@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { getPortraitCourses } from '../../api.js';
+import { AdminService } from '@services';
 import { COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
@@ -31,14 +31,9 @@ function AdminCoursesView() {
 
     const fetchCoursesData = async () => {
         setLoading(true);
-        getPortraitCourses()
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setCoursesData(data.courses);
-                }
-            })
-            .onError(error => console.error('Error fetching courses data:', error))
+        AdminService.getCourses()
+            .then(data => setCoursesData(data.courses))
+            .catch(error => console.error('Error fetching courses data:', error))
             .finally(() => setLoading(false));
     };
 

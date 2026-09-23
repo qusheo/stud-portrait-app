@@ -20,7 +20,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import MotivatorStatistics from '@components/MotivatorStatistics.jsx';
 import FilterHeader from '@components/FilterHeader';
 
-import { getMotivationCounts } from '../../api.js';
+import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
 import * as XLSX from 'xlsx';
 
@@ -616,15 +616,9 @@ function AdminMotivatorsView() {
     const loadMotivationCounts = async currentFilters => {
         setLoadingMotDash(true);
         setErrorStatus(false);
-        getMotivationCounts(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status !== 'success') {
-                    throw new Error(data?.message);
-                }
-                setMotivationData(data);
-            })
-            .onError(err => {
+        AdminService.getMotivationCounts(currentFilters.institute, currentFilters.specialty, currentFilters.year)
+            .then(data => setMotivationData(data))
+            .catch(err => {
                 console.error('Ошибка при загрузке мотиваторов:', err);
                 toast.error('Ошибка при загрузке мотиваторов');
             })
