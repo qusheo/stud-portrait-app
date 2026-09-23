@@ -30,7 +30,7 @@ import StudentReportView from './views/student/StudentReportView';
 import SuperAuditView from './views/super/SuperAuditView';
 import SuperSqlView from './views/super/SuperSqlView';
 import SuperUploadView from './views/super/SuperUploadView';
-import { SidebarLayout } from '@components/SidebarLayout';
+import { SidebarLayout, Content } from '@components/SidebarLayout';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 
@@ -39,28 +39,10 @@ const router = createBrowserRouter([
         element: <SidebarLayout />,
         children: [
             {
-                path: '/', // should be excluded
+                path: '/', 
                 element: <App />,
                 errorElement: <ErrorView />
             },
-
-            /* STUDENT VIEWS */
-
-            {
-                path: '/student/:studentId',
-                element: <StudentMainView />
-            },
-            {
-                path: '/student/:studentId/report/:reportType',
-                element: <StudentReportView />
-            },
-
-            /* ADMIN VIEWS */
-
-            /*{
-        path: "/admin/",
-        element: <AdminMainView />
-    },*/
             {
                 path: '/admin/geography',
                 element: <AdminGeographyView />
@@ -144,6 +126,19 @@ const router = createBrowserRouter([
                 path: '/super/sql',
                 element: <SuperSqlView />
             }
+        ]
+    },
+    {
+        element: <Content />,
+        children: [
+            {
+                path: '/student/:studentId',
+                element: <StudentMainView />
+            },
+            {
+                path: '/student/:studentId/report/:reportType',
+                element: <StudentReportView />
+            },
         ]
     }
 ]);

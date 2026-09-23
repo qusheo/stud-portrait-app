@@ -1036,9 +1036,11 @@ function AdminCompetencesView() {
         setFilters_(prev => {
             const updated = { ...prev, [name]: value };
             if (name === 'institute') updated.specialty = '';
+            
+            saveFilters('Admin', updated); // сохраняем фильтры в хранилище
+
             return updated;
         });
-        saveFilters('Admin', filters_);
     };
     const resetFilters = () => {
         setFilters_({ institute: '', specialty: '', year: '' });
@@ -1060,11 +1062,12 @@ function AdminCompetencesView() {
 
     /* подгрузка старых фильтров при маунте компонента */
     useEffect(() => {
-        console.log(savedFilters);
-        if (savedFilters?.Admin) {
-            setFilters_(savedFilters.Admin);
+        const saved = savedFilters?.Admin;
+
+        if (saved && Object.keys(saved).length) {
+            setFilters_(saved);
         }
-    }, savedFilters.Admin);
+    }, [savedFilters]);
 
     return (
         <div className="AdminCompetencesView">

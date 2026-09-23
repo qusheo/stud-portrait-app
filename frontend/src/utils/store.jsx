@@ -16,7 +16,7 @@ export const useAdminStore = create(set => ({
         set(state => ({
             savedFilters: {
                 ...state.savedFilters,
-                [page]: data
+                [page]: { ...data }
             }
         }))
 }));
