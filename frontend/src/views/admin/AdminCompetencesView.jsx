@@ -38,7 +38,7 @@ import { AdminService } from '@services';
 import './AdminCompetencesView.scss';
 import TabButton from '@components/ui/TabButton';
 
-import { useAdminStore } from '@utils/store';
+import { useAdminStore } from '@utils/store.jsx';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -1010,7 +1010,6 @@ function CompetencyTrendLine({ data, loading }) {
 function AdminCompetencesView() {
     const savedFilters = useAdminStore(state => state.savedFilters);
     const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
-
     const [dashboardData, setDashboardData] = useState(null);
     const [loadingDash, setLoadingDash] = useState(false);
     const [filters_, setFilters_] = useState({ institute: '', specialty: '', year: '' });

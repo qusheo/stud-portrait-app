@@ -4,19 +4,25 @@ import { persist } from 'zustand/middleware';
 
 const DEFAULT_PAGE = '/admin/stats';
 
-export const useAdminStore = create(set => ({
-    currentPage: DEFAULT_PAGE,
-    setCurrentPage: page =>
-        set({
-            currentPage: page
-        }),
+export const useAdminStore = create(
+    persist(
+        set => ({
+            currentPage: DEFAULT_PAGE,
 
-    savedFilters: { 'Admin': {} },
-    saveFilters: (page, data) =>
-        set(state => ({
             savedFilters: {
-                ...state.savedFilters,
-                [page]: { ...data }
-            }
-        }))
-}));
+                Admin: {}
+            },
+
+            saveFilters: (page, data) =>
+                set(state => ({
+                    savedFilters: {
+                        ...state.savedFilters,
+                        [page]: { ...data }
+                    }
+                }))
+        }),
+        {
+            name: 'admin-filters'
+        }
+    )
+);
