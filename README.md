@@ -1,6 +1,6 @@
 # StudPortrait
 
-**StudPortrait** - веб-приложение с основным направлением на построение цифрового портрета студента и его анализа 
+**StudPortrait** - веб-приложение с основным направлением на построение цифрового портрета студента и его анализа
 
 ## Installation & launch
 
@@ -108,20 +108,17 @@ sudo service redis-server stop
 
 2. Excecute SQL code from 'backend\create_database.sql' in your database query tool.
 
-3. Create file 'backend\src\studportrait\env.py':
+Надо два env -> в frontend/
+-> в backend/src
 
-```python
-env = {
-    'NAME': '<DB name>',
-    'USER': '<DB user>',
-    'PASSWORD': '<DB password>',
-    'HOST': 'localhost',
-    'PORT': '5432'
-}
-```
+в .env бэка:
+DB_NAME=
+DB_USER=
+DB_PASSWORD=
+DB_HOST=
+DB_PORT=
+REDIS_URL=
 
-**Filling with data**
-
-1. Get database & backend running.
-
-2. Perform request '...'
+в .env фронта
+VITE_API_URL=
+http://localhost:8000 если локалка, либо пустым, если сервер
