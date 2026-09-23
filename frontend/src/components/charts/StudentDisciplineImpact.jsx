@@ -1,8 +1,8 @@
 // components/charts/StudentDisciplineImpact.jsx
 import React, { useState, useEffect } from 'react';
 
-import { getStudentDisciplineImpact } from '../../api';
-import { COMPETENCIES_NAMES } from '../../utilities';
+import { StudentService } from '@services';
+import { COMPETENCIES_NAMES } from '@utils/utilities';
 
 const StudentDisciplineImpact = ({ studentId }) => {
     const [data, setData] = useState(null);
@@ -12,20 +12,18 @@ const StudentDisciplineImpact = ({ studentId }) => {
     useEffect(() => {
         if (!studentId) return;
         setLoading(true);
-        getStudentDisciplineImpact(studentId)
-            .onSuccess(async response => {
-                const result = await response.json();
-                if (result.status === 'success') {
-                    setData(result.data);
-                } else {
-                    setError(result.message);
-                }
-            })
-            .onError(err => {
+        const load = async () => {
+            try {
+                const result = await StudentService.getStudentDisciplineImpact(studentId);
+                setData(result.data);
+            } catch (err) {
                 console.error(err);
                 setError('Ошибка загрузки данных');
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     }, [studentId]);
 
     if (loading) return <div className="loading">Загрузка влияния дисциплин...</div>;

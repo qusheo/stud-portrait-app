@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
-import { LINK_TREE } from '../utilities.js';
+import { LINK_TREE } from '@utils/utilities.js';
 export const LAYOUT_STYLE = {
     ADMIN: 'admin',
     MODEUS: 'modeus',
@@ -58,16 +58,14 @@ export function Sidebar({ links, linkTree }) {
     React.useEffect(() => {
         if (!linkTree) return;
 
-        const categories = Object.fromEntries(
-            linkTree.map((category) => [category.category, true])
-        );
+        const categories = Object.fromEntries(linkTree.map(category => [category.category, true]));
 
         setCategoryOpenState(categories);
     }, [linkTree]);
 
-    function onCategoryClick (category) {
+    function onCategoryClick(category) {
         if (categoryOpenState[category] === undefined) return;
-        setCategoryOpenState({...categoryOpenState, [category]: !categoryOpenState[category]});
+        setCategoryOpenState({ ...categoryOpenState, [category]: !categoryOpenState[category] });
     }
     if (!isOpen) {
         return (
@@ -104,25 +102,33 @@ export function Sidebar({ links, linkTree }) {
                             <ul>
                                 {linkTree.map((category, index) => (
                                     <li key={index}>
-                                        {category.category && 
+                                        {category.category && (
                                             <span onClick={() => onCategoryClick(category.category)}>
                                                 {category.category}
 
-                                                <div className="icon" > 
-                                                    { categoryOpenState[category.category] === false ? <ChevronUp size={15}/> : <ChevronDown size={15}/>} 
+                                                <div className="icon">
+                                                    {categoryOpenState[category.category] === false ? (
+                                                        <ChevronUp size={15} />
+                                                    ) : (
+                                                        <ChevronDown size={15} />
+                                                    )}
                                                 </div>
-                                            </span>}
-                                        <ul style = { categoryOpenState[category.category] === false ? { height: '0px'} : {} }>
-                                            { categoryOpenState[category.category] !== false && category.links.map((link, index) => (
-                                                <li key={index}>
-                                                    <a
-                                                        href={link.to}
-                                                        className={link.to === location.pathname ? 'Sidebar-item-active' : 'Sidebar-item'}
-                                                    >
-                                                        {link.title}
-                                                    </a>
-                                                </li>
-                                            ))}
+                                            </span>
+                                        )}
+                                        <ul style={categoryOpenState[category.category] === false ? { height: '0px' } : {}}>
+                                            {categoryOpenState[category.category] !== false &&
+                                                category.links.map((link, index) => (
+                                                    <li key={index}>
+                                                        <a
+                                                            href={link.to}
+                                                            className={
+                                                                link.to === location.pathname ? 'Sidebar-item-active' : 'Sidebar-item'
+                                                            }
+                                                        >
+                                                            {link.title}
+                                                        </a>
+                                                    </li>
+                                                ))}
                                         </ul>
                                     </li>
                                 ))}

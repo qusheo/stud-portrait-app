@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getTopCorrelations } from '../../api';
+import { AdminService } from '@services';
 
 /**
  * Покраска ячейки со значением корреляции:
@@ -41,7 +41,7 @@ export default function TopCorrelationsTable({ filters }) {
     useEffect(() => {
         setLoading(true);
         setError(null);
-        getTopCorrelations({
+        AdminService.getTopCorrelations({
             topN,
             sortBy,
             minN,
@@ -49,15 +49,8 @@ export default function TopCorrelationsTable({ filters }) {
             specialty: filters?.specialty || null,
             year: filters?.year || null
         })
-            .onSuccess(async response => {
-                const resp = await response.json();
-                if (resp.status === 'success') {
-                    setData(resp);
-                } else {
-                    setError(resp.message || 'Не удалось загрузить рейтинг');
-                }
-            })
-            .onError(err => {
+            .then(resp => setData(resp))
+            .catch(err => {
                 console.error('Ошибка загрузки рейтинга:', err);
                 setError('Сервер недоступен');
             })

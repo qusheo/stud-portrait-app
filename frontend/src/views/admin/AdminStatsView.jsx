@@ -2,23 +2,23 @@ import { useState, useEffect, React } from 'react';
 import Chart from 'react-apexcharts';
 import 'rc-slider/assets/index.css';
 
-import FlexRow, { ALIGN, JUSTIFY, WRAP } from '../../components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import Card from '../../components/cards/Card.jsx';
-import TitledCard from '../../components/cards/TitledCard.jsx';
-import ValueCard from '../../components/cards/ValueCard.jsx';
+import Card from '@components/cards/Card.jsx';
+import TitledCard from '@components/cards/TitledCard.jsx';
+import ValueCard from '@components/cards/ValueCard.jsx';
 
-import Button from '../../components/ui/Button.jsx';
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
+import Button from '@components/ui/Button.jsx';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { postPortraitDataseshNew, postPortraitDataseshCountStats, postPortraitDataseshUpdateFilters } from '../../api.js';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '../../utilities.js';
+import { AdminService } from '@services';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
 import './AdminStatsView.scss';
-import TabButton from '../../components/ui/TabButton';
+import TabButton from '@components/ui/TabButton';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -47,18 +47,12 @@ function AdminStatsView() {
     // Инициализация сессии
     const initializeSession = async () => {
         setLoading(true);
-        postPortraitDataseshNew()
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setSessionId(data.session.id);
-                    await fetchStats(data.session.id);
-                } else {
-                    console.error('Failed to create session:', data.message);
-                    await fetchStats();
-                }
+        AdminService.postDataseshNew()
+            .then(async data => {
+                setSessionId(data.session.id);
+                await fetchStats(data.session.id);
             })
-            .onError(async error => {
+            .catch(async error => {
                 console.error('Error initializing session:', error);
                 await fetchStats();
             });
@@ -66,15 +60,12 @@ function AdminStatsView() {
 
     const fetchStats = async (sessionIdToUse = null) => {
         setLoading(true);
-        postPortraitDataseshCountStats(sessionIdToUse)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStats(data.stats);
-                    setAvailableValues(data.stats.available_values); // Извлекаем доступные значения для фильтрации
-                }
+        AdminService.postDataseshCountStats(sessionIdToUse)
+            .then(data => {
+                setStats(data.stats);
+                setAvailableValues(data.stats.available_values);
             })
-            .onError(error => console.error('Error fetching stats:', error))
+            .catch(error => console.error('Error fetching stats:', error))
             .finally(() => setLoading(false));
     };
 
@@ -82,14 +73,9 @@ function AdminStatsView() {
     const updateSessionFilters = async newFilters => {
         if (!sessionId) return;
 
-        postPortraitDataseshUpdateFilters(sessionId, newFilters)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    await fetchStats(sessionId); // Перезагружаем статистику с новыми фильтрами
-                }
-            })
-            .onError(error => console.error('Error updating session filters:', error));
+        AdminService.postDataseshUpdateFilters(sessionId, newFilters)
+            .then(() => fetchStats(sessionId))
+            .catch(error => console.error('Error updating session filters:', error));
     };
 
     // Функции для работы с фильтрами

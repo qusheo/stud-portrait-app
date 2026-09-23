@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
-import { COMPETENCIES_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 export default function CorrelationHeatmap({ data, loading }) {
     // Состояние: сколько дисциплин показывать (по умолчанию топ-20 по объёму данных)

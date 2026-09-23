@@ -1,26 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-
-import ReactApexChart from 'react-apexcharts';
-
 import { ToastContainer, toast } from 'react-toastify';
 
-import { getScoresResult, getGradesCompetencyCorrelation } from '../../api.js';
+import { AdminService } from '@services';
 
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '../../utilities.js';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import FilterHeader from '../../components/FilterHeader';
-import TabButton from '../../components/ui/TabButton';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
+import FilterHeader from '@components/FilterHeader';
+import TabButton from '@components/ui/TabButton';
 
-import FlexRow, { WRAP } from '../../components/FlexRow.jsx';
+import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 
 import './AdminAPView.scss';
 import CorrelationHeatmap from './CorrelationHeatmap';
 import CorrelationScatter from './CorrelationScatter';
 import TopCorrelationsTable from './TopCorrelationsTable';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-import { useAdminStore } from '../../store';
+import { useAdminStore } from '@utils/store';
 
 const scores = {
     2: 'неудовл.',
@@ -148,9 +144,8 @@ function AdminAPView() {
     const loadScoresResult = async currentFilters => {
         setLoading(true);
         setErrorStatus(false);
-        getScoresResult(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .onSuccess(async response => {
-                const data = await response.json();
+        AdminService.getScoresResult(currentFilters.institute, currentFilters.specialty, currentFilters.year)
+            .then(data => {
                 setScatterData(data);
                 if (data?.data.length === 0 || data?.names.length < 4) {
                     console.error('Ошибка при загрузке данных: данные пусты');
@@ -158,7 +153,7 @@ function AdminAPView() {
                     setErrorStatus(true);
                 }
             })
-            .onError(err => {
+            .catch(err => {
                 console.error('Ошибка при загрузке данных:', err);
                 toast.error('Ошибка при загрузке данных');
                 setErrorStatus(true);
@@ -185,12 +180,9 @@ function AdminAPView() {
 
     const loadCorrelation = async currentFilters => {
         setLoadingCorr(true);
-        getGradesCompetencyCorrelation(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                setCorrelationData(data);
-            })
-            .onError(err => {
+        AdminService.getGradesCompetencyCorrelation(currentFilters.institute, currentFilters.specialty, currentFilters.year)
+            .then(data => setCorrelationData(data))
+            .catch(err => {
                 console.error('Ошибка при загрузке корреляции:', err);
                 toast.error('Ошибка при загрузке данных корреляции');
                 setErrorStatus(true);

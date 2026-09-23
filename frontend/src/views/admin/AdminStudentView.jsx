@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 
-import { LINK_TREE } from '../../utilities';
-import { getStudentsList, getStudentPortrait } from '../../api';
+import { LINK_TREE } from '@utils/utilities';
+import { StudentService } from '@services';
 
 import { ToastContainer, toast } from 'react-toastify';
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '@components/SidebarLayout';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
 
-import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '../../utilities.js';
-import Label, { LABEL_PALETTE } from '../../components/ui/Label';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import Label, { LABEL_PALETTE } from '@components/ui/Label';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 import './AdminStudentView.scss';
 
@@ -34,14 +34,9 @@ const StudentSearch = ({ onSelectStudent }) => {
 
     const searchStudents = async () => {
         setLoading(true);
-        getStudentsList(searchTerm, 20)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStudents(data.data);
-                }
-            })
-            .onError(error => console.error('Ошибка поиска:', error))
+        StudentService.getStudentsList(searchTerm, 20)
+            .then(data => setStudents(data.data))
+            .catch(error => console.error('Ошибка поиска:', error))
             .finally(() => setLoading(false));
     };
 
@@ -54,9 +49,7 @@ const StudentSearch = ({ onSelectStudent }) => {
 
     return (
         <div className="student-search">
-            <div>
-                Поиск студента:
-            </div>
+            <div>Поиск студента:</div>
             <div className="search-container">
                 <input
                     type="text"
@@ -392,21 +385,15 @@ function AdminStudentView() {
 
     const loadStudentPortrait = async studentId => {
         setLoading(true);
-        getStudentPortrait(studentId)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStudentPortrait(data.data);
-                } else {
-                    console.error('Ошибка загрузки портрета:', data.message);
-                    toast.error('Ошибка при загрузке портрета');
-                }
-            })
-            .onError(error => {
-                console.error('Ошибка:', error);
-                toast.error('Ошибка при загрузке портрета');
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await StudentService.getStudentPortrait(studentId);
+            setStudentPortrait(data.data);
+        } catch (error) {
+            console.error('Ошибка:', error);
+            toast.error('Ошибка при загрузке портрета');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

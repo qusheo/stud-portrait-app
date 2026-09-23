@@ -1,5 +1,5 @@
 import Chart from 'react-apexcharts';
-import { CATEGORIES_DESCRIPTIONS } from '../../utilities';
+import { CATEGORIES_DESCRIPTIONS } from '@utils/utilities';
 import './RadarChart.scss';
 
 function RadarChart({ title, seriesLabel, seriesData, categories, competencyKeys, height = 450 }) {

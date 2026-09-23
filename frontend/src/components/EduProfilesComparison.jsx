@@ -16,7 +16,7 @@ import {
     ReferenceLine
 } from 'recharts';
 import Select from 'react-select';
-import { getEducationProfilesComparison } from '../api';
+import { AdminService } from '@services';
 import './EduProfilesComparison.scss';
 
 const EduProfilesComparison = () => {
@@ -50,16 +50,14 @@ const EduProfilesComparison = () => {
         setLoading(true);
         try {
             // Используем ту же API функцию, но без фильтров
-            const response = getEducationProfilesComparison({
+            const result = await AdminService.getEducationProfilesComparison({
                 specialties: [],
                 year: null,
                 include_motivators: true,
                 include_values: true
             });
 
-            response
-                .onSuccess(async res => {
-                    const result = await res.json();
+            {
                     if (result.status === 'success') {
                         const specialties = result.data.specialties.map(s => ({
                             value: s.id,
@@ -79,16 +77,10 @@ const EduProfilesComparison = () => {
                     } else {
                         console.error('Ошибка загрузки направлений:', result.message);
                     }
-                })
-                .onError(error => {
-                    console.error('Ошибка загрузки направлений:', error);
-                })
-                .finally(() => {
-                    setLoading(false);
-                    setIsInitialLoad(false);
-                });
+            }
         } catch (error) {
             console.error('Ошибка загрузки направлений:', error);
+        } finally {
             setLoading(false);
             setIsInitialLoad(false);
         }
@@ -107,24 +99,17 @@ const EduProfilesComparison = () => {
         };
 
         try {
-            const response = getEducationProfilesComparison(filters);
-            response
-                .onSuccess(async res => {
-                    const result = await res.json();
+            const result = await AdminService.getEducationProfilesComparison(filters);
+            {
                     if (result.status === 'success') {
                         setData(result.data);
                     } else {
                         console.error('Ошибка загрузки данных:', result.message);
                     }
-                })
-                .onError(error => {
-                    console.error('Ошибка загрузки данных:', error);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
+        } finally {
             setLoading(false);
         }
     };

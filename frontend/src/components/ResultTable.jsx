@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { CATEGORIES_DESCRIPTIONS } from '../utilities';
+import { CATEGORIES_DESCRIPTIONS } from '@utils/utilities';
 
 import LineCompetencyTooltip from './LineCompetencyTooltip';
 

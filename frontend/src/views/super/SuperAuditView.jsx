@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 
-import { getAuditSchema, getAuditTableData, getAuditStats } from '../../api';
-import { SUPER_LINK_TREE } from '../../utilities';
+import Api from '../../api';
+import { SUPER_LINK_TREE } from '@utils/utilities';
 
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import ValueCard from '../../components/cards/ValueCard';
+import ValueCard from '@components/cards/ValueCard';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table';
-import DbContentTable from '../../components/tables/DbContentTable';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
+import DbContentTable from '@components/tables/DbContentTable';
 
-import Label from '../../components/ui/Label';
-import NoData from '../../components/ui/NoData';
+import Label from '@components/ui/Label';
+import NoData from '@components/ui/NoData';
 
 import './SuperAuditView.scss';
 
@@ -40,7 +40,7 @@ function SuperAuditView() {
     }, [selectedTable]);
 
     const loadStats = async () => {
-        getAuditStats()
+        Api.getAuditStats()
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -52,7 +52,7 @@ function SuperAuditView() {
 
     const loadSchema = async () => {
         setLoading(true);
-        getAuditSchema()
+        Api.getAuditSchema()
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -64,7 +64,7 @@ function SuperAuditView() {
     };
 
     const loadTableData = async tableName => {
-        getAuditTableData(tableName, 20)
+        Api.getAuditTableData(tableName, 20)
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {

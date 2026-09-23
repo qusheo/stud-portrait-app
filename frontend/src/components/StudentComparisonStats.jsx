@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import { getStudentComparisonStats } from '../api';
+import { StudentService } from '@services';
 
 import './StudentComparisonStats.scss';
 
@@ -17,15 +17,14 @@ const StudentComparisonStats = ({ studentId, year }) => {
 
     const loadStats = async () => {
         setLoading(true);
-        getStudentComparisonStats(studentId, year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStats(data.data);
-                }
-            })
-            .onError(error => console.error('Ошибка загрузки статистики:', error))
-            .finally(() => setLoading(false));
+        try {
+            const data = await StudentService.getStudentComparisonStats(studentId, year);
+            setStats(data.data);
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const getPercentileColor = percentile => {

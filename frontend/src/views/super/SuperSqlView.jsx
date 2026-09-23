@@ -1,20 +1,20 @@
 import { useState } from 'react';
 
-import { postAuditExecuteSQL } from '../../api';
-import { SUPER_LINK_TREE, xlsxWriteFile } from '../../utilities';
+import Api from '../../api';
+import { SUPER_LINK_TREE, xlsxWriteFile } from '@utils/utilities';
 
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import DbContentTable from '../../components/tables/DbContentTable';
+import DbContentTable from '@components/tables/DbContentTable';
 
-import Button from '../../components/ui/Button';
-import Dropdown from '../../components/ui/Dropdown';
-import Label, { LABEL_PALETTE } from '../../components/ui/Label';
-import { ADMIN_PALETTE } from '../../components/ui/palette';
-import { Option } from '../../components/ui/Select';
+import Button from '@components/ui/Button';
+import Dropdown from '@components/ui/Dropdown';
+import Label, { LABEL_PALETTE } from '@components/ui/Label';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import { Option } from '@components/ui/Select';
 
 import './SuperSqlView.scss';
 
@@ -89,7 +89,7 @@ function SuperSqlView() {
         setError(null);
         setResult(null);
 
-        postAuditExecuteSQL(query)
+        Api.postAuditExecuteSQL(query)
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {

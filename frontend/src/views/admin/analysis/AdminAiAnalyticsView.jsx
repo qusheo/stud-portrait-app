@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 
-import { postPortraitDataseshNew, getPortraitGetFilterOptionsWithCounts, postAiAnalyticsSummary } from '../../../api';
-import { LINK_TREE, COMPETENCIES_NAMES } from '../../../utilities';
+import { AdminService } from '@services';
+import { LINK_TREE, COMPETENCIES_NAMES } from '@utils/utilities';
 
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../../components/SidebarLayout';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import MultiSelect from '../../../components/ui/MultiSelect';
-import Button from '../../../components/ui/Button';
-import LoadingSpinner from '../../../components/ui/LoadingSpinner';
-import { ADMIN_PALETTE } from '../../../components/ui/palette';
-import Select, { Option } from '../../../components/ui/Select';
+import MultiSelect from '@components/ui/MultiSelect';
+import Button from '@components/ui/Button';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
 import './AdminAiAnalyticsView.scss';
 
@@ -37,61 +37,50 @@ function AdminAiAnalyticsView() {
     useEffect(() => {
         const init = async () => {
             setLoading(true);
-            postPortraitDataseshNew()
-                .onSuccess(async response => {
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        setSessionId(data.session.id);
-                        await loadFilterOptions(data.session.id);
-                    }
-                })
-                .onError(error => console.error(error))
-                .finally(() => setLoading(false));
+            try {
+                const data = await AdminService.postDataseshNew();
+                setSessionId(data.session.id);
+                await loadFilterOptions(data.session.id);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
         };
         init();
     }, []);
 
     const loadFilterOptions = async sid => {
         if (!sid) return;
-        getPortraitGetFilterOptionsWithCounts(sid)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setFilterOptions({
-                        institutions: data.data?.institutions || [],
-                        directions: data.data?.directions || [],
-                        allDirections: data.data?.directions || [],
-                        courses: data.data?.courses || []
-                    });
-                }
-            })
-            .onError(console.error);
+        try {
+            const data = await AdminService.getFilterOptionsWithCounts(sid);
+            setFilterOptions({
+                institutions: data.data?.institutions || [],
+                directions: data.data?.directions || [],
+                allDirections: data.data?.directions || [],
+                courses: data.data?.courses || []
+            });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const generateReport = async () => {
         setGenerating(true);
         setSummary('');
         try {
-            const response = await postAiAnalyticsSummary(analysisType, {
+            const data = await AdminService.postAiAnalyticsSummary(analysisType, {
                 institutions: selectedInstitutions,
                 directions: selectedDirections,
                 courses: selectedCourses,
                 competency: selectedCompetency
             });
-            response
-                .onSuccess(async res => {
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                        setSummary(data.summary);
-                    } else {
-                        setSummary('❌ Ошибка: ' + (data.message || 'Неизвестная ошибка'));
-                    }
-                })
-                .onError(err => {
-                    console.error(err);
-                    setSummary('❌ Ошибка при запросе к серверу.');
-                })
-                .finally(() => setGenerating(false));
+            if (data.status === 'success') {
+                setSummary(data.summary);
+            } else {
+                setSummary('❌ Ошибка: ' + (data.message || 'Неизвестная ошибка'));
+            }
+            setGenerating(false);
         } catch (err) {
             console.error(err);
             setSummary('❌ Ошибка при генерации отчёта.');

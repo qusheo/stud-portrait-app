@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
-import { getGradesCompetencyCorrelation } from '../../api.js';
-import { COMPETENCIES_NAMES } from '../../utilities.js';
+import { AdminService } from '@services';
+import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 export default function CorrelationScatter({ correlationData, loading, filters }) {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
@@ -23,12 +23,15 @@ export default function CorrelationScatter({ correlationData, loading, filters }
     useEffect(() => {
         if (!selectedDiscipline || !selectedCompetency) return;
         setLoadingScatter(true);
-        getGradesCompetencyCorrelation(filters.institute, filters.specialty, filters.year, selectedDiscipline, selectedCompetency)
-            .onSuccess(async response => {
-                const data = await response.json();
-                setScatterPoints(data.scatter || []);
-            })
-            .onError(err => console.error('Ошибка при загрузке точек:', err))
+        AdminService.getGradesCompetencyCorrelation(
+            filters.institute,
+            filters.specialty,
+            filters.year,
+            selectedDiscipline,
+            selectedCompetency
+        )
+            .then(data => setScatterPoints(data.scatter || []))
+            .catch(err => console.error('Ошибка при загрузке точек:', err))
             .finally(() => setLoadingScatter(false));
     }, [selectedDiscipline, selectedCompetency, filters]);
 

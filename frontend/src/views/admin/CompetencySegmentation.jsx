@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
-import { getCompetencySegmentation } from '../../api';
-import { COMPETENCIES_NAMES } from '../../utilities.js';
+import { AdminService } from '@services';
+import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 const COMPETENCY_KEYS = [
     'res_comp_info_analysis',
@@ -230,21 +230,14 @@ export default function CompetencySegmentation({ filters }) {
     useEffect(() => {
         setLoading(true);
         setError(null);
-        getCompetencySegmentation({
+        AdminService.getCompetencySegmentation({
             competency,
             institute: filters?.institute || null,
             specialty: filters?.specialty || null,
             year: filters?.year || null
         })
-            .onSuccess(async response => {
-                const resp = await response.json();
-                if (resp.status === 'success') {
-                    setData(resp);
-                } else {
-                    setError(resp.message || 'Не удалось загрузить сегментацию');
-                }
-            })
-            .onError(err => {
+            .then(resp => setData(resp))
+            .catch(err => {
                 console.error('Ошибка загрузки сегментации:', err);
                 setError('Сервер недоступен');
             })

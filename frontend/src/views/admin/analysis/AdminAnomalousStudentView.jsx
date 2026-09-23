@@ -2,28 +2,23 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-    postGetBoxplotData,
-    getPortraitGetFilterOptionsWithCounts,
-    postPortraitDataseshNew,
-    getPortraitGetInstitutionDirections
-} from '../../../api';
-import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
+import { AdminService } from '@services';
+import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
 
-import AiInsightPanel from '../../../components/AiInsightPanel';
-import FlexRow, { JUSTIFY, WRAP } from '../../../components/FlexRow';
-import LabelledBox from '../../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../../components/SidebarLayout';
-import TitledCard from '../../../components/cards/TitledCard';
-import ValueCard from '../../../components/cards/ValueCard';
-import Button from '../../../components/ui/Button';
-import NoData from '../../../components/ui/NoData';
-import LoadingSpinner from '../../../components/ui/LoadingSpinner';
-import MultiSelect from '../../../components/ui/MultiSelect';
-import { ADMIN_PALETTE } from '../../../components/ui/palette';
-import Select, { Option } from '../../../components/ui/Select';
+import AiInsightPanel from '@components/AiInsightPanel';
+import FlexRow, { JUSTIFY, WRAP } from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import TitledCard from '@components/cards/TitledCard';
+import ValueCard from '@components/cards/ValueCard';
+import Button from '@components/ui/Button';
+import NoData from '@components/ui/NoData';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import MultiSelect from '@components/ui/MultiSelect';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
-import BoxplotChart from '../../../components/charts/BoxplotChart';
+import BoxplotChart from '@components/charts/BoxplotChart';
 import './AdminAnomalousStudentView.scss';
 
 function AdminAnomalousStudentView() {
@@ -48,40 +43,42 @@ function AdminAnomalousStudentView() {
     const [groupByMode, setGroupByMode] = useState('auto');
 
     useEffect(() => {
-        postPortraitDataseshNew()
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    setSessionId(data.session_id);
-                    loadFilterOptions(data.session_id);
-                }
-            })
-            .onError(console.error);
+        const init = async () => {
+            try {
+                const data = await AdminService.postDataseshNew();
+                setSessionId(data.session_id);
+                loadFilterOptions(data.session_id);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        init();
     }, []);
 
     const loadFilterOptions = async sid => {
-        getPortraitGetFilterOptionsWithCounts(sid, [], [], [], [], [])
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const institutions = (data.data?.institutions || []).map(i => ({
-                        id: Number(i.id),
-                        name: i.name,
-                        count: i.count
-                    }));
-                    const allDirections = (data.data?.directions || []).map(d => ({
-                        id: Number(d.id),
-                        name: d.name,
-                        count: d.count
-                    }));
-                    setFilterOptions({
-                        institutions,
-                        directions: allDirections,
-                        allDirections
-                    });
-                }
-            })
-            .onError(console.error);
+        const load = async () => {
+            try {
+                const data = await AdminService.getFilterOptionsWithCounts(sid, [], [], [], [], []);
+                const institutions = (data.data?.institutions || []).map(i => ({
+                    id: Number(i.id),
+                    name: i.name,
+                    count: i.count
+                }));
+                const allDirections = (data.data?.directions || []).map(d => ({
+                    id: Number(d.id),
+                    name: d.name,
+                    count: d.count
+                }));
+                setFilterOptions({
+                    institutions,
+                    directions: allDirections,
+                    allDirections
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        load();
     };
 
     useEffect(() => {
@@ -90,17 +87,18 @@ function AdminAnomalousStudentView() {
             setFilterOptions(prev => ({ ...prev, directions: prev.allDirections }));
             return;
         }
-        getPortraitGetInstitutionDirections(selectedInstitutions)
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
-                    setFilterOptions(prev => ({ ...prev, directions }));
-                    const newIds = new Set(directions.map(d => d.id));
-                    setSelectedDirections(prev => prev.filter(id => newIds.has(id)));
-                }
-            })
-            .onError(console.error);
+        const loadDirections = async () => {
+            try {
+                const data = await AdminService.getInstitutionDirections(selectedInstitutions);
+                const directions = data.directions.map(d => ({ id: d.id, name: d.name, count: 0 }));
+                setFilterOptions(prev => ({ ...prev, directions }));
+                const newIds = new Set(directions.map(d => d.id));
+                setSelectedDirections(prev => prev.filter(id => newIds.has(id)));
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        loadDirections();
     }, [selectedInstitutions, sessionId]);
 
     const loadAnomalies = () => {
@@ -109,14 +107,14 @@ function AdminAnomalousStudentView() {
             return;
         }
         setLoading(true);
-        postGetBoxplotData(
-            selectedCompetency,
-            selectedInstitutions.map(id => Number(id)),
-            selectedDirections.map(id => Number(id)),
-            groupByMode // передаём режим группировки
-        )
-            .onSuccess(async res => {
-                const data = await res.json();
+        const load = async () => {
+            try {
+                const data = await AdminService.postGetBoxplotData(
+                    selectedCompetency,
+                    selectedInstitutions.map(id => Number(id)),
+                    selectedDirections.map(id => Number(id)),
+                    groupByMode
+                );
                 if (data.status === 'success') {
                     if (data.grouped) {
                         // Группированный режим
@@ -138,12 +136,14 @@ function AdminAnomalousStudentView() {
                     setStats(null);
                     setGroupedData(null);
                 }
-            })
-            .onError(err => {
+            } catch (err) {
                 console.error(err);
                 alert('Ошибка при загрузке данных');
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     };
 
     const resetFilters = () => {
@@ -185,37 +185,38 @@ function AdminAnomalousStudentView() {
                         withSearch
                         showCounts
                     />
-                    <div style={{display: 'inline-flex', alignItems:'center', gap: '10px'}}>
-                    <LabelledBox
-                        label="Компетенция:"
-                        inrow
-                        nopad
-                    >
-                        <Select
-                            initValue={selectedCompetency}
-                            onChange={setSelectedCompetency}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
                         >
-                            {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                <Option
-                                    key={key}
-                                    value={key}
-                                    label={name}
-                                />
-                            ))}
-                        </Select>
-                    </LabelledBox>
-                    <Button
-                        text="Найти аномалии"
-                        onClick={loadAnomalies}
-                        palette={ADMIN_PALETTE.CYAN}
-                        disabled={loading}
-                    />
-                    <Button
-                        text="Сбросить"
-                        onClick={resetFilters}
-                        palette={ADMIN_PALETTE.GRAY}
-                        disabled={loading}
-                    /></div>
+                            <Select
+                                initValue={selectedCompetency}
+                                onChange={setSelectedCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Найти аномалии"
+                            onClick={loadAnomalies}
+                            palette={ADMIN_PALETTE.CYAN}
+                            disabled={loading}
+                        />
+                        <Button
+                            text="Сбросить"
+                            onClick={resetFilters}
+                            palette={ADMIN_PALETTE.GRAY}
+                            disabled={loading}
+                        />
+                    </div>
                 </FlexRow>
                 <LabelledBox
                     label="Группировка:"

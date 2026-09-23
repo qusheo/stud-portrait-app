@@ -1,34 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import {
-    postPortraitDataseshNew,
-    postPortraitDataseshExportSelected,
-    postPortraitDataseshExtractData,
-    postPortraitDataseshUpdateWindow,
-    postPortraitDataseshUpdateColumns,
-    postPortraitDataseshUpdateFilters
-} from '../../api.js';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '../../utilities.js';
+import { AdminService } from '@services';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
 
 import { ToastContainer, toast } from 'react-toastify';
-import FlexColumn from '../../components/FlexColumn.jsx';
-import FlexRow, { WRAP } from '../../components/FlexRow.jsx';
-import LabelledBox from '../../components/LabelledBox.jsx';
-import { ModalBody, ModalFooter, useModalWindow } from '../../components/ModalWindow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn.jsx';
+import FlexRow, { WRAP } from '@components/FlexRow.jsx';
+import LabelledBox from '@components/LabelledBox.jsx';
+import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table.jsx';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
-import Button from '../../components/ui/Button.jsx';
-import ColorBox, { BOX_COLOR } from '../../components/ui/ColorBox.jsx';
-import Dropdown from '../../components/ui/Dropdown.jsx';
-import Label from '../../components/ui/Label.jsx';
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
-import MultiSelect from '../../components/ui/MultiSelect.jsx';
-import NumberField from '../../components/ui/NumberField.jsx';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
-import Select, { Option, OptionGroup } from '../../components/ui/Select.jsx';
+import Button from '@components/ui/Button.jsx';
+import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
+import Dropdown from '@components/ui/Dropdown.jsx';
+import Label from '@components/ui/Label.jsx';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import MultiSelect from '@components/ui/MultiSelect.jsx';
+import NumberField from '@components/ui/NumberField.jsx';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
+import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
 
@@ -118,17 +111,12 @@ function AdminResultsView() {
     // Инициализация сессии
     const initializeSession = async () => {
         setLoading(true);
-        postPortraitDataseshNew()
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setSessionId(data.session.id);
-                    await loadSessionData(data.session.id); // Загружаем начальные данные
-                } else {
-                    console.error('Failed to create session:', data.message);
-                }
+        AdminService.postDataseshNew()
+            .then(async data => {
+                setSessionId(data.session.id);
+                await loadSessionData(data.session.id);
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Failed to create session:', error);
             })
             .finally(() => setLoading(false));
@@ -140,20 +128,14 @@ function AdminResultsView() {
 
         setLoading(true);
 
-        postPortraitDataseshExtractData(sessionIdToLoad)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setResults(data.results || []);
-                    setTotalCount(data.filtered_count || 0);
-                    setHasMore(data.shown_count > 0 && data.filtered_count > data.shown_count); // Проверяем, есть ли ещё данные для загрузки (лимит 1000 записей)
-                    if (data.results && data.shown_count > 0) {
-                        // Извлекаем доступные значения для фильтрации
-                        extractAvailableValues(data.results);
-                    }
-                }
+        AdminService.postDataseshExtractData(sessionIdToLoad)
+            .then(data => {
+                setResults(data.results || []);
+                setTotalCount(data.filtered_count || 0);
+                setHasMore(data.shown_count > 0 && data.filtered_count > data.shown_count);
+                if (data.results && data.shown_count > 0) extractAvailableValues(data.results);
             })
-            .onError(error => console.error('Error loading session data:', error))
+            .catch(error => console.error('Error loading session data:', error))
             .finally(() => setLoading(false));
     };
 
@@ -163,15 +145,12 @@ function AdminResultsView() {
 
         setLoading(true);
 
-        postPortraitDataseshUpdateWindow(sessionId, 0, 1000) // FIXME
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    await loadSessionData();
-                    setSelectedRows(new Set());
-                }
+        AdminService.postDataseshUpdateWindow(sessionId, 0, 1000)
+            .then(async () => {
+                await loadSessionData();
+                setSelectedRows(new Set());
             })
-            .onError(error => console.error('Error loading more data:', error))
+            .catch(error => console.error('Error loading more data:', error))
             .finally(() => setLoading(false));
     };
 
@@ -179,15 +158,12 @@ function AdminResultsView() {
     const updateSessionFilters = async newFilters => {
         if (!sessionId) return;
 
-        postPortraitDataseshUpdateFilters(sessionId, newFilters)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    await loadSessionData(); // Перезагружаем данные с новыми фильтрами
-                    setSelectedRows(new Set()); // Сбрасываем выделение при изменении фильтров
-                }
+        AdminService.postDataseshUpdateFilters(sessionId, newFilters)
+            .then(async () => {
+                await loadSessionData();
+                setSelectedRows(new Set());
             })
-            .onError(error => console.error('Error updating session filters:', error));
+            .catch(error => console.error('Error updating session filters:', error));
     };
 
     // Обновление видимых колонок сессии
@@ -196,14 +172,9 @@ function AdminResultsView() {
 
         const visibleColumns = columnOrder.filter(col => !newHiddenColumns.has(col));
 
-        postPortraitDataseshUpdateColumns(sessionId, visibleColumns)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setHiddenColumns(newHiddenColumns); // Обновляем локальное состояние
-                }
-            })
-            .onError(error => console.error('Error updating session columns:', error));
+        AdminService.postDataseshUpdateColumns(sessionId, visibleColumns)
+            .then(() => setHiddenColumns(newHiddenColumns))
+            .catch(error => console.error('Error updating session columns:', error));
     };
 
     // Извлечение доступных значений для фильтрации
@@ -315,24 +286,18 @@ function AdminResultsView() {
 
         setExportLoading(true);
 
-        postPortraitDataseshExportSelected(sessionId, Array.from(selectedRows))
-            .onSuccess(async response => {
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `selected_results_${new Date().toISOString().split('T')[0]}.xlsx`;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-                } else {
-                    const errorData = await response.json();
-                    alert(`Ошибка при выгрузке данных: ${errorData.message}`);
-                }
+        AdminService.postDataseshExportSelected(sessionId, Array.from(selectedRows))
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `selected_results_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Export error:', error);
                 alert('Ошибка при выгрузке данных');
             })

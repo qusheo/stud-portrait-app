@@ -1,21 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getPortraitCentersByRegion, getGeographyReport } from '../../api';
-import { LINK_TREE } from '../../utilities';
+import { AdminService } from '@services';
+import { LINK_TREE } from '@utils/utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import FlexRow from '../../components/FlexRow';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import FlexRow from '@components/FlexRow';
 
-import TitledCard from '../../components/cards/TitledCard';
-import ValueCard from '../../components/cards/ValueCard';
+import TitledCard from '@components/cards/TitledCard';
+import ValueCard from '@components/cards/ValueCard';
 
-import RussianFederationMap from '../../components/charts/maps/RussianFederationMap';
+import RussianFederationMap from '@components/charts/RussianFederationMap';
 
-import Slider from '../../components/ui/Slider';
+import Slider from '@components/ui/Slider';
 
-import Button from '../../components/ui/Button';
-import { ADMIN_PALETTE } from '../../components/ui/palette';
+import Button from '@components/ui/Button';
+import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import './AdminGeographyView.scss';
 
@@ -34,21 +34,13 @@ function AdminGeographyView() {
     const loadCentersData = useCallback(async year => {
         setLoading(true);
 
-        getPortraitCentersByRegion(year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setRegionData(data.data);
-                    setMaxValue(data.max_value);
-                    setTotalCenters(data.total_centers);
-                    console.log(`Данные за ${data.year}:`, data.data);
-                } else {
-                    console.error('Ошибка загрузки данных:', data.message);
-                    toast.error(`Ошибка загрузки данных: ${data.message}`);
-                    setRegionData([]);
-                }
+        AdminService.getCentersByRegion(year)
+            .then(data => {
+                setRegionData(data.data);
+                setMaxValue(data.max_value);
+                setTotalCenters(data.total_centers);
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Ошибка API:', error);
                 toast.error('Ошибка при загрузке данных');
                 setRegionData([]);
@@ -72,10 +64,8 @@ function AdminGeographyView() {
     // Генерация отчёта
     const generateReport = async () => {
         setReportLoading(true);
-        getGeographyReport(selectedYear)
-            .onSuccess(async response => {
-                // Получаем blob из ответа
-                const blob = await response.blob();
+        AdminService.getGeographyReport(selectedYear)
+            .then(blob => {
                 // Создаём ссылку для скачивания
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
@@ -87,7 +77,7 @@ function AdminGeographyView() {
                 window.URL.revokeObjectURL(url);
                 toast.success('Отчет создан');
             })
-            .onError(error => {
+            .catch(error => {
                 console.error('Ошибка генерации отчёта:', error);
                 toast.error('Ошибка при генерации отчёта');
             })
@@ -119,7 +109,7 @@ function AdminGeographyView() {
                 disabled={loading}
             />
 
-            <div style={{padding: '10px', display: 'flex', gap: '10px'}}>
+            <div style={{ padding: '10px', display: 'flex', gap: '10px' }}>
                 <ValueCard
                     value={totalCenters}
                     text="Всего центров"

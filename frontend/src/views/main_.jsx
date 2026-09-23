@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LAYOUT_STYLE, Content, Header, SidebarLayout } from '../components/SidebarLayout';
+import { LAYOUT_STYLE, Content, Header, SidebarLayout } from '@components/SidebarLayout';
 import './main_.scss';
 function StatsSection({ data }) {
     const items = [

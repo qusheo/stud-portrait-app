@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import Select from 'react-select';
 
-import { getMotivatorStatistics } from '../api';
-import { MOTIVATORS_NAMES } from '../utilities';
+import { AdminService } from '@services';
+import { MOTIVATORS_NAMES } from '@utils/utilities';
 
 import './MotivatorStatistics.scss';
 
@@ -31,17 +31,16 @@ const MotivatorStatistics = ({ filters }) => {
             group_by: groupBy
         };
 
-        getMotivatorStatistics(params)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setStatistics(data);
-                    setSelectedSpecialty(null);
-                    setSelectedCourse(null);
-                }
-            })
-            .onError(error => console.error('Ошибка загрузки статистики:', error))
-            .finally(() => setLoading(false));
+        try {
+            const data = await AdminService.getMotivatorStatistics(params);
+            setStatistics(data);
+            setSelectedSpecialty(null);
+            setSelectedCourse(null);
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const prepareChartData = () => {

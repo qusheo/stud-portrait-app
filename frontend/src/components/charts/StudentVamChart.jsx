@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { getAnalyzeStudentVam } from '../../api';
+import { StudentService } from '@services';
 
 const StudentVamChart = ({ studentId, competency = 'res_comp_leadership' }) => {
     const [data, setData] = useState(null);
@@ -9,10 +9,9 @@ const StudentVamChart = ({ studentId, competency = 'res_comp_leadership' }) => {
     useEffect(() => {
         if (!studentId) return;
         setLoading(true);
-        getAnalyzeStudentVam(studentId, competency)
-            .onSuccess(async response => {
-                const result = await response.json();
-                if (result.status === 'success') {
+        const load = async () => {
+            try {
+                const result = await StudentService.getAnalyzeStudentVam(studentId, competency);
                     // Преобразуем данные для графика
                     const chartData = result.growth_by_period.map(item => ({
                         period: `${item.course} курс`,
@@ -25,12 +24,13 @@ const StudentVamChart = ({ studentId, competency = 'res_comp_leadership' }) => {
                         avgVam: result.average_value_added,
                         chartData
                     });
-                } else {
-                    console.error(result.message);
-                }
-            })
-            .onError(error => console.error(error))
-            .finally(() => setLoading(false));
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
     }, [studentId, competency]);
 
     if (loading) return <div className="loading">Загрузка VAM...</div>;

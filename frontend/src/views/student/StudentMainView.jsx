@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { getPortraitStudentResults, getStudentComparisonStats, getStudentResumeData, windowGenerateDocxResume } from '../../api';
+import { StudentService } from '@services';
 import {
     getAvailableProfiles,
     getAvailableCategories,
@@ -9,21 +9,21 @@ import {
     getCategoryDataForYear,
     COMPETENCIES_NAMES,
     MOTIVATORS_NAMES
-} from '../../utilities';
+} from '@utils/utilities';
 
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import StudentComparisonStats from '../../components/StudentComparisonStats';
-import Title from '../../components/Title';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import StudentComparisonStats from '@components/StudentComparisonStats';
+import Title from '@components/Title';
 
-import Button from '../../components/ui/Button';
-import { STUDENT_PALETTE } from '../../components/ui/palette';
-import Select, { Option } from '../../components/ui/Select';
+import Button from '@components/ui/Button';
+import { STUDENT_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
-import ChartSwitcher from '../../components/charts/ChartSwitcher';
-import StudentVamChart from '../../components/charts/StudentVamChart';
-import StudentLgmChart from '../../components/charts/StudentLgmChart';
-import StudentDisciplineImpact from '../../components/charts/StudentDisciplineImpact';
-import PlanetaryChart from '../../components/charts/PlanetaryChart';
+import ChartSwitcher from '@components/charts/ChartSwitcher';
+import StudentVamChart from '@components/charts/StudentVamChart';
+import StudentLgmChart from '@components/charts/StudentLgmChart';
+import StudentDisciplineImpact from '@components/charts/StudentDisciplineImpact';
+import PlanetaryChart from '@components/charts/PlanetaryChart';
 
 import './StudentMainView.scss';
 
@@ -58,16 +58,12 @@ function StudentMainView() {
 
     useEffect(() => {
         const fetchData = async () => {
-            getPortraitStudentResults(studentId)
-                .onSuccess(async response => {
-                    const data = await response.json();
-                    if (data.status === 'success') {
-                        setStudResults({ student: data.student, results: data.results });
-                        // После загрузки результатов, подготавливаем данные для LGM
-                        prepareLgmData(data.results);
-                    }
+            StudentService.getStudentResults(studentId)
+                .then(data => {
+                    setStudResults({ student: data.student, results: data.results });
+                    prepareLgmData(data.results);
                 })
-                .onError(error => console.error(error))
+                .catch(error => console.error(error))
                 .finally(() => setLoading(false));
         };
         if (studentId) {
@@ -117,14 +113,9 @@ function StudentMainView() {
     const loadComparisonStats = async () => {
         if (!studentId || !selectedYear) return;
         setLoadingComparison(true);
-        getStudentComparisonStats(studentId, selectedYear)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setComparisonStats(data.data);
-                }
-            })
-            .onError(error => console.error('Ошибка загрузки сравнения:', error))
+        StudentService.getStudentComparisonStats(studentId, selectedYear)
+            .then(data => setComparisonStats(data.data))
+            .catch(error => console.error('Ошибка загрузки сравнения:', error))
             .finally(() => setLoadingComparison(false));
     };
 
@@ -174,17 +165,12 @@ function StudentMainView() {
             return;
         }
         setAnalyticsLoading(true);
-        getStudentResumeData(studentId, year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
-                    setAnalyticsData({ ...data.data, year });
-                    setShowAnalytics(true);
-                } else {
-                    alert('Не удалось загрузить аналитику: ' + data.message);
-                }
+        StudentService.getStudentResumeData(studentId, year)
+            .then(data => {
+                setAnalyticsData({ ...data.data, year });
+                setShowAnalytics(true);
             })
-            .onError(err => {
+            .catch(err => {
                 console.error('Ошибка загрузки аналитики:', err);
                 alert('Ошибка подключения к серверу: ' + err.message);
             })
@@ -237,7 +223,7 @@ function StudentMainView() {
     // ГЕНЕРАЦИЯ DOCX РЕЗЮМЕ
     const generateDocxResume = async () => {
         setResumeGenerating(true);
-        windowGenerateDocxResume(studentId)
+        StudentService.generateDocxResume(studentId)
             .onTimeout(() => setResumeGenerating(false))
             .onError(err => {
                 console.error(err);

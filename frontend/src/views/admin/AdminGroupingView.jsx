@@ -3,18 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { FIELD_NAMES, LINK_TREE } from '../../utilities.js';
-import { postPortraitDataseshGroupSelected } from '../../api.js';
+import { FIELD_NAMES, LINK_TREE } from '@utils/utilities.js';
+import { AdminService } from '@services';
 
-import FlexRow, { WRAP } from '../../components/FlexRow';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { WRAP } from '@components/FlexRow';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import TitledCard from '../../components/cards/TitledCard';
+import TitledCard from '@components/cards/TitledCard';
 
-import Button from '../../components/ui/Button';
-import Label from '../../components/ui/Label';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
-import Select, { Option } from '../../components/ui/Select.jsx';
+import Button from '@components/ui/Button';
+import Label from '@components/ui/Label';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
+import Select, { Option } from '@components/ui/Select.jsx';
 
 import './AdminGroupingView.scss';
 
@@ -39,16 +39,9 @@ function AdminGroupingView() {
 
     const fetchGroupedData = async data => {
         setLoading(true);
-        postPortraitDataseshGroupSelected(data.sessionId, data.selectedIds, data.groupingColumn) // REVIEW error?
-            .onSuccess(async response => {
-                const result = await response.json();
-                if (result.status === 'success') {
-                    setChartData(result.grouped_data);
-                } else {
-                    console.error('Error from server:', result.message);
-                }
-            })
-            .onError(error => console.error('Error fetching grouped data:', error))
+        AdminService.postDataseshGroupSelected(data.sessionId, data.selectedIds, data.groupingColumn)
+            .then(result => setChartData(result.grouped_data))
+            .catch(error => console.error('Error fetching grouped data:', error))
             .finally(() => setLoading(false));
     };
 
