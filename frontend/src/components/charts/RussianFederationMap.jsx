@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from 'react';
 import EChartsReact from 'echarts-for-react';
 import * as echarts from 'echarts';
 
-import LoadingSpinner from '../../ui/LoadingSpinner';
+import LoadingSpinner from '@ui/LoadingSpinner';
 
 import './RussianFederationMap.scss';
 
