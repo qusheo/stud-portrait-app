@@ -1,9 +1,10 @@
 from pathlib import Path
 import sys
-BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
+import os
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = 'django-insecure-$8wbe#x&7-o8$0-3bd&th8)+y=23h1p8%g&=6_uv4iulzn#ien'
 
@@ -41,6 +42,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://159.194.212.8:8000",
+    "http://159.194.212.8:3000"
 ]
 
 TEMPLATES = [
@@ -60,8 +63,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'studportrait.wsgi.application'
 
-import os
-
+print(os.getenv("DB_PASSWORD"))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -84,10 +86,6 @@ CACHES = {
         "TIMEOUT": 300  # Время жизни кэша по умолчанию: 300 секунд (5 минут)
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {

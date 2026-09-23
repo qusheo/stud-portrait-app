@@ -210,20 +210,6 @@ class Specialties(models.Model):
         managed = False
         db_table = 'specialties'
 
-
-class Studentmapping(models.Model):
-    mapping_id = models.AutoField(primary_key=True)
-    rsv_id = models.CharField(unique=True, max_length=512)
-    student_name = models.CharField(max_length=512)
-    student_gender = models.CharField(max_length=16, blank=True, null=True)
-    email = models.CharField(max_length=256, blank=True, null=True)  # добавлено
-    created_at = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'studentmapping'
-
-
 class Studyforms(models.Model):
     form_id = models.AutoField(primary_key=True)
     form_name = models.CharField(max_length=256)

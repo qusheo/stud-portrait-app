@@ -27,12 +27,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import CompetencySegmentation from './CompetencySegmentation';
 
 import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-
 import ReactApexChart from 'react-apexcharts';
 
 import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
-import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import FilterHeader from '@components/FilterHeader';
 
 import { getDashboardStats, getCompetencyTrendByYear } from '../../api.js';
@@ -636,7 +633,7 @@ function Dashboard({ data, filters }) {
     ];
     //col2 uni
     const col2_data = { 'header': 'Лидирующий ВУЗ', 'name': data.col2.uni_name, 'score': data.col2.uni_score };
-    console.log(data.col2.uni_place);
+
     if (data.col2.uni_place === -1) {
         col2_data['header'] = 'Нет данных за этот год';
         col2_data['name'] = 'Рейтинг';
@@ -1024,19 +1021,14 @@ function AdminCompetencesView() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const loadDashboardStats = async currentFilters => {
         setLoadingDash(true);
-        getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status !== 'success') {
-                    throw new Error(data?.message);
-                }
-                setDashboardData(data);
-            })
-            .onError(err => {
-                console.error('Ошибка при загрузке дашборда:', err);
-                toast.error('Ошибка при загрузке дашборда');
-            })
-            .finally(() => setLoadingDash(false));
+        const data = await Service.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
+        setLoadingDash(false);
+        if (!data) {
+            console.error('Ошибка при загрузке дашборда:', err);
+            toast.error('Ошибка при загрузке дашборда');
+            return;
+        }
+        setDashboardData(data);
     };
     useEffect(() => {
         loadDashboardStats(filters_);
