@@ -1,4 +1,5 @@
 import './Button.scss';
+import Tooltip from './Tooltip';
 
 const TYPES = {
     cancel: 'cancel',
@@ -6,11 +7,11 @@ const TYPES = {
     accept: 'accept'
 };
 
-function Button({ text, onClick, type, disabled = false, loading = false }) {
+function Button({ text, onClick, type, disabled = false, loading = false, tooltip = undefined}) {
     let style = {};
     style = loading ? { ...style, cursor: 'wait', filter: 'brightness(150%)' } : style;
     style = disabled ? { ...style, cursor: 'not-allowed', filter: 'brightness(150%)' } : style;
-    return (
+    const button = (
         <button
             className={`Button-${TYPES[type] ?? 'common'}`}
             onClick={() => (!disabled && !loading ? onClick() : '')}
@@ -19,6 +20,14 @@ function Button({ text, onClick, type, disabled = false, loading = false }) {
         >
             {text}
         </button>
+    );
+
+    return tooltip && tooltip.trim() !== '' ? (
+        <Tooltip text={tooltip}>
+            {button}
+        </Tooltip>
+    ) : (
+        button
     );
 }
 

@@ -1,7 +1,6 @@
+const HOST = import.meta.env.VITE_API_URL;
+
 class Api {
-    constructor() {
-        HOST = import.meta.env.VITE_API_URL;
-    }
 
     getAuditSchema(tableName = null) {
         const params = new URLSearchParams();
@@ -581,4 +580,4 @@ class Api {
         return promise;
     }
 }
-export default Api;
+export default new Api();

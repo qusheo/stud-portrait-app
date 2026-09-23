@@ -190,10 +190,24 @@ def get_filter_options_with_counts(request):
     
     ВАЖНО: Динамически подсчитывает максимальное количество прохождений!
     """
-    selected_institution_ids = request.GET.getlist('institution_ids[]')
-    selected_directions =      request.GET.getlist('directions[]')
+    selected_institution_values = request.GET.getlist('institution_ids[]')
+    selected_direction_values = request.GET.getlist('directions[]')
     selected_courses =         request.GET.getlist('courses[]')
     selected_test_attempts =   request.GET.getlist('test_attempts[]')
+
+    selected_institution_ids = [int(value) for value in selected_institution_values if str(value).isdigit()]
+    institution_names = [value for value in selected_institution_values if not str(value).isdigit()]
+    if institution_names:
+        selected_institution_ids.extend(
+            Institutions.objects.filter(inst_name__in=institution_names).values_list('inst_id', flat=True)
+        )
+
+    selected_directions = [int(value) for value in selected_direction_values if str(value).isdigit()]
+    direction_names = [value for value in selected_direction_values if not str(value).isdigit()]
+    if direction_names:
+        selected_directions.extend(
+            EducationSpecialties.objects.filter(edu_spec_name__in=direction_names).values_list('edu_spec_id', flat=True)
+        )
 
     # all filters except the current one
     base_results = Results.objects.select_related(

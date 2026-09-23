@@ -632,16 +632,20 @@ function AdminMotivatorsView() {
         setFilters(prev => {
             const updated = { ...prev, [name]: value };
             if (name === 'institute') updated.specialty = '';
+
+            saveFilters('Admin', updated); 
+
             return updated;
         });
-        saveFilters('Admin', filters);
         savedY.current = window.scrollY;
     };
     useEffect(() => {
-        if (savedFilters?.Admin) {
-            setFilters(savedFilters.Admin);
+        const saved = savedFilters?.Admin;
+
+        if (saved && Object.keys(saved).length) {
+            setFilters(saved);
         }
-    }, []);
+    }, [savedFilters]);
 
     useEffect(() => {
         requestAnimationFrame(() => window.scrollTo(0, savedY.current));

@@ -13,10 +13,9 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
     const noFilters = () => {
         if (!filters) return true;
 
-        for (var key in filters) {
-            if (!filters[key] || filters[key] === '') return true;
-        }
-        return false;
+        return Object.values(filters).every(
+            value => !value || value === ''
+        );
     };
     //загрузка вариантов
     useEffect(() => {
@@ -73,7 +72,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 isClearable
                 isSearchable
                 options={sorted(options?.institutes) || []}
-                value={findOption(options?.institutes, filters?.institute) ?? ''}
+                value={findOption(options?.institutes, filters?.institute) ?? null}
                 onChange={opt => handleChange(opt, 'institute')}
                 styles={customStyles}
                 isLoading={loading}
@@ -86,7 +85,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 isClearable
                 isSearchable
                 options={sorted(options?.specialties) || []}
-                value={findOption(options?.specialties, filters?.specialty) ?? ''}
+                value={findOption(options?.specialties, filters?.specialty) ?? null}
                 onChange={opt => handleChange(opt, 'specialty')}
                 styles={customStyles}
                 isLoading={loading}
@@ -99,7 +98,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 isClearable
                 isSearchable
                 options={sorted(options?.years) || []}
-                value={findOption(options?.years, filters?.year) ?? ''}
+                value={findOption(options?.years, filters?.year) ?? null}
                 onChange={opt => handleChange(opt, 'year')}
                 styles={customStyles}
                 isLoading={loading}

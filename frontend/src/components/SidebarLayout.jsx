@@ -1,10 +1,10 @@
 import React from 'react';
 
-import Dropdown from './ui/Dropdown';
+import { Dropdown, Tooltip } from '@ui';
 import logo from '../static/logo_white.png';
 
 import './SidebarLayout.scss';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, UserRound, LogOut } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
@@ -39,9 +39,13 @@ export function Header({ title, name }) {
                 <span className="title">{title}</span>
             </div>
             <div className="right-side">
-                <Dropdown label={name}>
-                    <span style={{ cursor: 'not-allowed' }}>Выход</span>
-                </Dropdown>
+                <div className='user'>
+                    <UserRound color ="white" size={15} />
+                    <span className="user-name">{name}</span>
+                </div>
+                <Tooltip text="Выйти" placement="bottom">
+                    <LogOut color ="white" size={17} onClick={() => null} style={{cursor: 'pointer'}}/>
+                </Tooltip>
             </div>
         </div>
     );
