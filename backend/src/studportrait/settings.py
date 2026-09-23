@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
+
+load_dotenv()
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = 'django-insecure-$8wbe#x&7-o8$0-3bd&th8)+y=23h1p8%g&=6_uv4iulzn#ien'
@@ -63,6 +66,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'studportrait.wsgi.application'
 
+import os
+
 print(os.getenv("DB_PASSWORD"))
 DATABASES = {
     "default": {
@@ -72,16 +77,24 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
+REDIS_SERVER = os.getenv("REDIS_URL")
 REDIS_SERVER = os.getenv("REDIS_URL")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_SERVER,
+        "LOCATION": REDIS_SERVER,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
+        "KEY_PREFIX": "cache_",  # Префикс для всех ключей кэша
         "KEY_PREFIX": "cache_",  # Префикс для всех ключей кэша
         "TIMEOUT": 300  # Время жизни кэша по умолчанию: 300 секунд (5 минут)
     }
