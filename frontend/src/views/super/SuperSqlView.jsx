@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { postAuditExecuteSQL } from '../../api';
+import Api from '../../api';
 import { SUPER_LINK_TREE, xlsxWriteFile } from '@utils/utilities';
 
 import FlexColumn from '@components/FlexColumn';
@@ -89,7 +89,7 @@ function SuperSqlView() {
         setError(null);
         setResult(null);
 
-        postAuditExecuteSQL(query)
+        Api.postAuditExecuteSQL(query)
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {

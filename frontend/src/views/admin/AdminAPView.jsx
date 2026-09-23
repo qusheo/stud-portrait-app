@@ -1,14 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-
-import ReactApexChart from 'react-apexcharts';
-
 import { ToastContainer, toast } from 'react-toastify';
 
 import { AdminService } from '@services';
 
 import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import FilterHeader from '@components/FilterHeader';
 import TabButton from '@components/ui/TabButton';
 

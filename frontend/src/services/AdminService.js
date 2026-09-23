@@ -37,6 +37,22 @@ class AdminService extends BaseService {
         return this.request(() => Api.getMotivatorStatistics(filters), 'Ошибка загрузки статистики мотиваторов');
     }
 
+    getEducationProfilesComparison(filters) {
+        return this.request(() => Api.getEducationProfilesComparison(filters), 'Ошибка сравнения профилей');
+    }
+
+    postParseCurriculum() {
+        return this.request(() => Api.postParseCurriculum(), 'Ошибка запуска парсера учебного плана');
+    }
+
+    getParseCurriculumLog() {
+        return this.request(() => Api.getParseCurriculumLog(), 'Ошибка загрузки журнала парсера');
+    }
+
+    getParseCurriculumMappings() {
+        return this.request(() => Api.getParseCurriculumMappings(), 'Ошибка загрузки маппингов');
+    }
+
     /**
      * Количество мотиваций
      */

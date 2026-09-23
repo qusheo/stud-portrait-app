@@ -9,7 +9,7 @@
 //   getParseCurriculumMappings()
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getParseCurriculumLog, getParseCurriculumMappings, postParseCurriculum } from '../api';
+import { AdminService } from '@services';
 
 import Button from './ui/Button';
 import LoadingSpinner from './ui/LoadingSpinner';
@@ -66,15 +66,16 @@ export default function CurriculumParserSection() {
     const pollRef = useRef(null);
 
     // ── Загрузка журнала ─────────────────────────────────────────────────────
-    const fetchLogs = useCallback(() => {
+    const fetchLogs = useCallback(async () => {
         setLogsLoading(true);
-        getParseCurriculumLog()
-            .onSuccess(async r => {
-                const data = await r.json();
-                if (data.status === 'success') setLogs(data.logs || []);
-            })
-            .onError(console.error)
-            .finally(() => setLogsLoading(false));
+        try {
+            const data = await AdminService.getParseCurriculumLog();
+            setLogs(data.logs || []);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLogsLoading(false);
+        }
     }, []);
 
     useEffect(() => {
@@ -96,12 +97,11 @@ export default function CurriculumParserSection() {
     }, [logs, fetchLogs]);
 
     // ── Запуск парсера ───────────────────────────────────────────────────────
-    const handleLaunch = () => {
+    const handleLaunch = async () => {
         setLaunching(true);
         setLaunchMsg(null);
-        postParseCurriculum()
-            .onSuccess(async r => {
-                const data = await r.json();
+        try {
+                const data = await AdminService.postParseCurriculum();
                 if (data.status === 'started') {
                     setLaunchMsg({ type: 'info', text: 'Парсер запущен. Прогресс обновляется каждые 3 секунды.' });
                     fetchLogs();
@@ -110,30 +110,29 @@ export default function CurriculumParserSection() {
                 } else {
                     setLaunchMsg({ type: 'error', text: data.message || 'Неизвестный ответ сервера' });
                 }
-            })
-            .onError(err => {
+        } catch (err) {
                 setLaunchMsg({ type: 'error', text: `Ошибка запроса: ${err}` });
-            })
-            .finally(() => setLaunching(false));
+        } finally {
+            setLaunching(false);
+        }
     };
 
     // ── Загрузка маппингов ───────────────────────────────────────────────────
-    const handleShowMappings = () => {
+    const handleShowMappings = async () => {
         if (mappingsOpen) {
             setMappingsOpen(false);
             return;
         }
         setMappingsLoading(true);
-        getParseCurriculumMappings()
-            .onSuccess(async r => {
-                const data = await r.json();
-                if (data.status === 'success') setMappings(data.mappings || []);
-            })
-            .onError(console.error)
-            .finally(() => {
-                setMappingsLoading(false);
-                setMappingsOpen(true);
-            });
+        try {
+            const data = await AdminService.getParseCurriculumMappings();
+            setMappings(data.mappings || []);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setMappingsLoading(false);
+            setMappingsOpen(true);
+        }
     };
 
     const latestLog = logs[0] || null;

@@ -30,6 +30,10 @@ class StudentService extends BaseService {
         return this.request(() => Api.getStudentDisciplineImpact(studentId), 'Ошибка анализа дисциплин');
     }
 
+    getAnalyzeStudentVam(studentId, competency) {
+        return this.request(() => Api.getAnalyzeStudentVam(studentId, competency), 'Ошибка анализа VAM');
+    }
+
     /**
      * Получение списка студентов
      */

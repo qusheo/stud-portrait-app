@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-import {
-    getDataloadExpectedFields,
-    getDataloadTemplates,
-    postDataloadTemplateSave,
-    deleteDataloadTemplateDelete,
-    postDataloadImportExcel
-} from '../../api';
+import Api from '../../api';
 import { SUPER_LINK_TREE, xlsxReadColumns } from '@utils/utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
@@ -72,7 +66,7 @@ function SuperUploadView() {
 
     useEffect(() => {
         // ФИX 1: добавлен .onSuccess(r => r.json()) для парсинга ответа
-        getDataloadExpectedFields()
+        Api.getDataloadExpectedFields()
             .onSuccess(r => r.json())
             .onSuccess(data => {
                 const { status, ...sheets } = data;
@@ -91,7 +85,7 @@ function SuperUploadView() {
     const loadTemplatesFromServer = () => {
         setTemplatesLoading(true);
         // ФИX 3: используем серверное хранение шаблонов вместо localStorage
-        getDataloadTemplates()
+        Api.getDataloadTemplates()
             .onSuccess(r => r.json())
             .onSuccess(data => {
                 setSavedTemplates(data.templates || []);
@@ -193,7 +187,7 @@ function SuperUploadView() {
             return;
         }
         // ФИX 6: сохраняем на сервер, не в localStorage
-        postDataloadTemplateSave(newTemplateName.trim(), mappingConfig)
+        Api.postDataloadTemplateSave(newTemplateName.trim(), mappingConfig)
             .onSuccess(r => r.json())
             .onSuccess(() => {
                 setNewTemplateName('');
@@ -206,7 +200,7 @@ function SuperUploadView() {
     const handleDeleteTemplate = (templateId, e) => {
         e.stopPropagation();
         if (!window.confirm('Удалить шаблон?')) return;
-        deleteDataloadTemplateDelete(templateId)
+        Api.deleteDataloadTemplateDelete(templateId)
             .onSuccess(r => r.json())
             .onSuccess(() => loadTemplatesFromServer())
             .onError(err => setError(`Ошибка удаления: ${err.message}`));
@@ -231,7 +225,7 @@ function SuperUploadView() {
         setUploading(true);
         setError(null);
         // ФИX 7: добавлен .onSuccess(r => r.json()) для парсинга ответа импорта
-        postDataloadImportExcel(selectedFile, mappingConfig)
+        Api.postDataloadImportExcel(selectedFile, mappingConfig)
             .onSuccess(r => r.json())
             .onSuccess(data => {
                 if (data.status === 'success') {

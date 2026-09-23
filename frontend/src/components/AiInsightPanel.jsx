@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { postAiAnalyticsSummary } from '../api';
+import { AdminService } from '@services';
 
 /**
  * AiInsightPanel — переиспользуемая AI-панель для аналитических страниц.
@@ -33,20 +33,19 @@ function AiInsightPanel({ contextType, filters = {}, label = '', autoRun = false
         setSummary('');
         setVisible(true);
 
-        postAiAnalyticsSummary(contextType, filters)
-            .onSuccess(async res => {
-                const data = await res.json();
-                if (data.status === 'success') {
-                    setSummary(data.summary || 'Нет данных.');
-                } else {
-                    setError(data.message || 'Неизвестная ошибка.');
-                }
-            })
-            .onError(err => {
+        const generateSummary = async () => {
+            try {
+                const data = await AdminService.postAiAnalyticsSummary(contextType, filters);
+                if (data.status === 'success') setSummary(data.summary || 'Нет данных.');
+                else setError(data.message || 'Неизвестная ошибка.');
+            } catch (err) {
                 setError('Ошибка соединения с сервером.');
                 console.error(err);
-            })
-            .finally(() => setGenerating(false));
+            } finally {
+                setGenerating(false);
+            }
+        };
+        generateSummary();
     };
 
     const copy = () => {

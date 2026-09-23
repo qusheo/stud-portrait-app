@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { getAuditSchema, getAuditTableData, getAuditStats } from '../../api';
+import Api from '../../api';
 import { SUPER_LINK_TREE } from '@utils/utilities';
 
 import FlexColumn from '@components/FlexColumn';
@@ -40,7 +40,7 @@ function SuperAuditView() {
     }, [selectedTable]);
 
     const loadStats = async () => {
-        getAuditStats()
+        Api.getAuditStats()
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -52,7 +52,7 @@ function SuperAuditView() {
 
     const loadSchema = async () => {
         setLoading(true);
-        getAuditSchema()
+        Api.getAuditSchema()
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -64,7 +64,7 @@ function SuperAuditView() {
     };
 
     const loadTableData = async tableName => {
-        getAuditTableData(tableName, 20)
+        Api.getAuditTableData(tableName, 20)
             .onSuccess(async response => {
                 const data = await response.json();
                 if (data.status === 'success') {

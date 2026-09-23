@@ -77,6 +77,18 @@ class Api {
         return promise;
     }
 
+    postParseCurriculum() {
+        return fetch(`${HOST}/portrait/parse-curriculum/`, { method: 'POST' });
+    }
+
+    getParseCurriculumLog() {
+        return fetch(`${HOST}/portrait/parse-curriculum/log/`);
+    }
+
+    getParseCurriculumMappings() {
+        return fetch(`${HOST}/portrait/parse-curriculum/mappings/`);
+    }
+
     // *** DATASESH *** */
     postPortraitDataseshNew() {
         const promise = fetch(`${HOST}/portrait/datasesh/new/`, {
