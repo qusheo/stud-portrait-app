@@ -2,23 +2,23 @@ import { useState, useEffect, React } from 'react';
 import Chart from 'react-apexcharts';
 import 'rc-slider/assets/index.css';
 
-import FlexRow, { ALIGN, JUSTIFY, WRAP } from '../../components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import Card from '../../components/cards/Card.jsx';
-import TitledCard from '../../components/cards/TitledCard.jsx';
-import ValueCard from '../../components/cards/ValueCard.jsx';
+import Card from '@components/cards/Card.jsx';
+import TitledCard from '@components/cards/TitledCard.jsx';
+import ValueCard from '@components/cards/ValueCard.jsx';
 
-import Button from '../../components/ui/Button.jsx';
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
+import Button from '@components/ui/Button.jsx';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 import { ToastContainer, toast } from 'react-toastify';
 import { postPortraitDataseshNew, postPortraitDataseshCountStats, postPortraitDataseshUpdateFilters } from '../../api.js';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
 import './AdminStatsView.scss';
-import TabButton from '../../components/ui/TabButton';
+import TabButton from '@components/ui/TabButton';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,

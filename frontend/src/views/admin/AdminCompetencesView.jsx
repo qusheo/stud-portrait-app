@@ -26,22 +26,22 @@ import * as XLSX from 'xlsx';
 import { ToastContainer, toast } from 'react-toastify';
 import CompetencySegmentation from './CompetencySegmentation';
 
-import FlexRow, { ALIGN, JUSTIFY, WRAP } from '../../components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
 import ReactApexChart from 'react-apexcharts';
 
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
-import FilterHeader from '../../components/FilterHeader';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
+import FilterHeader from '@components/FilterHeader';
 
 import { getDashboardStats, getCompetencyTrendByYear } from '../../api.js';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
 import './AdminCompetencesView.scss';
-import TabButton from '../../components/ui/TabButton';
+import TabButton from '@components/ui/TabButton';
 
-import { useAdminStore } from '../../store';
+import { useAdminStore } from '@utils/store';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,

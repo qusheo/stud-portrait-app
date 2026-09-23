@@ -1,4 +1,4 @@
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import { LINK_TREE } from '../../utilities';
 
 import './AdminHelpView.scss';

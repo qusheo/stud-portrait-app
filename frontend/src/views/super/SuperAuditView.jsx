@@ -3,18 +3,18 @@ import { useEffect, useState } from 'react';
 import { getAuditSchema, getAuditTableData, getAuditStats } from '../../api';
 import { SUPER_LINK_TREE } from '../../utilities';
 
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import ValueCard from '../../components/cards/ValueCard';
+import ValueCard from '@components/cards/ValueCard';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table';
-import DbContentTable from '../../components/tables/DbContentTable';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
+import DbContentTable from '@components/tables/DbContentTable';
 
-import Label from '../../components/ui/Label';
-import NoData from '../../components/ui/NoData';
+import Label from '@components/ui/Label';
+import NoData from '@components/ui/NoData';
 
 import './SuperAuditView.scss';
 

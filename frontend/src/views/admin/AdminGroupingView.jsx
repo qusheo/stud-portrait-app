@@ -3,18 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { FIELD_NAMES, LINK_TREE } from '../../utilities.js';
+import { FIELD_NAMES, LINK_TREE } from '@utils/utilities.js';
 import { postPortraitDataseshGroupSelected } from '../../api.js';
 
-import FlexRow, { WRAP } from '../../components/FlexRow';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { WRAP } from '@components/FlexRow';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import TitledCard from '../../components/cards/TitledCard';
+import TitledCard from '@components/cards/TitledCard';
 
-import Button from '../../components/ui/Button';
-import Label from '../../components/ui/Label';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
-import Select, { Option } from '../../components/ui/Select.jsx';
+import Button from '@components/ui/Button';
+import Label from '@components/ui/Label';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
+import Select, { Option } from '@components/ui/Select.jsx';
 
 import './AdminGroupingView.scss';
 

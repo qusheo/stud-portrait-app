@@ -4,16 +4,16 @@ import { LINK_TREE } from '../../utilities';
 import { getStudentsList, getStudentPortrait } from '../../api';
 
 import { ToastContainer, toast } from 'react-toastify';
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '@components/SidebarLayout';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
 
-import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '../../utilities.js';
-import Label, { LABEL_PALETTE } from '../../components/ui/Label';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import Label, { LABEL_PALETTE } from '@components/ui/Label';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 import './AdminStudentView.scss';
 
@@ -54,9 +54,7 @@ const StudentSearch = ({ onSelectStudent }) => {
 
     return (
         <div className="student-search">
-            <div>
-                Поиск студента:
-            </div>
+            <div>Поиск студента:</div>
             <div className="search-container">
                 <input
                     type="text"

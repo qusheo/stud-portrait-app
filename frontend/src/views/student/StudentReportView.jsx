@@ -3,10 +3,10 @@ import { useParams } from 'react-router-dom';
 import { getPortraitStudentResults } from '../../api';
 import { getAvailableProfiles, getAvailableCategories, prepareCategoryTableData, RESULT_PROFILES } from '../../utilities';
 
-import ResultTable from '../../components/ResultTable';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import Subtitle from '../../components/Subtitle';
-import Title from '../../components/Title';
+import ResultTable from '@components/ResultTable';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import Subtitle from '@components/Subtitle';
+import Title from '@components/Title';
 
 import './StudentReportView.scss';
 

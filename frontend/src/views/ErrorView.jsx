@@ -11,12 +11,7 @@ function ErrorView() {
 
     return (
         <div className="ErrorView">
-            <SidebarLayout style={LAYOUT_STYLE.NORMAL}>
-                <Header />
-                <Content>
-                    <Title title="Несуществующая страница" />
-                </Content>
-            </SidebarLayout>
+            <Title title="Несуществующая страница" />
         </div>
     );
 }

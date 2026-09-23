@@ -9,26 +9,26 @@ import {
     postPortraitDataseshUpdateColumns,
     postPortraitDataseshUpdateFilters
 } from '../../api.js';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
 
 import { ToastContainer, toast } from 'react-toastify';
-import FlexColumn from '../../components/FlexColumn.jsx';
-import FlexRow, { WRAP } from '../../components/FlexRow.jsx';
-import LabelledBox from '../../components/LabelledBox.jsx';
-import { ModalBody, ModalFooter, useModalWindow } from '../../components/ModalWindow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn.jsx';
+import FlexRow, { WRAP } from '@components/FlexRow.jsx';
+import LabelledBox from '@components/LabelledBox.jsx';
+import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table.jsx';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
-import Button from '../../components/ui/Button.jsx';
-import ColorBox, { BOX_COLOR } from '../../components/ui/ColorBox.jsx';
-import Dropdown from '../../components/ui/Dropdown.jsx';
-import Label from '../../components/ui/Label.jsx';
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
-import MultiSelect from '../../components/ui/MultiSelect.jsx';
-import NumberField from '../../components/ui/NumberField.jsx';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
-import Select, { Option, OptionGroup } from '../../components/ui/Select.jsx';
+import Button from '@components/ui/Button.jsx';
+import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
+import Dropdown from '@components/ui/Dropdown.jsx';
+import Label from '@components/ui/Label.jsx';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import MultiSelect from '@components/ui/MultiSelect.jsx';
+import NumberField from '@components/ui/NumberField.jsx';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
+import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
 

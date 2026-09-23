@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { getGradesCompetencyCorrelation } from '../../api.js';
-import { COMPETENCIES_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 export default function CorrelationScatter({ correlationData, loading, filters }) {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');

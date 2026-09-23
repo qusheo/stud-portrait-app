@@ -10,21 +10,21 @@ import {
 import { SUPER_LINK_TREE, xlsxReadColumns } from '../../utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
-import FlexColumn from '../../components/FlexColumn';
-import FlexRow from '../../components/FlexRow';
-import LabelledBox from '../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexColumn from '@components/FlexColumn';
+import FlexRow from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import TitledCard from '../../components/cards/TitledCard';
+import TitledCard from '@components/cards/TitledCard';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
 
-import Button from '../../components/ui/Button';
-import FileInput from '../../components/ui/FileInput';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import NumberField from '../../components/ui/NumberField';
-import { ADMIN_PALETTE } from '../../components/ui/palette';
-import Select, { Option } from '../../components/ui/Select';
+import Button from '@components/ui/Button';
+import FileInput from '@components/ui/FileInput';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import NumberField from '@components/ui/NumberField';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
 import './SuperUploadView.scss';
 

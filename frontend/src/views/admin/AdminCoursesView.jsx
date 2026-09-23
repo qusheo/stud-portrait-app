@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
 
 import { getPortraitCourses } from '../../api.js';
-import { COURSES_NAMES, LINK_TREE } from '../../utilities.js';
+import { COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
 
-import FlexRow, { WRAP } from '../../components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
+import FlexRow, { WRAP } from '@components/FlexRow.jsx';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import ValueCard from '../../components/cards/ValueCard.jsx';
+import ValueCard from '@components/cards/ValueCard.jsx';
 
 import { ToastContainer, toast } from 'react-toastify';
-import Table, { TableHeader, TableItem, TableRow } from '../../components/tables/Table.jsx';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
-import Button from '../../components/ui/Button.jsx';
-import ColorBox, { BOX_COLOR } from '../../components/ui/ColorBox.jsx';
-import Label from '../../components/ui/Label.jsx';
-import LoadingSpinner from '../../components/ui/LoadingSpinner.jsx';
+import Button from '@components/ui/Button.jsx';
+import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
+import Label from '@components/ui/Label.jsx';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
 
 import './AdminCoursesView.scss';
-import { ADMIN_PALETTE } from '../../components/ui/palette.js';
+import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 function AdminCoursesView() {
     const [coursesData, setCoursesData] = useState([]);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { getCompetencySegmentation } from '../../api';
-import { COMPETENCIES_NAMES } from '../../utilities.js';
+import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 const COMPETENCY_KEYS = [
     'res_comp_info_analysis',

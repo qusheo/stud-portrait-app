@@ -11,19 +11,19 @@ import {
     MOTIVATORS_NAMES
 } from '../../utilities';
 
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import StudentComparisonStats from '../../components/StudentComparisonStats';
-import Title from '../../components/Title';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import StudentComparisonStats from '@components/StudentComparisonStats';
+import Title from '@components/Title';
 
-import Button from '../../components/ui/Button';
-import { STUDENT_PALETTE } from '../../components/ui/palette';
-import Select, { Option } from '../../components/ui/Select';
+import Button from '@components/ui/Button';
+import { STUDENT_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
-import ChartSwitcher from '../../components/charts/ChartSwitcher';
-import StudentVamChart from '../../components/charts/StudentVamChart';
-import StudentLgmChart from '../../components/charts/StudentLgmChart';
-import StudentDisciplineImpact from '../../components/charts/StudentDisciplineImpact';
-import PlanetaryChart from '../../components/charts/PlanetaryChart';
+import ChartSwitcher from '@components/charts/ChartSwitcher';
+import StudentVamChart from '@components/charts/StudentVamChart';
+import StudentLgmChart from '@components/charts/StudentLgmChart';
+import StudentDisciplineImpact from '@components/charts/StudentDisciplineImpact';
+import PlanetaryChart from '@components/charts/PlanetaryChart';
 
 import './StudentMainView.scss';
 

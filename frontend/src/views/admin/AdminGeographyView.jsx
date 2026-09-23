@@ -4,18 +4,18 @@ import { getPortraitCentersByRegion, getGeographyReport } from '../../api';
 import { LINK_TREE } from '../../utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import FlexRow from '../../components/FlexRow';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import FlexRow from '@components/FlexRow';
 
-import TitledCard from '../../components/cards/TitledCard';
-import ValueCard from '../../components/cards/ValueCard';
+import TitledCard from '@components/cards/TitledCard';
+import ValueCard from '@components/cards/ValueCard';
 
-import RussianFederationMap from '../../components/charts/maps/RussianFederationMap';
+import RussianFederationMap from '@components/charts/maps/RussianFederationMap';
 
-import Slider from '../../components/ui/Slider';
+import Slider from '@components/ui/Slider';
 
-import Button from '../../components/ui/Button';
-import { ADMIN_PALETTE } from '../../components/ui/palette';
+import Button from '@components/ui/Button';
+import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import './AdminGeographyView.scss';
 
@@ -119,7 +119,7 @@ function AdminGeographyView() {
                 disabled={loading}
             />
 
-            <div style={{padding: '10px', display: 'flex', gap: '10px'}}>
+            <div style={{ padding: '10px', display: 'flex', gap: '10px' }}>
                 <ValueCard
                     value={totalCenters}
                     text="Всего центров"

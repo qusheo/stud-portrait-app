@@ -7,20 +7,20 @@ import { ToastContainer, toast } from 'react-toastify';
 
 import { getScoresResult, getGradesCompetencyCorrelation } from '../../api.js';
 
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '../../utilities.js';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../components/SidebarLayout';
-import FilterHeader from '../../components/FilterHeader';
-import TabButton from '../../components/ui/TabButton';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import FilterHeader from '@components/FilterHeader';
+import TabButton from '@components/ui/TabButton';
 
-import FlexRow, { WRAP } from '../../components/FlexRow.jsx';
+import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 
 import './AdminAPView.scss';
 import CorrelationHeatmap from './CorrelationHeatmap';
 import CorrelationScatter from './CorrelationScatter';
 import TopCorrelationsTable from './TopCorrelationsTable';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-import { useAdminStore } from '../../store';
+import { useAdminStore } from '@utils/store';
 
 const scores = {
     2: 'неудовл.',

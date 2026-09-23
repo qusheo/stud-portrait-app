@@ -10,20 +10,20 @@ import {
 } from '../../../api';
 import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
 
-import AiInsightPanel from '../../../components/AiInsightPanel';
-import FlexRow, { JUSTIFY, WRAP } from '../../../components/FlexRow';
-import LabelledBox from '../../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../../components/SidebarLayout';
-import TitledCard from '../../../components/cards/TitledCard';
-import ValueCard from '../../../components/cards/ValueCard';
-import Button from '../../../components/ui/Button';
-import NoData from '../../../components/ui/NoData';
-import LoadingSpinner from '../../../components/ui/LoadingSpinner';
-import MultiSelect from '../../../components/ui/MultiSelect';
-import { ADMIN_PALETTE } from '../../../components/ui/palette';
-import Select, { Option } from '../../../components/ui/Select';
+import AiInsightPanel from '../@components/AiInsightPanel';
+import FlexRow, { JUSTIFY, WRAP } from '../@components/FlexRow';
+import LabelledBox from '../@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../@components/SidebarLayout';
+import TitledCard from '../@components/cards/TitledCard';
+import ValueCard from '../@components/cards/ValueCard';
+import Button from '../@components/ui/Button';
+import NoData from '../@components/ui/NoData';
+import LoadingSpinner from '../@components/ui/LoadingSpinner';
+import MultiSelect from '../@components/ui/MultiSelect';
+import { ADMIN_PALETTE } from '../@components/ui/palette';
+import Select, { Option } from '../@components/ui/Select';
 
-import BoxplotChart from '../../../components/charts/BoxplotChart';
+import BoxplotChart from '../@components/charts/BoxplotChart';
 import './AdminAnomalousStudentView.scss';
 
 function AdminAnomalousStudentView() {
@@ -185,37 +185,38 @@ function AdminAnomalousStudentView() {
                         withSearch
                         showCounts
                     />
-                    <div style={{display: 'inline-flex', alignItems:'center', gap: '10px'}}>
-                    <LabelledBox
-                        label="Компетенция:"
-                        inrow
-                        nopad
-                    >
-                        <Select
-                            initValue={selectedCompetency}
-                            onChange={setSelectedCompetency}
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                        <LabelledBox
+                            label="Компетенция:"
+                            inrow
+                            nopad
                         >
-                            {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                <Option
-                                    key={key}
-                                    value={key}
-                                    label={name}
-                                />
-                            ))}
-                        </Select>
-                    </LabelledBox>
-                    <Button
-                        text="Найти аномалии"
-                        onClick={loadAnomalies}
-                        palette={ADMIN_PALETTE.CYAN}
-                        disabled={loading}
-                    />
-                    <Button
-                        text="Сбросить"
-                        onClick={resetFilters}
-                        palette={ADMIN_PALETTE.GRAY}
-                        disabled={loading}
-                    /></div>
+                            <Select
+                                initValue={selectedCompetency}
+                                onChange={setSelectedCompetency}
+                            >
+                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                    <Option
+                                        key={key}
+                                        value={key}
+                                        label={name}
+                                    />
+                                ))}
+                            </Select>
+                        </LabelledBox>
+                        <Button
+                            text="Найти аномалии"
+                            onClick={loadAnomalies}
+                            palette={ADMIN_PALETTE.CYAN}
+                            disabled={loading}
+                        />
+                        <Button
+                            text="Сбросить"
+                            onClick={resetFilters}
+                            palette={ADMIN_PALETTE.GRAY}
+                            disabled={loading}
+                        />
+                    </div>
                 </FlexRow>
                 <LabelledBox
                     label="Группировка:"

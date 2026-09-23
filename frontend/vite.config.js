@@ -13,7 +13,8 @@ export default defineConfig({
             '@components': path.resolve('src/components'),
             '@icons': path.resolve('src/components/icons'),
             '@ui': path.resolve('src/components/ui'),
-            '@services': path.resolve('src/services')
+            '@services': path.resolve('src/services'),
+            '@utils': path.resolve('src/utils')
         }
     }
 });

@@ -4,21 +4,21 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
 import { getInstitutions, getAnalyzeTransfers, postAnalyzeTransferStudents } from '../../../api';
 
-import FlexRow, { WRAP } from '../../../components/FlexRow';
-import LabelledBox from '../../../components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../../../components/SidebarLayout';
+import FlexRow, { WRAP } from '../@components/FlexRow';
+import LabelledBox from '../@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../@components/SidebarLayout';
 
-import ValueCard from '../../../components/cards/ValueCard';
+import ValueCard from '../@components/cards/ValueCard';
 
-import Button from '../../../components/ui/Button';
-import Select, { Option } from '../../../components/ui/Select';
-import LoadingSpinner from '../../../components/ui/LoadingSpinner';
-import NoData from '../../../components/ui/NoData';
-import { ADMIN_PALETTE } from '../../../components/ui/palette';
+import Button from '../@components/ui/Button';
+import Select, { Option } from '../@components/ui/Select';
+import LoadingSpinner from '../@components/ui/LoadingSpinner';
+import NoData from '../@components/ui/NoData';
+import { ADMIN_PALETTE } from '../@components/ui/palette';
 
-import Table, { TableHeader, TableItem, TableRow } from '../../../components/tables/Table';
+import Table, { TableHeader, TableItem, TableRow } from '../@components/tables/Table';
 
-import SankeyDiagram from '../../../components/charts/SankeyDiagram';
+import SankeyDiagram from '../@components/charts/SankeyDiagram';
 
 import './AdminTransferAnalysisView.scss';
 
