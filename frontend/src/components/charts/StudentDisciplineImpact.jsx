@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { getStudentDisciplineImpact } from '../../api';
-import { COMPETENCIES_NAMES } from '../../utilities';
+import { COMPETENCIES_NAMES } from '@utils/utilities';
 
 const StudentDisciplineImpact = ({ studentId }) => {
     const [data, setData] = useState(null);

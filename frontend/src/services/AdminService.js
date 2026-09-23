@@ -1,4 +1,4 @@
-import Api from '@src/api.js';
+import Api from '../api.js';
 import BaseService from './BaseService';
 
 class AdminService extends BaseService {

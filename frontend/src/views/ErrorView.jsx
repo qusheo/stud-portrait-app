@@ -1,7 +1,7 @@
 import { useRouteError } from 'react-router-dom';
 
-import { Content, Header, LAYOUT_STYLE, SidebarLayout } from '../components/SidebarLayout';
-import Title from '../components/Title';
+import { Content, Header, LAYOUT_STYLE, SidebarLayout } from '@components/SidebarLayout';
+import Title from '@components/Title';
 
 import './ErrorView.scss';
 

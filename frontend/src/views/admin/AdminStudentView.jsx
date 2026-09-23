@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { LINK_TREE } from '../../utilities';
+import { LINK_TREE } from '@utils/utilities';
 import { StudentService } from '@services';
 
 import { ToastContainer, toast } from 'react-toastify';

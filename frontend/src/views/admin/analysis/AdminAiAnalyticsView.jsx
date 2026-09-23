@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 
 import { AdminService } from '@services';
-import { LINK_TREE, COMPETENCIES_NAMES } from '../../../utilities';
+import { LINK_TREE, COMPETENCIES_NAMES } from '@utils/utilities';
 
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../@components/SidebarLayout';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import MultiSelect from '../@components/ui/MultiSelect';
-import Button from '../@components/ui/Button';
-import LoadingSpinner from '../@components/ui/LoadingSpinner';
-import { ADMIN_PALETTE } from '../@components/ui/palette';
-import Select, { Option } from '../@components/ui/Select';
+import MultiSelect from '@components/ui/MultiSelect';
+import Button from '@components/ui/Button';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
 import './AdminAiAnalyticsView.scss';
 

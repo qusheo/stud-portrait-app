@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import Select from 'react-select';
 
 import { getMotivatorStatistics } from '../api';
-import { MOTIVATORS_NAMES } from '../utils/utilities';
+import { MOTIVATORS_NAMES } from '@utils/utilities';
 
 import './MotivatorStatistics.scss';
 

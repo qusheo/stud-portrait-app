@@ -1,4 +1,4 @@
-import Api from '@src/api.js';
+import Api from '../api.js';
 import { toast } from 'react-toastify';
 
 class TeacherService {

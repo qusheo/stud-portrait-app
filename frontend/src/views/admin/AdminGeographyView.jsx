@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
-import { LINK_TREE } from '../../utilities';
+import { LINK_TREE } from '@utils/utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
@@ -10,7 +10,7 @@ import FlexRow from '@components/FlexRow';
 import TitledCard from '@components/cards/TitledCard';
 import ValueCard from '@components/cards/ValueCard';
 
-import RussianFederationMap from '@components/charts/maps/RussianFederationMap';
+import RussianFederationMap from '@components/charts/RussianFederationMap';
 
 import Slider from '@components/ui/Slider';
 

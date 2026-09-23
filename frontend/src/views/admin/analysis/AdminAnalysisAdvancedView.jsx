@@ -2,25 +2,25 @@ import { useEffect, useState } from 'react';
 import { ResponsiveContainer, LineChart, Legend, Line, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import { AdminService } from '@services';
-import { COMPETENCIES, COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
+import { COMPETENCIES, COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
 
-import AiInsightPanel from '../@components/AiInsightPanel';
-import FlexRow, { JUSTIFY, WRAP } from '../@components/FlexRow';
-import LabelledBox from '../@components/LabelledBox';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../@components/SidebarLayout';
+import AiInsightPanel from '@components/AiInsightPanel';
+import FlexRow, { JUSTIFY, WRAP } from '@components/FlexRow';
+import LabelledBox from '@components/LabelledBox';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import TitledCard from '../@components/cards/TitledCard';
-import ValueCard from '../@components/cards/ValueCard';
+import TitledCard from '@components/cards/TitledCard';
+import ValueCard from '@components/cards/ValueCard';
 
-import Button from '../@components/ui/Button';
-import NoData from '../@components/ui/NoData';
-import LoadingSpinner from '../@components/ui/LoadingSpinner';
-import MultiSelect from '../@components/ui/MultiSelect';
-import { ADMIN_PALETTE } from '../@components/ui/palette';
-import Select, { Option } from '../@components/ui/Select';
+import Button from '@components/ui/Button';
+import NoData from '@components/ui/NoData';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import MultiSelect from '@components/ui/MultiSelect';
+import { ADMIN_PALETTE } from '@components/ui/palette';
+import Select, { Option } from '@components/ui/Select';
 
-import SankeyDiagram from '../@components/charts/SankeyDiagram';
-import VamDotPlot from '../@components/charts/VamDotPlot';
+import SankeyDiagram from '@components/charts/SankeyDiagram';
+import VamDotPlot from '@components/charts/VamDotPlot';
 
 import './AdminAnalysisAdvancedView.scss';
 

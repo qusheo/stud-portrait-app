@@ -7,7 +7,7 @@ import {
     deleteDataloadTemplateDelete,
     postDataloadImportExcel
 } from '../../api';
-import { SUPER_LINK_TREE, xlsxReadColumns } from '../../utilities';
+import { SUPER_LINK_TREE, xlsxReadColumns } from '@utils/utilities';
 
 import { ToastContainer, toast } from 'react-toastify';
 import FlexColumn from '@components/FlexColumn';

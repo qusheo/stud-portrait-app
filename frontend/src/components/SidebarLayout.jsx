@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useLocation, Outlet } from 'react-router-dom';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
-import { LINK_TREE } from '../utils/utilities.js';
+import { LINK_TREE } from '@utils/utilities.js';
 export const LAYOUT_STYLE = {
     ADMIN: 'admin',
     MODEUS: 'modeus',

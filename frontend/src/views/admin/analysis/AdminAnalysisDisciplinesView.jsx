@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, LINK_TREE } from '../../../utilities';
+import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
 
-import FlexRow from '../@components/FlexRow';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '../@components/SidebarLayout';
+import FlexRow from '@components/FlexRow';
+import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
-import TitledCard from '../@components/cards/TitledCard';
+import TitledCard from '@components/cards/TitledCard';
 
-import Table, { TableHeader, TableItem, TableRow } from '../@components/tables/Table';
+import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
 
-import Button from '../@components/ui/Button';
-import ColorBox, { BOX_COLOR } from '../@components/ui/ColorBox';
-import Label from '../@components/ui/Label';
-import LoadingSpinner from '../@components/ui/LoadingSpinner';
-import MultiSelect from '../@components/ui/MultiSelect';
-import NoData from '../@components/ui/NoData';
-import { ADMIN_PALETTE } from '../@components/ui/palette';
+import Button from '@components/ui/Button';
+import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox';
+import Label from '@components/ui/Label';
+import LoadingSpinner from '@components/ui/LoadingSpinner';
+import MultiSelect from '@components/ui/MultiSelect';
+import NoData from '@components/ui/NoData';
+import { ADMIN_PALETTE } from '@components/ui/palette';
 
-import SankeyDiagram from '../@components/charts/SankeyDiagram';
+import SankeyDiagram from '@components/charts/SankeyDiagram';
 
-import AiInsightPanel from '../@components/AiInsightPanel';
+import AiInsightPanel from '@components/AiInsightPanel';
 import './AdminAnalysisDisciplinesView.scss';
 
 function AdminAnalysisDisciplinesView() {
