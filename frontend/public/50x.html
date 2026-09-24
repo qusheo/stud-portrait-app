@@ -5,14 +5,13 @@
         <title>Страница недоступна</title>
 
         <script>
-            setInterval(() => {
-                fetch(window.location.href)
-                    .then(response => {
-                        if (response.ok) {
-                            window.location.reload();
-                        }
-                    })
-                    .catch(() => {});
+            setInterval(async () => {
+                try {
+                    const r = await fetch('/portrait/health/');
+                    if (r.ok) {
+                        location.reload();
+                    }
+                } catch {}
             }, 5000);
         </script>
 

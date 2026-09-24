@@ -1,4 +1,5 @@
 from django.urls import path
+from . import status
 
 from .endpoints import (
     audit,
@@ -12,6 +13,7 @@ from .endpoints import (
 )
 
 urlpatterns = [
+    path("health/", status.health),
 
     # AUDIT module
     path('audit/schema/',      audit.get_database_schema,   name='audit_schema'),

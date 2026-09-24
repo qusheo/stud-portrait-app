@@ -66,9 +66,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'studportrait.wsgi.application'
 
-import os
-
-print(os.getenv("DB_PASSWORD"))
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
