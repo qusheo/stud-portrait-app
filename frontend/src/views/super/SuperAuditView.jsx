@@ -42,8 +42,8 @@ function SuperAuditView() {
     const loadStats = async () => {
         Api.getAuditStats()
             .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
+                const data = await response.json().catch(() => null);
+                if (data?.status === 'success') {
                     setStats(data.info);
                 }
             })
@@ -54,8 +54,8 @@ function SuperAuditView() {
         setLoading(true);
         Api.getAuditSchema()
             .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
+                const data = await response.json().catch(() => null);
+                if (data?.status === 'success') {
                     setSchema(data.schema);
                 }
             })
@@ -66,8 +66,8 @@ function SuperAuditView() {
     const loadTableData = async tableName => {
         Api.getAuditTableData(tableName, 20)
             .onSuccess(async response => {
-                const data = await response.json();
-                if (data.status === 'success') {
+                const data = await response.json().catch(() => null);
+                if (data?.status === 'success') {
                     setTableData(data.sample);
                 }
             })

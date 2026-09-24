@@ -22,8 +22,8 @@ function RussianFederationMap({
     useEffect(() => {
         const loadMapData = async () => {
             const response = await fetch('/data/russia.geojson');
-            const geoJson = await response.json();
-            echarts.registerMap('Russia', geoJson);
+            const geoJson = await response.text();
+            echarts.registerMap('Russia', geoJson ? JSON.parse(geoJson) : null);
             setReady(true);
         };
 

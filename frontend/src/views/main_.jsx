@@ -46,7 +46,7 @@ function MainPage() {
             try {
                 const response = await fetch('http://localhost:8000/portrait/overall-stats');
                 if (!response.ok) throw new Error('Ошибка сервера');
-                const data = await response.json();
+                const data = await response.catch(() => null);
                 setStatsData(data);
             } catch (err) {
                 console.error('Ошибка при загрузке статистики:', err);

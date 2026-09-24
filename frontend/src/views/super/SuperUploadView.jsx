@@ -65,14 +65,13 @@ function SuperUploadView() {
     }, [expectedFields]);
 
     useEffect(() => {
-        // ФИX 1: добавлен .onSuccess(r => r.json()) для парсинга ответа
         Api.getDataloadExpectedFields()
-            .onSuccess(r => r.json())
+            .onSuccess(r => r.json().catch(() => null))
             .onSuccess(data => {
+                if (!data) throw new Error();
                 const { status, ...sheets } = data;
                 setExpectedFields(sheets);
                 expectedFieldsRef.current = sheets;
-                // ФИX 2: если файл уже загружен до получения fields — перегенерировать маппинг
                 if (Object.keys(fileHeaders).length > 0) {
                     autoGenerateConfig(fileHeaders, sheets);
                 }
@@ -80,19 +79,20 @@ function SuperUploadView() {
             .onError(err => console.error('Ошибка expected fields', err));
 
         loadTemplatesFromServer();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     const loadTemplatesFromServer = () => {
         setTemplatesLoading(true);
-        // ФИX 3: используем серверное хранение шаблонов вместо localStorage
+        
         Api.getDataloadTemplates()
-            .onSuccess(r => r.json())
+            .onSuccess(r => r.json().catch(() => null))
             .onSuccess(data => {
+                if(!data) throw new Error();
                 setSavedTemplates(data.templates || []);
             })
             .onError(err => {
                 console.error('Ошибка загрузки шаблонов', err);
-                // Fallback на localStorage если сервер недоступен
+                
                 const stored = localStorage.getItem('upload_templates');
                 if (stored) {
                     try {
@@ -186,9 +186,9 @@ function SuperUploadView() {
             setError('Введите имя шаблона');
             return;
         }
-        // ФИX 6: сохраняем на сервер, не в localStorage
+        
         Api.postDataloadTemplateSave(newTemplateName.trim(), mappingConfig)
-            .onSuccess(r => r.json())
+            .onSuccess(r => r.json().catch(() => null))
             .onSuccess(() => {
                 setNewTemplateName('');
                 setError(null);
@@ -201,7 +201,7 @@ function SuperUploadView() {
         e.stopPropagation();
         if (!window.confirm('Удалить шаблон?')) return;
         Api.deleteDataloadTemplateDelete(templateId)
-            .onSuccess(r => r.json())
+            .onSuccess(r => r.json().catch(() => null))
             .onSuccess(() => loadTemplatesFromServer())
             .onError(err => setError(`Ошибка удаления: ${err.message}`));
     };
@@ -224,11 +224,10 @@ function SuperUploadView() {
         if (!selectedFile || !mappingConfig) return;
         setUploading(true);
         setError(null);
-        // ФИX 7: добавлен .onSuccess(r => r.json()) для парсинга ответа импорта
         Api.postDataloadImportExcel(selectedFile, mappingConfig)
-            .onSuccess(r => r.json())
+            .onSuccess(r => r.json().catch(() => null))
             .onSuccess(data => {
-                if (data.status === 'success') {
+                if (data?.status === 'success') {
                     setUploadResult(data);
                     setStep('upload');
                     setSelectedFile(null);
