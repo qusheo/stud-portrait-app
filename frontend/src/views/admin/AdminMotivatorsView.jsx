@@ -207,7 +207,6 @@ function MotTable({ data, currentFilters }) {
 
         XLSX.writeFile(workbook, `Статистика_Мотиваторов${currentFilters.year ? `_${currentFilters.year}` : ''}.xlsx`);
     };
-    console.log(selected.length, selected);
 
     return (
         <div className="table">
@@ -633,7 +632,7 @@ function AdminMotivatorsView() {
             const updated = { ...prev, [name]: value };
             if (name === 'institute') updated.specialty = '';
 
-            saveFilters('Admin', updated); 
+            saveFilters('Admin', updated);
 
             return updated;
         });

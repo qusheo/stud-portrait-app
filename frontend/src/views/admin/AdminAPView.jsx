@@ -168,15 +168,16 @@ function AdminAPView() {
         setFilters(prev => {
             const updated = { ...prev, [name]: value };
             if (name === 'institute') updated.specialty = '';
+            saveFilters('Admin', updated);
             return updated;
         });
-        saveFilters('Admin', filters);
     };
     useEffect(() => {
-        if (savedFilters?.Admin) {
-            setFilters(savedFilters.Admin);
+        const saved = savedFilters?.Admin;
+        if (saved && Object.keys(saved).length) {
+            setFilters(saved);
         }
-    }, []);
+    }, [savedFilters]);
 
     const loadCorrelation = async currentFilters => {
         setLoadingCorr(true);
@@ -194,9 +195,11 @@ function AdminAPView() {
     }, [filters]);
 
     const resetFilters = () => {
-        setFilters_({ institute: '', specialty: '', year: '' });
+        setFilters({ institute: '', specialty: '', year: '' });
     };
-
+    if (Error) {
+        return <div className="AdminAPView">Страница недоступна</div>;
+    }
     return (
         <div className="AdminAPView">
             <div className="filters-cont">

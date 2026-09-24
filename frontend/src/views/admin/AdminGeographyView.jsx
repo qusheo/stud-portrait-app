@@ -115,7 +115,7 @@ function AdminGeographyView() {
                     text="Всего центров"
                 />
                 <ValueCard
-                    value={regionData.length}
+                    value={regionData?.length || 0}
                     text="Регионов с центрами"
                 />
             </div>
