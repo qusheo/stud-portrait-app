@@ -1035,7 +1035,7 @@ function AdminCompetencesView() {
         setFilters_(prev => {
             const updated = { ...prev, [name]: value };
             if (name === 'institute') updated.specialty = '';
-            
+
             saveFilters('Admin', updated); // сохраняем фильтры в хранилище
 
             return updated;

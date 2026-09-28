@@ -98,15 +98,15 @@ def student_results(request):
         {
             "res_id":             result.res_id,
             "res_year":           result.res_year,
-            "res_course":         result.res_course,  # ИЗМЕНЕНО: res_course вместо res_course_num
-            "res_potential":      result.res_potential,  # ИЗМЕНЕНО: res_potential вместо res_high_potential
-            "res_report":         result.res_report,  # ИЗМЕНЕНО: res_report вместо res_summary_report
+            "res_course":         result.res_course, 
+            "res_potential":      result.res_potential,
+            "res_report":         result.res_report,
 
             "center":      attrIfObj(result.res_center,        'center_name'),
             "institution": attrIfObj(result.res_institution,   'inst_name'),
             "edu_level":   attrIfObj(result.res_edu_level,     'edu_level_name'),
-            "study_form":  attrIfObj(result.res_edu_form,      'form_name'),  # ИЗМЕНЕНО: edu_form_name
-            "specialty":   attrIfObj(result.res_edu_specialty, 'spec_name'),  # ИЗМЕНЕНО: edu_spec_name
+            "study_form":  attrIfObj(result.res_edu_form,      'form_name'),
+            "specialty":   attrIfObj(result.res_edu_specialty, 'spec_name'), 
 
             **{c: getattr(result, c)             for c in COMP.list},
             **{m: zeroIfNull(getattr(result, m)) for m in MOT.list},
@@ -132,7 +132,7 @@ def student_results(request):
     return {
         "student": {
             "stud_id":     participant.part_id,
-            "stud_rsv":    participant.part_rsv_id,  # ИЗМЕНЕНО: part_rsv_id вместо part_rsv_id
+            "stud_rsv":    participant.part_rsv_id,
             "stud_name":   student_name,
             "stud_gender": participant.part_gender,
             # Учебная информация берется из последнего Results
@@ -223,11 +223,11 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         institutions_query = institutions_query.filter(
-            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО: res_edu_specialty
+            res_edu_specialty__spec_id__in=selected_directions 
         )
 
     if selected_courses:
-        institutions_query = institutions_query.filter(res_course__in=selected_courses)  # ИЗМЕНЕНО: res_course
+        institutions_query = institutions_query.filter(res_course__in=selected_courses)
 
     if selected_test_attempts:
         student_attempts = Results.objects \
@@ -272,7 +272,7 @@ def get_filter_options_with_counts(request):
         )
 
     if selected_courses:
-        directions_query = directions_query.filter(res_course__in=selected_courses)  # ИЗМЕНЕНО: res_course
+        directions_query = directions_query.filter(res_course__in=selected_courses) 
 
     if selected_test_attempts:
         student_attempts = Results.objects \
@@ -317,7 +317,7 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         courses_query = courses_query.filter(
-            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО
+            res_edu_specialty__spec_id__in=selected_directions 
         )
 
     if selected_test_attempts:
@@ -363,11 +363,11 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         attempts_query = attempts_query.filter(
-            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО
+            res_edu_specialty__spec_id__in=selected_directions 
         )
 
     if selected_courses:
-        attempts_query = attempts_query.filter(res_course__in=selected_courses)  # ИЗМЕНЕНО: res_course
+        attempts_query = attempts_query.filter(res_course__in=selected_courses) 
 
     student_attempts = attempts_query \
         .values('res_participant')    \
@@ -564,7 +564,7 @@ def get_motivator_statistics(request):
             # Группировка по курсам
             results = []
             for course_num in range(1, 5):  # 1-4 курсы
-                course_results = queryset.filter(res_course=course_num)  # ИЗМЕНЕНО: res_course
+                course_results = queryset.filter(res_course=course_num)
                 
                 if not course_results.exists():
                     continue
@@ -614,7 +614,7 @@ def get_motivator_statistics(request):
                 for course_num in range(1, 5):
                     course_results = queryset.filter(
                         res_edu_specialty=specialty,
-                        res_course=course_num  # ИЗМЕНЕНО: res_course
+                        res_course=course_num
                     )
                     
                     if not course_results.exists():
@@ -825,9 +825,9 @@ def get_student_portrait(request):
             
             test_results.append({
                 'year': result.res_year,
-                'course': result.res_course,  # ИЗМЕНЕНО: res_course вместо course_num
+                'course': result.res_course, 
                 'center': result.res_center.center_name if result.res_center else None,
-                'potential': result.res_potential,  # ИЗМЕНЕНО: potential вместо high_potential
+                'potential': result.res_potential, 
                 'competencies': competencies,
                 'motivators': motivators,
                 'values': values
@@ -843,7 +843,7 @@ def get_student_portrait(request):
             grades.append({
                 'year': grade.perf_year,
                 'discipline': grade.perf_edu_discipline.edu_disc_name if grade.perf_edu_discipline else None,
-                'main': grade.perf_main,  # ИЗМЕНЕНО: main вместо main_attestation
+                'main': grade.perf_main,
                 'current': grade.perf_current,
                 'digital': grade.perf_digital,
                 'first_retake': grade.perf_first_retake,

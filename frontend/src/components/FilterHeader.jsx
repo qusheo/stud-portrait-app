@@ -13,9 +13,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
     const noFilters = () => {
         if (!filters) return true;
 
-        return Object.values(filters).every(
-            value => !value || value === ''
-        );
+        return Object.values(filters).every(value => !value || value === '');
     };
     //загрузка вариантов
     useEffect(() => {

@@ -5,11 +5,14 @@ from .endpoints import (
     audit,
     dataload,
     datasesh,
-    analysis_end, transfer_analysis,
-    statsresult, stat,
+    analysis_end, 
+    transfer_analysis,
+    statsresult, 
+    stat,
     ainterp,
     gendox,
     curriculum_end,
+    matching,
 )
 
 urlpatterns = [

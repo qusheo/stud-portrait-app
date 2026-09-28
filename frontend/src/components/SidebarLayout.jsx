@@ -39,12 +39,23 @@ export function Header({ title, name }) {
                 <span className="title">{title}</span>
             </div>
             <div className="right-side">
-                <div className='user'>
-                    <UserRound color ="white" size={15} />
+                <div className="user">
+                    <UserRound
+                        color="white"
+                        size={15}
+                    />
                     <span className="user-name">{name}</span>
                 </div>
-                <Tooltip text="Выйти" placement="bottom">
-                    <LogOut color ="white" size={17} onClick={() => null} style={{cursor: 'pointer'}}/>
+                <Tooltip
+                    text="Выйти"
+                    placement="bottom"
+                >
+                    <LogOut
+                        color="white"
+                        size={17}
+                        onClick={() => null}
+                        style={{ cursor: 'pointer' }}
+                    />
                 </Tooltip>
             </div>
         </div>

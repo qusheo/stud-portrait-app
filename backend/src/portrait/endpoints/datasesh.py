@@ -575,10 +575,10 @@ RESULTS_FIELD_MAP = {
     'center':         J(tRES.CENTER,      tCENTER.NAME),
     'institution':    J(tRES.INSTITUTION, tINST.NAME),
     'edu_level':      J(tRES.EDU_LEVEL,   tLEVEL.NAME),
-    'study_form':     J(tRES.EDU_FORM,    tFORM.NAME),      # ИЗМЕНЕНО: tFORM вместо tStudyForms
-    'specialty':      J(tRES.EDU_SPEC,    tSPEC.NAME),      # ИЗМЕНЕНО: tSPEC вместо tSpecialties
+    'study_form':     J(tRES.EDU_FORM,    tFORM.NAME),    
+    'specialty':      J(tRES.EDU_SPEC,    tSPEC.NAME),   
     'res_year':       tRES.YEAR,
-    'res_course_num': tRES.COURSE_NUM                        # ИЗМЕНЕНО: COURSE_NUM вместо COURSE_NUM
+    'res_course_num': tRES.COURSE_NUM                      
 }
 
 
@@ -596,10 +596,9 @@ def acquire_session(id: str) -> DataViewSession:
     return session
 
 
-def result_to_json(result, visible_columns=None):  # REVIEW
+def result_to_json(result, visible_columns=None):  
     """ Format results data before dispatching it.
     """
-    # ИЗМЕНЕНО: обновлены названия полей для новой схемы
     base_data = {
         "res_id": result.res_id,
         "participant": {
@@ -652,20 +651,19 @@ def result_to_json(result, visible_columns=None):  # REVIEW
 def format_result_for_export(result, visible_columns=None):  # REVIEW
     """ Format results data before putting it into Excel.
     """
-    # ИЗМЕНЕНО: обновлены названия полей для новой схемы
     row = {
         "ID результата":       result.res_id,
-        "ID РСВ":              result.res_participant.part_rsv_id,      # было part_rsv_id
+        "ID РСВ":              result.res_participant.part_rsv_id,     
         "Пол":                 result.res_participant.part_gender,
         "Центр компетенций":   result.res_center.center_name       if result.res_center      else "",
         "Учебное заведение":   result.res_institution.inst_name    if result.res_institution else "",
         "Уровень образования": result.res_edu_level.edu_level_name if result.res_edu_level   else "",
-        "Форма обучения":      result.res_edu_form.form_name   if result.res_edu_form    else "",  # было res_form
-        "Специальность":       result.res_edu_specialty.spec_name if result.res_edu_specialty else "",  # было res_spec
+        "Форма обучения":      result.res_edu_form.form_name   if result.res_edu_form    else "", 
+        "Специальность":       result.res_edu_specialty.spec_name if result.res_edu_specialty else "",  
         "Учебный год":         result.res_year,
-        "Номер курса":         result.res_course,                   # было res_course_num
-        "Потенциал":           result.res_potential or "",          # было res_high_potential
-        "Отчет":               result.res_report or "",             # было res_summary_report
+        "Номер курса":         result.res_course,                  
+        "Потенциал":           result.res_potential or "",         
+        "Отчет":               result.res_report or "",           
     }
 
     all_fields = {}
@@ -689,10 +687,10 @@ def get_group_value(result, grouping_column):  # REVIEW
         case 'center':         return attrIfObj(result.res_center,      'center_name')
         case 'institution':    return attrIfObj(result.res_institution, 'inst_name')
         case 'edu_level':      return attrIfObj(result.res_edu_level,   'edu_level_name')
-        case 'study_form':     return attrIfObj(result.res_edu_form,    'form_name')      # было res_form
-        case 'specialty':      return attrIfObj(result.res_edu_specialty, 'spec_name')    # было res_spec
+        case 'study_form':     return attrIfObj(result.res_edu_form,    'form_name')      
+        case 'specialty':      return attrIfObj(result.res_edu_specialty, 'spec_name')    
         case 'res_year':       return result.res_year
-        case 'res_course_num': return result.res_course                 # было res_course_num
+        case 'res_course_num': return result.res_course                 
         case _:                return None
 
 

@@ -83,16 +83,16 @@ function SuperUploadView() {
 
     const loadTemplatesFromServer = () => {
         setTemplatesLoading(true);
-        
+
         Api.getDataloadTemplates()
             .onSuccess(r => r.json().catch(() => null))
             .onSuccess(data => {
-                if(!data) throw new Error();
+                if (!data) throw new Error();
                 setSavedTemplates(data.templates || []);
             })
             .onError(err => {
                 console.error('Ошибка загрузки шаблонов', err);
-                
+
                 const stored = localStorage.getItem('upload_templates');
                 if (stored) {
                     try {
@@ -186,7 +186,7 @@ function SuperUploadView() {
             setError('Введите имя шаблона');
             return;
         }
-        
+
         Api.postDataloadTemplateSave(newTemplateName.trim(), mappingConfig)
             .onSuccess(r => r.json().catch(() => null))
             .onSuccess(() => {

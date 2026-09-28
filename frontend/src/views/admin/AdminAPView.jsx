@@ -197,7 +197,7 @@ function AdminAPView() {
     const resetFilters = () => {
         setFilters({ institute: '', specialty: '', year: '' });
     };
-    if (Error) {
+    if (isError) {
         return <div className="AdminAPView">Страница недоступна</div>;
     }
     return (

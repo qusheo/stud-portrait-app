@@ -58,25 +58,25 @@ const EduProfilesComparison = () => {
             });
 
             {
-                    if (result.status === 'success') {
-                        const specialties = result.data.specialties.map(s => ({
-                            value: s.id,
-                            label: s.name,
-                            students: s.total_students
-                        }));
-                        setAvailableSpecialties(specialties);
-                        setData(result.data);
+                if (result.status === 'success') {
+                    const specialties = result.data.specialties.map(s => ({
+                        value: s.id,
+                        label: s.name,
+                        students: s.total_students
+                    }));
+                    setAvailableSpecialties(specialties);
+                    setData(result.data);
 
-                        // Извлекаем доступные годы из данных (если есть)
-                        // Или задаем фиксированные
-                        setAvailableYears([
-                            { value: '2023/2024', label: '2023/2024' },
-                            { value: '2024/2025', label: '2024/2025' },
-                            { value: '2025/2026', label: '2025/2026' }
-                        ]);
-                    } else {
-                        console.error('Ошибка загрузки направлений:', result.message);
-                    }
+                    // Извлекаем доступные годы из данных (если есть)
+                    // Или задаем фиксированные
+                    setAvailableYears([
+                        { value: '2023/2024', label: '2023/2024' },
+                        { value: '2024/2025', label: '2024/2025' },
+                        { value: '2025/2026', label: '2025/2026' }
+                    ]);
+                } else {
+                    console.error('Ошибка загрузки направлений:', result.message);
+                }
             }
         } catch (error) {
             console.error('Ошибка загрузки направлений:', error);
@@ -101,11 +101,11 @@ const EduProfilesComparison = () => {
         try {
             const result = await AdminService.getEducationProfilesComparison(filters);
             {
-                    if (result.status === 'success') {
-                        setData(result.data);
-                    } else {
-                        console.error('Ошибка загрузки данных:', result.message);
-                    }
+                if (result.status === 'success') {
+                    setData(result.data);
+                } else {
+                    console.error('Ошибка загрузки данных:', result.message);
+                }
             }
         } catch (error) {
             console.error('Ошибка загрузки данных:', error);
