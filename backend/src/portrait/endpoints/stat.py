@@ -7,7 +7,6 @@ from django.http import JsonResponse
 
 from .common import *
 
-# ноу кэш плз
 def get_year_metrics(year, filter):
     res_queryset = Results.objects.filter(res_year=year, **filter)
     max_mot={"name": "-", "count": 0}
@@ -253,7 +252,7 @@ def get_competency_stats_courses(filter):
     results = {}
     main = Results.objects.filter(**filter)
     for course in courses:
-        qs = main.filter(res_course=course)  # ИЗМЕНЕНО: res_course вместо res_course_num
+        qs = main.filter(res_course=course)
         if qs.exists():
             avgs = qs.aggregate(**{field: Avg(field) for field in COMP.list})
             results[course] = avgs
@@ -298,7 +297,7 @@ def get_motivation_counts(request):
                                 'high': {f: 0 for f in MOT.list},
                                 'mid': {f: 0 for f in MOT.list}}
                                 
-                cnt_all = Results.objects.filter(res_course=course, **base_filter)  # ИЗМЕНЕНО: res_course
+                cnt_all = Results.objects.filter(res_course=course, **base_filter)
                 cnt_low = cnt_all.filter(**{f"{field}__lt": 400}).count() 
                 cnt_high = cnt_all.filter(**{f"{field}__gte": 600}).count() 
                 cnt_mid = cnt_all.count() - cnt_low - cnt_high
@@ -457,7 +456,7 @@ def get_data_boxplot(request):
         
         data_all = list(  
             Results.objects.filter(**base_filter)
-            .values('res_participant_id', *COMP.list)  # ИЗМЕНЕНО: res_participant_id
+            .values('res_participant_id', *COMP.list) 
         )
         data = []
         for f in COMP.list:
@@ -505,7 +504,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
             })
 
         participant_ids = list(
-            res_qs.values_list('res_participant_id', flat=True).distinct()  # ИЗМЕНЕНО: res_participant_id
+            res_qs.values_list('res_participant_id', flat=True).distinct() 
         )
 
         # Средний балл компетенций по каждому студенту (если у студента несколько
@@ -513,7 +512,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
         # в get_scores_result для агрегации)
         comp_qs = (
             res_qs
-            .values('res_participant_id', 'res_course')  # ИЗМЕНЕНО: res_course
+            .values('res_participant_id', 'res_course') 
             .annotate(**{f'avg_{f}': Avg(f) for f in COMP.list})
         )
         # Словарь pid -> {competency_field: avg_score, "course": N}
@@ -529,8 +528,8 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
         # Академические оценки по дисциплинам, отфильтрованные по тем же студентам
         ap_qs = (
             AcademicPerformances.objects
-            .filter(perf_participant_id__in=participant_ids)  # ИЗМЕНЕНО: perf_participant_id
-            .values('perf_participant_id', 'perf_discipline', 'perf_main')  # ИЗМЕНЕНО: поля
+            .filter(perf_participant_id__in=participant_ids)
+            .values('perf_participant_id', 'perf_discipline', 'perf_main')
         )
 
         # 3. Собираем таблицу наблюдений и сырые точки scatter
@@ -542,7 +541,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
         for row in ap_qs:
             pid = row['perf_participant_id']
             disc = row['perf_discipline']
-            grade = _grade_to_number(row['perf_main'])  # ИЗМЕНЕНО: теперь число
+            grade = _grade_to_number(row['perf_main'])
             if grade is None or grade == 1:  # 'не явился'
                 continue
 
@@ -684,7 +683,7 @@ def get_grades_competency_correlation(request):
         for perf in perf_qs:
             pid = perf.perf_participant_id
             disc = perf.perf_discipline
-            grade = _grade_to_number(perf.perf_main)  # ИЗМЕНЕНО: теперь число напрямую
+            grade = _grade_to_number(perf.perf_main)
             if grade is None or grade == 1:  # 'не явился'
                 continue
             
@@ -788,10 +787,10 @@ def get_competency_trend_by_year(request):
         if spec:
             filters['res_edu_specialty__spec_name'] = spec
         
-        results_qs = Results.objects.filter(**filters).exclude(res_course__isnull=True)  # ИЗМЕНЕНО: res_course
+        results_qs = Results.objects.filter(**filters).exclude(res_course__isnull=True) 
         
         courses = sorted(
-            results_qs.values_list('res_course', flat=True).distinct()  # ИЗМЕНЕНО: res_course
+            results_qs.values_list('res_course', flat=True).distinct() 
         )
         
         trends = []
@@ -799,7 +798,7 @@ def get_competency_trend_by_year(request):
             points = []
             for course_num in courses:
                 course_qs = results_qs.filter(
-                    res_course=course_num  # ИЗМЕНЕНО: res_course
+                    res_course=course_num 
                 ).exclude(**{f'{comp_key}__isnull': True})
                 
                 agg = course_qs.aggregate(avg=Avg(comp_key), n=Count('res_id'))

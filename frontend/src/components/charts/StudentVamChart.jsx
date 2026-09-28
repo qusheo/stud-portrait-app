@@ -12,18 +12,18 @@ const StudentVamChart = ({ studentId, competency = 'res_comp_leadership' }) => {
         const load = async () => {
             try {
                 const result = await StudentService.getAnalyzeStudentVam(studentId, competency);
-                    // Преобразуем данные для графика
-                    const chartData = result.growth_by_period.map(item => ({
-                        period: `${item.course} курс`,
-                        actual: item.actual_growth,
-                        value_added: item.value_added
-                    }));
-                    setData({
-                        info: result.student_info,
-                        measurements: result.measurements,
-                        avgVam: result.average_value_added,
-                        chartData
-                    });
+                // Преобразуем данные для графика
+                const chartData = result.growth_by_period.map(item => ({
+                    period: `${item.course} курс`,
+                    actual: item.actual_growth,
+                    value_added: item.value_added
+                }));
+                setData({
+                    info: result.student_info,
+                    measurements: result.measurements,
+                    avgVam: result.average_value_added,
+                    chartData
+                });
             } catch (error) {
                 console.error(error);
             } finally {

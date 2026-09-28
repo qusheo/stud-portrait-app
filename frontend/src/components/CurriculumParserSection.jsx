@@ -101,17 +101,17 @@ export default function CurriculumParserSection() {
         setLaunching(true);
         setLaunchMsg(null);
         try {
-                const data = await AdminService.postParseCurriculum();
-                if (data.status === 'started') {
-                    setLaunchMsg({ type: 'info', text: 'Парсер запущен. Прогресс обновляется каждые 3 секунды.' });
-                    fetchLogs();
-                } else if (data.status === 'already_running') {
-                    setLaunchMsg({ type: 'info', text: data.message });
-                } else {
-                    setLaunchMsg({ type: 'error', text: data.message || 'Неизвестный ответ сервера' });
-                }
+            const data = await AdminService.postParseCurriculum();
+            if (data.status === 'started') {
+                setLaunchMsg({ type: 'info', text: 'Парсер запущен. Прогресс обновляется каждые 3 секунды.' });
+                fetchLogs();
+            } else if (data.status === 'already_running') {
+                setLaunchMsg({ type: 'info', text: data.message });
+            } else {
+                setLaunchMsg({ type: 'error', text: data.message || 'Неизвестный ответ сервера' });
+            }
         } catch (err) {
-                setLaunchMsg({ type: 'error', text: `Ошибка запроса: ${err}` });
+            setLaunchMsg({ type: 'error', text: `Ошибка запроса: ${err}` });
         } finally {
             setLaunching(false);
         }

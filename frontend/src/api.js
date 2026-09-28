@@ -1,7 +1,6 @@
 const HOST = import.meta.env.VITE_API_URL;
 
 class Api {
-
     getAuditSchema(tableName = null) {
         const params = new URLSearchParams();
         if (tableName) params.append('table_name', tableName);

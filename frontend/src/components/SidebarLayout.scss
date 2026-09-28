@@ -22,14 +22,14 @@ $modeus-color: #238bc8;
         position: sticky;
         top: 0;
         z-index: 10;
-        .right-side{
+        .right-side {
             align-items: center;
             display: inline-flex;
             width: 170px;
             padding-right: 10px;
             gap: 5px;
             justify-content: space-between;
-            .user{
+            .user {
                 border: #3e76c3 1px solid;
                 background-color: rgb(109, 166, 219);
                 padding: 8px;
@@ -39,12 +39,12 @@ $modeus-color: #238bc8;
                 display: inline-flex;
                 gap: 5px;
                 justify-content: space-between;
-                span{
+                span {
                     font-weight: 550;
                     font-size: 13px;
                 }
             }
-            .exit{
+            .exit {
                 cursor: pointer;
                 color: #6e1c32;
                 font-weight: 520;

@@ -104,11 +104,10 @@ def analyze_transfers(request):
             competency = COMP.LEADERSHIP
 
         # Берём всех участников у которых есть хотя бы 2 результата
-        # ИСПРАВЛЕНО: используем правильный related_name 'results_set'
         qs = (
             Participants.objects
-            .prefetch_related('results_set')  # ИЗМЕНЕНО: results_set вместо Results
-            .annotate(result_count=Count('results'))  # ИЗМЕНЕНО: Results вместо results_set
+            .prefetch_related('results_set')
+            .annotate(result_count=Count('results')) 
             .filter(result_count__gte=2)
         )
         if institution_id:
@@ -120,7 +119,7 @@ def analyze_transfers(request):
 
         for participant in qs:
             results_sorted = sorted(
-                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
+                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(), 
                 key=lambda r: _year_sort_key(r.res_year)
             )
             if len(results_sorted) < 2:
@@ -257,7 +256,7 @@ def analyze_transfer_students(request):
         # ИСПРАВЛЕНО: используем правильный related_name 'results_set'
         qs = (
             Participants.objects
-            .annotate(result_count=Count('results'))  # ИЗМЕНЕНО: Results
+            .annotate(result_count=Count('results')) 
             .filter(result_count__gte=2)
         )
         if institution_id:
@@ -267,7 +266,7 @@ def analyze_transfer_students(request):
 
         for participant in qs:
             results_sorted = sorted(
-                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
+                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(), 
                 key=lambda r: _year_sort_key(r.res_year)
             )
             if len(results_sorted) < 2:

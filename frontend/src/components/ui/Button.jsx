@@ -7,7 +7,7 @@ const TYPES = {
     accept: 'accept'
 };
 
-function Button({ text, onClick, type, disabled = false, loading = false, tooltip = undefined}) {
+function Button({ text, onClick, type, disabled = false, loading = false, tooltip = undefined }) {
     let style = {};
     style = loading ? { ...style, cursor: 'wait', filter: 'brightness(150%)' } : style;
     style = disabled ? { ...style, cursor: 'not-allowed', filter: 'brightness(150%)' } : style;
@@ -22,13 +22,7 @@ function Button({ text, onClick, type, disabled = false, loading = false, toolti
         </button>
     );
 
-    return tooltip && tooltip.trim() !== '' ? (
-        <Tooltip text={tooltip}>
-            {button}
-        </Tooltip>
-    ) : (
-        button
-    );
+    return tooltip && tooltip.trim() !== '' ? <Tooltip text={tooltip}>{button}</Tooltip> : button;
 }
 
 export default Button;

@@ -109,13 +109,12 @@ def import_excel(request):
                 if sheet_name == "Связь ФИО и ID":
                     rsv_id = clean_value(row_data.get("rsv_id"))
                     student_name = clean_value(row_data.get("student_name"))
-                    student_gender = parse_gender(row_data.get("student_gender"))  # ИЗМЕНЕНО: теперь INT
+                    student_gender = parse_gender(row_data.get("student_gender"))
                     email = clean_value(row_data.get("email"))
 
                     if not rsv_id or not student_name:
                         continue
 
-                    # ИЗМЕНЕНО: новые имена полей
                     mapping, created = StudentMapping.objects.update_or_create(
                         mapping_rsv=str(rsv_id),  # было rsv_id
                         defaults={
@@ -151,25 +150,22 @@ def import_excel(request):
                     if (edu_level_name := clean_value(row_data.get("edu_level_name"))):
                         edu_level, _ = EducationLevels.objects.get_or_create(edu_level_name=edu_level_name)
 
-                    # ИЗМЕНЕНО: form → edu_form
                     edu_form = None
                     if (form_name := clean_value(row_data.get("form_name"))):
                         edu_form, _ = EducationForms.objects.get_or_create(edu_form_name=form_name)
 
-                    # ИЗМЕНЕНО: spec → edu_specialty
                     edu_specialty = None
                     if (spec_name := clean_value(row_data.get("spec_name"))):
                         edu_specialty, _ = EducationSpecialties.objects.get_or_create(edu_spec_name=spec_name)
 
                     # part_rsv_id - это ID из тестирования РСВ
-                    rsv = clean_value(row_data.get("part_rsv_id"))  # ИЗМЕНЕНО: part_rsv_id вместо part_rsv_id
+                    rsv = clean_value(row_data.get("part_rsv_id"))
                     if not rsv:
                         continue
 
                     # Получаем или создаём участника, сразу заполняя все part_* поля
-                    # ИЗМЕНЕНО: Participants теперь содержит ТОЛЬКО базовую информацию
                     participant, created = Participants.objects.get_or_create(
-                        part_rsv_id=str(rsv),  # ИЗМЕНЕНО: part_rsv_id вместо part_rsv_id
+                        part_rsv_id=str(rsv), 
                         defaults={
                             'part_gender': parse_gender(row_data.get("part_gender")),
                             'part_course_num': clean_value(row_data.get("part_course_num"), int),
@@ -187,9 +183,7 @@ def import_excel(request):
                         participants_updated += 1
 
                     # Создаём или обновляем результат
-                    # ИЗМЕНЕНО: Results теперь содержит ВСЮ учебную информацию
                     year = clean_value(row_data.get("res_year"))
-                    # ВНИМАНИЕ: unique_together теперь (res_participant, res_year) без course_num
                     # course_num теперь отдельное поле в Results, но не входит в уникальность
 
                     # Пытаемся найти существующий результат
@@ -200,11 +194,11 @@ def import_excel(request):
                             tRES.CENTER: center,
                             tRES.INSTITUTION: institution,
                             tRES.EDU_LEVEL: edu_level,
-                            tRES.EDU_FORM: edu_form,           # ИЗМЕНЕНО: edu_form
-                            tRES.EDU_SPEC: edu_specialty,      # ИЗМЕНЕНО: edu_specialty
-                            tRES.COURSE_NUM: clean_value(row_data.get("res_course_num"), int),  # ИЗМЕНЕНО: course_num
-                            tRES.POTENTIAL: clean_value(row_data.get("res_high_potential"), int),  # ИЗМЕНЕНО: potential
-                            tRES.REPORT: clean_value(row_data.get("res_summary_report")),       # ИЗМЕНЕНО: report
+                            tRES.EDU_FORM: edu_form,         
+                            tRES.EDU_SPEC: edu_specialty,     
+                            tRES.COURSE_NUM: clean_value(row_data.get("res_course_num"), int), 
+                            tRES.POTENTIAL: clean_value(row_data.get("res_high_potential"), int), 
+                            tRES.REPORT: clean_value(row_data.get("res_summary_report")),     
                         }
                     )
 
@@ -229,12 +223,12 @@ def import_excel(request):
                 # ЛИСТ 3: "Мотивационный профиль"
                 # ============================================================
                 elif sheet_name == "Мотивационный профиль":
-                    rsv = clean_value(row_data.get("part_rsv_id"))  # ИЗМЕНЕНО: part_rsv_id
+                    rsv = clean_value(row_data.get("part_rsv_id")) 
                     if not rsv:
                         continue
 
                     try:
-                        participant = Participants.objects.get(part_rsv_id=str(rsv))  # ИЗМЕНЕНО: part_rsv_id
+                        participant = Participants.objects.get(part_rsv_id=str(rsv)) 
                     except Participants.DoesNotExist:
                         debugPrint(f"[xls load] (!): участник RSV {rsv} не найден")
                         continue
@@ -261,7 +255,7 @@ def import_excel(request):
                 # ЛИСТ 4: "Ценностный профиль"
                 # ============================================================
                 elif sheet_name == "Ценностный профиль":
-                    rsv = clean_value(row_data.get("part_rsv_id"))  # ИЗМЕНЕНО: part_rsv_id
+                    rsv = clean_value(row_data.get("part_rsv_id")) 
                     if not rsv:
                         continue
 
@@ -293,7 +287,7 @@ def import_excel(request):
                 # ЛИСТ 5: "Образовательные курсы"
                 # ============================================================
                 elif sheet_name == "Образовательные курсы":
-                    rsv = clean_value(row_data.get("part_rsv_id"))  # ИЗМЕНЕНО: part_rsv_id
+                    rsv = clean_value(row_data.get("part_rsv_id"))
                     if not rsv:
                         continue
 
@@ -303,7 +297,6 @@ def import_excel(request):
                         debugPrint(f"[xls load] (!): участник RSV {rsv} не найден")
                         continue
 
-                    # ИЗМЕНЕНО: курс теперь Courseresults, не связан с year
                     # Используем update_or_create
                     course_defaults = {}
                     for cur in CUR.list:
@@ -313,7 +306,7 @@ def import_excel(request):
                     
                     if course_defaults:
                         course_result, created_res = Courseresults.objects.update_or_create(
-                            course_participant=participant,  # ИЗМЕНЕНО: participant, а не participant.part_id
+                            course_participant=participant, 
                             defaults=course_defaults
                         )
                         if created_res:
@@ -333,8 +326,8 @@ def import_excel(request):
 
                     # Ищем RSV ID по ФИО в таблице маппинга
                     try:
-                        mapping = StudentMapping.objects.get(mapping_stud_name=student_name)  # ИЗМЕНЕНО
-                        rsv = mapping.mapping_rsv  # ИЗМЕНЕНО
+                        mapping = StudentMapping.objects.get(mapping_stud_name=student_name) 
+                        rsv = mapping.mapping_rsv 
                     except StudentMapping.DoesNotExist:
                         debugPrint(f"[xls load] (!): ФИО '{student_name}' не найдено в маппинге")
                         continue
@@ -345,7 +338,7 @@ def import_excel(request):
 
                     # Ищем участника по RSV
                     try:
-                        participant = Participants.objects.get(part_rsv_id=rsv)  # ИЗМЕНЕНО: part_rsv_id
+                        participant = Participants.objects.get(part_rsv_id=rsv)
                     except Participants.DoesNotExist:
                         debugPrint(f"[xls load] (!): участник RSV {rsv} не найден")
                         continue
@@ -356,12 +349,10 @@ def import_excel(request):
                     if not year or not discipline_name:
                         continue
 
-                    # ИЗМЕНЕНО: дисциплины теперь в отдельной таблице
                     discipline, _ = EducationDisciplines.objects.get_or_create(
                         edu_disc_name=discipline_name
                     )
 
-                    # ИЗМЕНЕНО: обновленная структура AcademicPerformances
                     # Оценки теперь числа (1-5)
                     main_grade = convert_grade_to_int(clean_value(row_data.get("perf_main_attestation")))
                     

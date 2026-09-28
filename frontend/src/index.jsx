@@ -39,7 +39,7 @@ const router = createBrowserRouter([
         element: <SidebarLayout />,
         children: [
             {
-                path: '/', 
+                path: '/',
                 element: <App />,
                 errorElement: <ErrorView />
             },
@@ -138,7 +138,7 @@ const router = createBrowserRouter([
             {
                 path: '/student/:studentId/report/:reportType',
                 element: <StudentReportView />
-            },
+            }
         ]
     }
 ]);
