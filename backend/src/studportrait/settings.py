@@ -82,20 +82,27 @@ DATABASES = {
     }
 }
 REDIS_SERVER = os.getenv("REDIS_URL")
-REDIS_SERVER = os.getenv("REDIS_URL")
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_SERVER,
-        "LOCATION": REDIS_SERVER,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "KEY_PREFIX": "cache_",  # Префикс для всех ключей кэша
-        "KEY_PREFIX": "cache_",  # Префикс для всех ключей кэша
-        "TIMEOUT": 300  # Время жизни кэша по умолчанию: 300 секунд (5 минут)
+USE_REDIS_CACHE = os.getenv("USE_REDIS_CACHE", "0") == "1"
+
+if USE_REDIS_CACHE and REDIS_SERVER:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_SERVER,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "cache_",
+            "TIMEOUT": 300,
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "studportrait-cache",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

@@ -610,8 +610,8 @@ def result_to_json(result, visible_columns=None):  # REVIEW
         "center":             result.res_center.center_name       if result.res_center      else None,
         "institution":        result.res_institution.inst_name    if result.res_institution else None,
         "edu_level":          result.res_edu_level.edu_level_name if result.res_edu_level   else None,
-        "study_form":         result.res_edu_form.edu_form_name   if result.res_edu_form    else None,  # было res_form
-        "specialty":          result.res_edu_specialty.edu_spec_name if result.res_edu_specialty else None,  # было res_spec
+        "study_form":         result.res_edu_form.form_name   if result.res_edu_form    else None,  # было res_form
+        "specialty":          result.res_edu_specialty.spec_name if result.res_edu_specialty else None,  # было res_spec
         "res_year":           result.res_year,
         "res_course_num":     result.res_course,                   # было res_course_num
         "res_potential":      result.res_potential,                # было res_high_potential
@@ -660,8 +660,8 @@ def format_result_for_export(result, visible_columns=None):  # REVIEW
         "Центр компетенций":   result.res_center.center_name       if result.res_center      else "",
         "Учебное заведение":   result.res_institution.inst_name    if result.res_institution else "",
         "Уровень образования": result.res_edu_level.edu_level_name if result.res_edu_level   else "",
-        "Форма обучения":      result.res_edu_form.edu_form_name   if result.res_edu_form    else "",  # было res_form
-        "Специальность":       result.res_edu_specialty.edu_spec_name if result.res_edu_specialty else "",  # было res_spec
+        "Форма обучения":      result.res_edu_form.form_name   if result.res_edu_form    else "",  # было res_form
+        "Специальность":       result.res_edu_specialty.spec_name if result.res_edu_specialty else "",  # было res_spec
         "Учебный год":         result.res_year,
         "Номер курса":         result.res_course,                   # было res_course_num
         "Потенциал":           result.res_potential or "",          # было res_high_potential
@@ -689,8 +689,8 @@ def get_group_value(result, grouping_column):  # REVIEW
         case 'center':         return attrIfObj(result.res_center,      'center_name')
         case 'institution':    return attrIfObj(result.res_institution, 'inst_name')
         case 'edu_level':      return attrIfObj(result.res_edu_level,   'edu_level_name')
-        case 'study_form':     return attrIfObj(result.res_edu_form,    'edu_form_name')      # было res_form
-        case 'specialty':      return attrIfObj(result.res_edu_specialty, 'edu_spec_name')    # было res_spec
+        case 'study_form':     return attrIfObj(result.res_edu_form,    'form_name')      # было res_form
+        case 'specialty':      return attrIfObj(result.res_edu_specialty, 'spec_name')    # было res_spec
         case 'res_year':       return result.res_year
         case 'res_course_num': return result.res_course                 # было res_course_num
         case _:                return None

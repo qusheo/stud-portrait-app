@@ -105,8 +105,8 @@ def student_results(request):
             "center":      attrIfObj(result.res_center,        'center_name'),
             "institution": attrIfObj(result.res_institution,   'inst_name'),
             "edu_level":   attrIfObj(result.res_edu_level,     'edu_level_name'),
-            "study_form":  attrIfObj(result.res_edu_form,      'edu_form_name'),  # ИЗМЕНЕНО: edu_form_name
-            "specialty":   attrIfObj(result.res_edu_specialty, 'edu_spec_name'),  # ИЗМЕНЕНО: edu_spec_name
+            "study_form":  attrIfObj(result.res_edu_form,      'form_name'),  # ИЗМЕНЕНО: edu_form_name
+            "specialty":   attrIfObj(result.res_edu_specialty, 'spec_name'),  # ИЗМЕНЕНО: edu_spec_name
 
             **{c: getattr(result, c)             for c in COMP.list},
             **{m: zeroIfNull(getattr(result, m)) for m in MOT.list},
@@ -137,9 +137,9 @@ def student_results(request):
             "stud_gender": participant.part_gender,
             # Учебная информация берется из последнего Results
             "institution": attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else None,
-            "specialty":   attrIfObj(latest_result.res_edu_specialty, 'edu_spec_name') if latest_result else None,
+            "specialty":   attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else None,
             "edu_level":   attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else None,
-            "study_form":  attrIfObj(latest_result.res_edu_form, 'edu_form_name') if latest_result else None,
+            "study_form":  attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else None,
             "course_num":  participant.part_course_num
         },
         "results": results_list
@@ -157,26 +157,28 @@ def get_institution_directions(request):
     """
     institution_ids = request.GET.getlist('institution_ids') or request.GET.getlist('institution_ids[]')
 
-    # привести к int
     try:
         institution_ids = list(map(int, institution_ids))
-    except:
+    except Exception:
         institution_ids = []
 
     if not institution_ids:
-        directions = EducationSpecialties.objects.all().values('edu_spec_id', 'edu_spec_name').order_by('edu_spec_name')
+        directions = Specialties.objects.all().values('spec_id', 'spec_name').order_by('spec_name')
+        result = [{"id": d['spec_id'], "name": d['spec_name']} for d in directions]
     else:
-        directions = EducationSpecialties.objects.filter(
-            testresults__res_institution_id__in=institution_ids
-        ).distinct().values('edu_spec_id', 'edu_spec_name').order_by('edu_spec_name')
-
-    return {
-        "status": "success",
-        "directions": [
-            {"id": d['edu_spec_id'], "name": d['edu_spec_name']}
-            for d in directions
+        qs = Results.objects.filter(
+            res_institution_id__in=institution_ids,
+            res_edu_specialty__isnull=False,
+        ).values(
+            'res_edu_specialty__spec_id',
+            'res_edu_specialty__spec_name',
+        ).distinct().order_by('res_edu_specialty__spec_name')
+        result = [
+            {"id": d['res_edu_specialty__spec_id'], "name": d['res_edu_specialty__spec_name']}
+            for d in qs
         ]
-    }
+
+    return {"status": "success", "directions": result}
 
 
 @method('GET')
@@ -221,7 +223,7 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         institutions_query = institutions_query.filter(
-            res_edu_specialty__edu_spec_id__in=selected_directions  # ИЗМЕНЕНО: res_edu_specialty
+            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО: res_edu_specialty
         )
 
     if selected_courses:
@@ -291,17 +293,17 @@ def get_filter_options_with_counts(request):
         directions_query = directions_query.filter(res_participant__in=valid_students)
 
     directions_counts = directions_query                 \
-        .values('res_edu_specialty__edu_spec_id', 'res_edu_specialty__edu_spec_name') \
+        .values('res_edu_specialty__spec_id', 'res_edu_specialty__spec_name') \
         .annotate(count=Count('res_id'))                 \
         .order_by('-count')
 
     directions_list = [
         {
-            "id":    item['res_edu_specialty__edu_spec_id'],
-            "name":  item['res_edu_specialty__edu_spec_name'],
+            "id":    item['res_edu_specialty__spec_id'],
+            "name":  item['res_edu_specialty__spec_name'],
             "count": item['count']
         }
-        for item in directions_counts if item['res_edu_specialty__edu_spec_name']
+        for item in directions_counts if item['res_edu_specialty__spec_name']
     ]
 
     # courses
@@ -315,7 +317,7 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         courses_query = courses_query.filter(
-            res_edu_specialty__edu_spec_id__in=selected_directions  # ИЗМЕНЕНО
+            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО
         )
 
     if selected_test_attempts:
@@ -361,7 +363,7 @@ def get_filter_options_with_counts(request):
 
     if selected_directions:
         attempts_query = attempts_query.filter(
-            res_edu_specialty__edu_spec_id__in=selected_directions  # ИЗМЕНЕНО
+            res_edu_specialty__spec_id__in=selected_directions  # ИЗМЕНЕНО
         )
 
     if selected_courses:
@@ -407,7 +409,7 @@ def get_filter_options_with_counts(request):
 
     # Студенты - теперь с именем из StudentMapping
     students_query = Participants.objects         \
-        .annotate(results_count=Count('Results')) \
+        .annotate(results_count=Count('results')) \
         .filter(results_count__gt=0)              \
         .order_by('part_rsv_id')[:1000]  # limit by 1000 for performance
 
@@ -509,7 +511,7 @@ def get_motivator_statistics(request):
         if institute_id:
             queryset = queryset.filter(res_institution__inst_id=institute_id)
         if specialty_id:
-            queryset = queryset.filter(res_edu_specialty__edu_spec_id=specialty_id)
+            queryset = queryset.filter(res_edu_specialty__spec_id=specialty_id)
         if year:
             queryset = queryset.filter(res_year=year)
 
@@ -710,7 +712,7 @@ def get_students_list(request):
                 'rsv_id': student.part_rsv_id,
                 'name': student_name,
                 'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указан',
-                'specialty': attrIfObj(latest_result.res_edu_specialty, 'edu_spec_name') if latest_result else 'Не указана',
+                'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
                 'course': student.part_course_num,
                 'gender': student.part_gender
             })
@@ -763,10 +765,10 @@ def get_student_portrait(request):
             # Учебная информация из последнего Results
             'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указано',
             'institution_id': latest_result.res_institution.inst_id if latest_result and latest_result.res_institution else None,
-            'specialty': attrIfObj(latest_result.res_edu_specialty, 'edu_spec_name') if latest_result else 'Не указана',
+            'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
             'specialty_id': latest_result.res_edu_specialty.edu_spec_id if latest_result and latest_result.res_edu_specialty else None,
             'edu_level': attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else 'Не указан',
-            'study_form': attrIfObj(latest_result.res_edu_form, 'edu_form_name') if latest_result else 'Не указана',
+            'study_form': attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else 'Не указана',
             'current_course': student.part_course_num
         }
         

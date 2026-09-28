@@ -47,8 +47,8 @@ def _get_qualified_participant_ids(min_tests: int = 4):
 
     # mapping_rsv → email (или None)
     rsv_to_email = {
-        m.mapping_rsv: (m.mapping_email.strip().lower() if m.mapping_email and m.mapping_email.strip() else None)
-        for m in StudentMapping.objects.only('mapping_rsv', 'mapping_email')
+        m.mapping_rsv: (None)
+        for m in StudentMapping.objects.only('mapping_rsv')
     }
 
     # mapping_rsv → part_id
@@ -456,7 +456,7 @@ def get_lgm_growers(request):
                     ).select_related('res_institution', 'res_edu_specialty').order_by('-res_year', '-res_course').first()
                     if last_result:
                         institution_name = last_result.res_institution.inst_name if last_result.res_institution else ''
-                        direction_name = last_result.res_edu_specialty.edu_spec_name if last_result.res_edu_specialty else ''
+                        direction_name = last_result.res_edu_specialty.spec_name if last_result.res_edu_specialty else ''
                 except Participants.DoesNotExist:
                     pass
                 enriched.append({
@@ -685,8 +685,8 @@ def analyze_discipline_impact_advanced(request):
                     if before_score is not None and after_score is not None:
                         # Направление: ищем в результате (res_spec), затем у участника (part_spec)
                         direction = (
-                            (after_result.res_edu_specialty.edu_spec_name if after_result.res_edu_specialty else None) or
-                            (before_result.res_edu_specialty.edu_spec_name if before_result.res_edu_specialty else None) or
+                            (after_result.res_edu_specialty.spec_name if after_result.res_edu_specialty else None) or
+                            (before_result.res_edu_specialty.spec_name if before_result.res_edu_specialty else None) or
                             'Не указано'
                         )
                         institution = (
@@ -888,8 +888,8 @@ def get_discipline_heatmap_data(request):
             if before_result and after_result:
                 # Направление: ищем в результате, затем у участника
                 direction = (
-                    (after_result.res_edu_specialty.edu_spec_name if after_result.res_edu_specialty else None) or
-                    (before_result.res_edu_specialty.edu_spec_name if before_result.res_edu_specialty else None) or
+                    (after_result.res_edu_specialty.spec_name if after_result.res_edu_specialty else None) or
+                    (before_result.res_edu_specialty.spec_name if before_result.res_edu_specialty else None) or
                     (student.part_spec.edu_spec_name      if student.part_spec      else None) or
                     'Не указано'
                 )
@@ -1342,7 +1342,7 @@ def get_vam_trend_data(request):
                 'group_id': r.res_institution_id if group_by == 'institution' else r.res_edu_specialty_id,
                 'group_name': (r.res_institution.inst_name if r.res_institution else 'Неизвестно')
                               if group_by == 'institution'
-                              else (r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else 'Неизвестно'),
+                              else (r.res_edu_specialty.spec_name if r.res_edu_specialty else 'Неизвестно'),
                 'student_id': r.res_participant_id,
                 'year': r.res_year,
                 'course': r.res_course,
@@ -2060,7 +2060,7 @@ def get_boxplot_data(request):
                     'name': student_name,
                     'score': score,
                     'institution': r.res_institution.inst_name if r.res_institution else 'Не указан',
-                    'direction': r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else 'Не указано',
+                    'direction': r.res_edu_specialty.spec_name if r.res_edu_specialty else 'Не указано',
                 })
 
             if len(scores) < 5:
@@ -2112,7 +2112,7 @@ def get_boxplot_data(request):
                 group_name = r.res_institution.inst_name if r.res_institution else 'Не указан'
             else:
                 group_id = r.res_edu_specialty
-                group_name = r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else 'Не указано'
+                group_name = r.res_edu_specialty.spec_name if r.res_edu_specialty else 'Не указано'
 
             if group_id not in groups_data:
                 groups_data[group_id] = {
@@ -2134,7 +2134,7 @@ def get_boxplot_data(request):
                 'name': student_name,
                 'score': score,
                 'institution': r.res_institution.inst_name if r.res_institution else 'Не указан',
-                'direction': r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else 'Не указано',
+                'direction': r.res_edu_specialty.spec_name if r.res_edu_specialty else 'Не указано',
             })
 
         # Вычисляем статистику для каждой группы
@@ -2194,133 +2194,27 @@ def get_boxplot_data(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_duplicate_accounts(request):
-    try:
-        duplicate_emails = list(
-            StudentMapping.objects.values('mapping_email')
-            .annotate(count=Count('mapping_rsv'))
-            .filter(count__gt=1, mapping_email__isnull=False)
-            .exclude(mapping_email__exact='')
-            .values_list('mapping_email', flat=True)
-        )
-
-        if not duplicate_emails:
-            return JsonResponse({
-                'status': 'success',
-                'message': 'Нет студентов с несколькими аккаунтами',
-                'students': []
-            })
-
-        all_mappings = StudentMapping.objects.filter(mapping_email__in=duplicate_emails)
-
-        # Группируем маппинги по email и собираем все rsv_id
-        from collections import defaultdict
-        email_to_mappings = defaultdict(list)
-        all_rsv_ids = []
-        for m in all_mappings:
-            email_to_mappings[m.mapping_email].append(m)
-            all_rsv_ids.append(m.mapping_rsv)
-
-        # Загружаем всех участников одним запросом и индексируем по rsv_id
-        participants_by_rsv = {
-            p.part_rsv_id: p
-            for p in Participants.objects.filter(part_rsv__in=all_rsv_ids)
-        }
-
-        # Загружаем все результаты одним запросом и группируем по participant_id
-        participant_ids = [p.part_id for p in participants_by_rsv.values()]
-        results_by_participant = defaultdict(list)
-        results_qs = Results.objects.filter(res_participant_id__in=participant_ids).select_related('res_institution', 'res_edu_specialty').order_by('res_year', 'res_course')
-        for r in results_qs:
-            results_by_participant[r.res_participant_id].append(r)
-
-        # Формируем ответ
-        result_students = []
-        for email in duplicate_emails:
-            mappings = email_to_mappings[email]
-            rsv_ids = [m.mapping_rsv for m in mappings]
-
-            accounts_info = []
-            for rsv_id in rsv_ids:
-                participant = participants_by_rsv.get(rsv_id)
-                if not participant:
-                    accounts_info.append({
-                        'rsv_id': rsv_id,
-                        'exists_in_participants': False,
-                        'results': []
-                    })
-                    continue
-
-                results_data = [
-                    {
-                        'year': r.res_year,
-                        'course': r.res_course,
-                        'institution': r.res_institution.inst_name if r.res_institution else None,
-                        'specialty': r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else None,
-                        'competency_leadership': r.res_comp_leadership,
-                    }
-                    for r in results_by_participant.get(participant.part_id, [])
-                ]
-
-                accounts_info.append({
-                    'rsv_id': rsv_id,
-                    'exists_in_participants': True,
-                    'participant_id': participant.part_id,
-                    'gender': participant.part_gender,
-                    'results': results_data
-                })
-
-            student_name = mappings[0].mapping_stud_name
-            result_students.append({
-                'email': email,
-                'student_name': student_name,
-                'accounts_count': len(rsv_ids),
-                'accounts': accounts_info
-            })
-
-        return JsonResponse({
-            'status': 'success',
-            'students': result_students
-        }, json_dumps_params={'ensure_ascii': False})
-
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
+    """                   :                  mapping_email."""
+    return JsonResponse({
+        'status': 'success',
+        'message': '                           :                  mapping_email',
+        'students': []
+    })
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_possible_duplicate_accounts(request):
-    """
-    Возвращает студентов, у которых совпадает точное ФИО + пол,
-    но разные rsv_id и разные email (или email отсутствует).
-    Те, кто уже попал в get_duplicate_accounts (совпадение по email),
-    из этой выборки исключаются.
-    """
+    """Группировка по ФИО+пол. Без email (колонки нет в БД)."""
     try:
         from collections import defaultdict
 
-        # Находим email, которые уже являются точными дублями — исключим их
-        exact_duplicate_emails = set(
-            StudentMapping.objects.values('mapping_email')
-            .annotate(count=Count('mapping_rsv'))
-            .filter(count__gt=1, mapping_email__isnull=False)
-            .exclude(mapping_email__exact='')
-            .values_list('mapping_email', flat=True)
-        )
-
-        # Группируем всех студентов по (student_name, student_gender)
         all_mappings = StudentMapping.objects.all()
 
         groups = defaultdict(list)
         for m in all_mappings:
-            # Пропускаем тех, кто уже в точных дублях по email
-            if m.mapping_email and m.mapping_email in exact_duplicate_emails:
-                continue
-            key = (m.mapping_stud_name.strip(), m.mapping_stud_gender or '')
+            key = (m.mapping_stud_name.strip() if m.mapping_stud_name else '', m.mapping_stud_gender or '')
             groups[key].append(m)
 
-        # Оставляем только группы с 2+ записями — это и есть возможные дубли
         result_students = []
         for (student_name, gender), mappings in groups.items():
             if len(mappings) < 2:
@@ -2328,10 +2222,9 @@ def get_possible_duplicate_accounts(request):
 
             rsv_ids = [m.mapping_rsv for m in mappings]
 
-            # Подгружаем участников и результаты (те же 3 запроса, что в get_duplicate_accounts)
             participants_by_rsv = {
                 p.part_rsv_id: p
-                for p in Participants.objects.filter(part_rsv__in=rsv_ids)
+                for p in Participants.objects.filter(part_rsv_id__in=rsv_ids)
             }
             participant_ids = [p.part_id for p in participants_by_rsv.values()]
             results_by_participant = defaultdict(list)
@@ -2344,7 +2237,7 @@ def get_possible_duplicate_accounts(request):
                 if not participant:
                     accounts_info.append({
                         'rsv_id': m.mapping_rsv,
-                        'email': m.mapping_email or None,
+                        'email': None,
                         'exists_in_participants': False,
                         'results': []
                     })
@@ -2355,14 +2248,14 @@ def get_possible_duplicate_accounts(request):
                         'year': r.res_year,
                         'course': r.res_course,
                         'institution': r.res_institution.inst_name if r.res_institution else None,
-                        'specialty': r.res_edu_specialty.edu_spec_name if r.res_edu_specialty else None,
+                        'specialty': r.res_edu_specialty.spec_name if r.res_edu_specialty else None,
                         'competency_leadership': r.res_comp_leadership,
                     }
                     for r in results_by_participant.get(participant.part_id, [])
                 ]
                 accounts_info.append({
                     'rsv_id': m.mapping_rsv,
-                    'email': m.mapping_email or None,
+                    'email': None,
                     'exists_in_participants': True,
                     'participant_id': participant.part_id,
                     'gender': participant.part_gender,
@@ -2379,8 +2272,7 @@ def get_possible_duplicate_accounts(request):
         return JsonResponse({
             'status': 'success',
             'students': result_students
-        }, json_dumps_params={'ensure_ascii': False})
-
+        })
     except Exception as e:
         import traceback
         traceback.print_exc()

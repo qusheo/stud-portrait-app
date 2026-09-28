@@ -121,7 +121,6 @@ def import_excel(request):
                         defaults={
                             'mapping_stud_name': student_name,    # было student_name
                             'mapping_stud_gender': student_gender, # было student_gender, теперь INT
-                            'mapping_email': email,                # было email
                             'mapping_created_at': timezone.now()   # добавлено
                         }
                     )

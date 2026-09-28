@@ -104,23 +104,23 @@ def analyze_transfers(request):
             competency = COMP.LEADERSHIP
 
         # Берём всех участников у которых есть хотя бы 2 результата
-        # ИСПРАВЛЕНО: используем правильный related_name 'testresults_set'
+        # ИСПРАВЛЕНО: используем правильный related_name 'results_set'
         qs = (
             Participants.objects
-            .prefetch_related('testresults_set')  # ИЗМЕНЕНО: testresults_set вместо Results
-            .annotate(result_count=Count('Results'))  # ИЗМЕНЕНО: Results вместо testresults_set
+            .prefetch_related('results_set')  # ИЗМЕНЕНО: results_set вместо Results
+            .annotate(result_count=Count('results'))  # ИЗМЕНЕНО: Results вместо results_set
             .filter(result_count__gte=2)
         )
         if institution_id:
             # Участники у которых хоть одна запись Results в этом вузе
-            qs = qs.filter(testresults__res_institution_id=institution_id).distinct()
+            qs = qs.filter(results__res_institution_id=institution_id).distinct()
 
         # ── Находим студентов с переводами ──────────────────────
         transfer_students = []   # (participant, events, results_sorted)
 
         for participant in qs:
             results_sorted = sorted(
-                participant.testresults_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
+                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
                 key=lambda r: _year_sort_key(r.res_year)
             )
             if len(results_sorted) < 2:
@@ -254,20 +254,20 @@ def analyze_transfer_students(request):
         if competency not in COMP.list:
             competency = COMP.LEADERSHIP
 
-        # ИСПРАВЛЕНО: используем правильный related_name 'testresults_set'
+        # ИСПРАВЛЕНО: используем правильный related_name 'results_set'
         qs = (
             Participants.objects
-            .annotate(result_count=Count('Results'))  # ИЗМЕНЕНО: Results
+            .annotate(result_count=Count('results'))  # ИЗМЕНЕНО: Results
             .filter(result_count__gte=2)
         )
         if institution_id:
-            qs = qs.filter(testresults__res_institution_id=institution_id).distinct()
+            qs = qs.filter(results__res_institution_id=institution_id).distinct()
 
         students_out = []
 
         for participant in qs:
             results_sorted = sorted(
-                participant.testresults_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
+                participant.results_set.select_related('res_institution', 'res_edu_specialty').all(),  # ИЗМЕНЕНО
                 key=lambda r: _year_sort_key(r.res_year)
             )
             if len(results_sorted) < 2:

@@ -64,10 +64,10 @@ def filter_options(request):
         inst = request.GET.get('institute')   
         if inst:
             base = Results.objects.filter(res_institution__inst_name=inst)
-            specialties = list(base.values_list('res_edu_specialty__edu_spec_name', flat=True).distinct())
+            specialties = list(base.values_list('res_edu_specialty__spec_name', flat=True).distinct())
             years = base.values_list('res_year', flat=True).distinct()
         else:
-            specialties = list(Results.objects.values_list('res_edu_specialty__edu_spec_name', flat=True).distinct())
+            specialties = list(Results.objects.values_list('res_edu_specialty__spec_name', flat=True).distinct())
             years = Results.objects.values_list('res_year', flat=True).distinct()
         
         institutes = list(Results.objects.values_list('res_institution__inst_name', flat=True).distinct())
@@ -120,7 +120,7 @@ def get_dashboard_stats(request):
 
         base_filter = {}
         if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__edu_spec_name'] = spec
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
         
         if year:
             curr_year = year
@@ -279,7 +279,7 @@ def get_motivation_counts(request):
 
         base_filter = {}
         if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__edu_spec_name'] = spec
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
         if year: base_filter['res_year'] = year
         
         courses = [1, 2, 3, 4]
@@ -337,77 +337,79 @@ scores = {
     '1': 1
 }
 
-
 @cached()
 def get_scores_result(request):
     try:
         if (AcademicPerformances.objects.count() == 0):
             return JsonResponse({"status": "error", "message": 'no performance data'}, status=500)
-    
+
         inst = request.GET.get('institute')
         spec = request.GET.get('specialty')
         year = request.GET.get('year')
 
         base_filter = {}
         if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__edu_spec_name'] = spec
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
         if year: base_filter['res_year'] = year
 
         main = Results.objects.filter(**base_filter)
-        if not main:
-            response_data = {"status": "error", "message": "empty results queryset", "data": [], "names": []}
-            return JsonResponse(response_data, status=500) 
-        
-        participant_ids = list(main.values_list('res_participant_id', flat=True).distinct())
-        result = []
-        avgs = {}
+        if not main.exists():
+            return JsonResponse({"status": "error", "message": "empty results queryset", "data": [], "names": []}, status=500)
+
+        # ОДИН SQL-запрос: средние по компетенциям по каждому участнику
+        agg = main.values('res_participant_id').annotate(
+            **{f'_avg_{field}': Avg(field) for field in COMP.list}
+        )
+
         comp_by_part = {}
-
-        for pid in participant_ids:
-            part_comps = main.filter(res_participant_id=pid)
-            if part_comps.count() > 1:
-                part_comps = part_comps.aggregate(**{field: Avg(field) for field in COMP.list})
-            else:
-                part_comps = list(part_comps.values(*COMP.list))[0]
-            count = 0
-            sum_val = 0 
+        for row in agg:
+            pid = row['res_participant_id']
             comp_by_part[pid] = {}
+            count = 0
+            sum_val = 0
             for comp in COMP.list:
-                comp_by_part[pid][comp] = part_comps.get(comp) if part_comps.get(comp) is not None else 0
-                if part_comps.get(comp) is not None and part_comps.get(comp) != 0:
+                val = row.get(f'_avg_{comp}')
+                v = val if val is not None else 0
+                comp_by_part[pid][comp] = v
+                if val is not None and val != 0:
                     count += 1
-                    sum_val += part_comps.get(comp)
+                    sum_val += val
             comp_by_part[pid]['avg'] = sum_val / count if count != 0 else 0
-            
-        ap = AcademicPerformances.objects.filter(
-            perf_participant_id__in=participant_ids  # ИЗМЕНЕНО: perf_participant_id
-        ).values('perf_participant_id', 'perf_edu_discipline__edu_disc_name', 'perf_main')
 
-        # disciplines - берем из таблицы EducationDisciplines
+        participant_ids = list(comp_by_part.keys())
+
+        # ОДИН SQL-запрос: успеваемость
+        ap = AcademicPerformances.objects.filter(
+            perf_participant_id__in=participant_ids
+        ).values('perf_participant_id', 'perf_discipline', 'perf_main')
+
         disciplines = ['ПИР', 'УП', 'Эксплуатационная практика', 'Преддипломная практика']
         by_discipline = defaultdict(list)
-        
+
         for record in ap:
             pid = record['perf_participant_id']
-            grade = record['perf_main']  # ИЗМЕНЕНО: теперь число (1-5), не строка
-            if grade is None or comp_by_part[pid]['avg'] is None:
+            grade = _grade_to_number(record['perf_main'])
+            if grade is None:
                 continue
-            by_discipline[record['perf_edu_discipline__edu_disc_name']].append({
+            comp = comp_by_part.get(pid)
+            if comp is None or comp.get('avg') is None:
+                continue
+            by_discipline[record['perf_discipline']].append({
                 'participant_id': pid,
                 'grade': grade,
-                **comp_by_part.get(pid, {}),
+                **comp,
             })
 
         result = [
             {'discipline': disc, 'participants': parts}
             for disc, parts in by_discipline.items()
         ]
-        response_data = {"status": "success", "data": result, "names": disciplines}
-        return JsonResponse(response_data) 
+        return JsonResponse({"status": "success", "data": result, "names": disciplines})
     except Exception as e:
         import traceback
         traceback.print_exc()
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 
 
 def calc_boxplot(values, ids):
@@ -450,7 +452,7 @@ def get_data_boxplot(request):
 
         base_filter = {}
         if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__edu_spec_name'] = spec
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
         if year: base_filter['res_year'] = year
         
         data_all = list(  
@@ -486,7 +488,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
 
         base_filter = {}
         if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__edu_spec_name'] = spec
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
         if year: base_filter['res_year'] = year
 
         # 2. Формирование объединённой выборки
@@ -528,7 +530,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
         ap_qs = (
             AcademicPerformances.objects
             .filter(perf_participant_id__in=participant_ids)  # ИЗМЕНЕНО: perf_participant_id
-            .values('perf_participant_id', 'perf_edu_discipline__edu_disc_name', 'perf_main')  # ИЗМЕНЕНО: поля
+            .values('perf_participant_id', 'perf_discipline', 'perf_main')  # ИЗМЕНЕНО: поля
         )
 
         # 3. Собираем таблицу наблюдений и сырые точки scatter
@@ -539,8 +541,8 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
 
         for row in ap_qs:
             pid = row['perf_participant_id']
-            disc = row['perf_edu_discipline__edu_disc_name']
-            grade = row['perf_main']  # ИЗМЕНЕНО: теперь число
+            disc = row['perf_discipline']
+            grade = _grade_to_number(row['perf_main'])  # ИЗМЕНЕНО: теперь число
             if grade is None or grade == 1:  # 'не явился'
                 continue
 
@@ -668,7 +670,7 @@ def _grade_to_number(grade_str):
 @cached()
 def get_grades_competency_correlation(request):
     try:
-        perf_qs = AcademicPerformances.objects.select_related('perf_participant', 'perf_edu_discipline').all()
+        perf_qs = AcademicPerformances.objects.select_related('perf_participant').all()
         pairs_data = defaultdict(list)
         scatter_data = []
         results_map = {}
@@ -681,8 +683,8 @@ def get_grades_competency_correlation(request):
         disciplines_set = set()
         for perf in perf_qs:
             pid = perf.perf_participant_id
-            disc = perf.perf_edu_discipline.edu_disc_name if perf.perf_edu_discipline else None
-            grade = perf.perf_main  # ИЗМЕНЕНО: теперь число напрямую
+            disc = perf.perf_discipline
+            grade = _grade_to_number(perf.perf_main)  # ИЗМЕНЕНО: теперь число напрямую
             if grade is None or grade == 1:  # 'не явился'
                 continue
             
@@ -784,7 +786,7 @@ def get_competency_trend_by_year(request):
         if inst:
             filters['res_institution__inst_name'] = inst
         if spec:
-            filters['res_edu_specialty__edu_spec_name'] = spec
+            filters['res_edu_specialty__spec_name'] = spec
         
         results_qs = Results.objects.filter(**filters).exclude(res_course__isnull=True)  # ИЗМЕНЕНО: res_course
         
@@ -864,7 +866,7 @@ def get_top_correlations(request):
         if institute:
             results_filter['res_institution__inst_name'] = institute
         if specialty:
-            results_filter['res_edu_specialty__edu_spec_name'] = specialty
+            results_filter['res_edu_specialty__spec_name'] = specialty
         if year:
             try:
                 results_filter['res_year'] = int(year)
@@ -894,19 +896,19 @@ def get_top_correlations(request):
 
         # Шаг 2. Идём по Academicperformance, агрегируем пары (оценка, балл) по ключу (дисциплина, компетенция).
         perf_qs = AcademicPerformances.objects.values(
-            'perf_participant_id', 'perf_edu_discipline__edu_disc_name', 'perf_main'
+            'perf_participant_id', 'perf_discipline', 'perf_main'
         )
         pairs_data = defaultdict(list)
         disciplines_set = set()
 
         for perf in perf_qs:
-            grade = perf['perf_main']
+            grade = _grade_to_number(perf['perf_main'])
             if grade is None or grade == 1:  # 'не явился'
                 continue
             res = results_map.get(perf['perf_participant_id'])
             if res is None:
                 continue
-            disc = perf['perf_edu_discipline__edu_disc_name']
+            disc = perf['perf_discipline']
             if not disc:
                 continue
             disciplines_set.add(disc)
@@ -1005,7 +1007,7 @@ def get_competency_segmentation(request):
         if institute:
             results_filter['res_institution__inst_name'] = institute
         if specialty:
-            results_filter['res_edu_specialty__edu_spec_name'] = specialty
+            results_filter['res_edu_specialty__spec_name'] = specialty
         if year:
             results_filter['res_year'] = year
 
@@ -1067,15 +1069,15 @@ def get_competency_segmentation(request):
         all_participant_ids = set(results_map.keys())
         perf_qs = AcademicPerformances.objects.filter(
             perf_participant_id__in=all_participant_ids
-        ).values('perf_participant_id', 'perf_edu_discipline__edu_disc_name', 'perf_main')
+        ).values('perf_participant_id', 'perf_discipline', 'perf_main')
 
         raw_grades = {g['name']: defaultdict(list) for g in groups_def}
         for perf in perf_qs:
             pid = perf['perf_participant_id']
-            grade = perf['perf_main']
+            grade = _grade_to_number(perf['perf_main'])
             if grade is None or grade == 1:
                 continue
-            disc = perf['perf_edu_discipline__edu_disc_name']
+            disc = perf['perf_discipline']
             if not disc:
                 continue
             for g in groups_def:

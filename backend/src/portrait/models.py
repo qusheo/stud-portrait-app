@@ -7,25 +7,37 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 
-
 class Academicperformances(models.Model):
     perf_id = models.AutoField(primary_key=True)
-    perf_participant = models.ForeignKey('Participants', models.DO_NOTHING, db_column='perf_participant')
-    perf_edu_discipline = models.ForeignKey('Educationdisciplines', models.DO_NOTHING, db_column='perf_edu_discipline')
-    perf_year = models.CharField(max_length=16)
-    perf_current = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    perf_digital = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
-    perf_main = models.IntegerField(blank=True, null=True)
-    perf_first_retake = models.IntegerField(blank=True, null=True)
-    perf_second_retake = models.IntegerField(blank=True, null=True)
-    perf_grade_retake = models.IntegerField(blank=True, null=True)
-    perf_final = models.IntegerField(blank=True, null=True)
+    perf_participant = models.ForeignKey(
+        'Participants', models.DO_NOTHING, db_column='perf_part_id'
+    )
+    perf_year = models.CharField(max_length=9)
+    perf_discipline = models.CharField(max_length=200)
+    perf_current = models.DecimalField(
+        max_digits=5, decimal_places=2, blank=True, null=True,
+        db_column='perf_current_avg'
+    )
+    perf_digital = models.DecimalField(
+        max_digits=5, decimal_places=2, blank=True, null=True,
+        db_column='perf_digital_culture'
+    )
+    perf_main = models.CharField(
+        max_length=16, blank=True, null=True, db_column='perf_main_attestation'
+    )
+    perf_first_retake = models.CharField(max_length=16, blank=True, null=True)
+    perf_second_retake = models.CharField(max_length=16, blank=True, null=True)
+    perf_grade_retake = models.CharField(
+        max_length=16, blank=True, null=True, db_column='perf_high_grade_retake'
+    )
+    perf_final = models.CharField(
+        max_length=16, blank=True, null=True, db_column='perf_final_grade'
+    )
 
     class Meta:
         managed = False
-        db_table = 'academicperformances'
-        unique_together = (('perf_participant', 'perf_year', 'perf_edu_discipline'),)
-
+        db_table = 'academicperformance'
+        unique_together = (('perf_participant', 'perf_year', 'perf_discipline'),)
 
 class Competencecenters(models.Model):
     center_id = models.AutoField(primary_key=True)
@@ -64,7 +76,7 @@ class Courseresults(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'Courseresults'
+        db_table = 'courseresults'
 
 
 class Datauploadtemplate(models.Model):
@@ -138,11 +150,14 @@ class Participants(models.Model):
 
 class Studentmapping(models.Model):
     mapping_id = models.AutoField(primary_key=True)
-    mapping_rsv = models.CharField(unique=True, max_length=512)
-    mapping_stud_name = models.CharField(max_length=512)
-    mapping_stud_gender = models.IntegerField(blank=True, null=True)
-    mapping_email = models.CharField(max_length=256, blank=True, null=True)
-    mapping_created_at = models.DateTimeField(blank=True, null=True)
+    mapping_rsv = models.CharField(max_length=512, unique=True, db_column='rsv_id')
+    mapping_stud_name = models.CharField(max_length=512, db_column='student_name')
+    mapping_stud_gender = models.CharField(
+        max_length=16, blank=True, null=True, db_column='student_gender'
+    )
+    mapping_created_at = models.DateTimeField(
+        blank=True, null=True, db_column='created_at'
+    )
 
     class Meta:
         managed = False
@@ -152,15 +167,15 @@ class Studentmapping(models.Model):
 class Results(models.Model):
     res_id = models.AutoField(primary_key=True)
     res_participant = models.ForeignKey(Participants, models.DO_NOTHING, db_column='res_participant')
-    res_center = models.ForeignKey(Competencecenters, models.DO_NOTHING, db_column='res_center')
+    res_center = models.ForeignKey(Competencecenters, models.DO_NOTHING, db_column='res_center', blank=True, null=True)
     res_institution = models.ForeignKey(Institutions, models.DO_NOTHING, db_column='res_institution', blank=True, null=True)
     res_edu_level = models.ForeignKey(Educationlevels, models.DO_NOTHING, db_column='res_edu_level', blank=True, null=True)
-    res_edu_form = models.ForeignKey(Educationforms, models.DO_NOTHING, db_column='res_edu_form', blank=True, null=True)
-    res_edu_specialty = models.ForeignKey(Educationspecialties, models.DO_NOTHING, db_column='res_edu_specialty', blank=True, null=True)
+    res_edu_form = models.ForeignKey('Studyforms', models.DO_NOTHING, db_column='res_form', blank=True, null=True)
+    res_edu_specialty = models.ForeignKey('Specialties', models.DO_NOTHING, db_column='res_edu_specialty', blank=True, null=True)
     res_course = models.IntegerField(blank=True, null=True)
     res_year = models.CharField(max_length=16)
-    res_potential = models.IntegerField(blank=True, null=True)
-    res_report = models.CharField(max_length=1024, blank=True, null=True)
+    res_potential = models.TextField(blank=True, null=True, db_column='res_high_potential')
+    res_report = models.TextField(blank=True, null=True, db_column='res_summary_report')
     res_comp_info_analysis = models.IntegerField(blank=True, null=True)
     res_comp_planning = models.IntegerField(blank=True, null=True)
     res_comp_result_orientation = models.IntegerField(blank=True, null=True)
@@ -199,7 +214,7 @@ class Results(models.Model):
     class Meta:
         managed = False
         db_table = 'results'
-        unique_together = (('res_participant', 'res_year',))
+        unique_together = (('res_participant', 'res_year', 'res_course'),)
 
 
 class Specialties(models.Model):

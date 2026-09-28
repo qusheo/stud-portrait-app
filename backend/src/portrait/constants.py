@@ -1,4 +1,4 @@
-# Constant values for reusing.
+﻿# Constant values for reusing.
 
 # ! ===================================================== RSV ====================================================== ! #
 
@@ -180,15 +180,15 @@ class TableEducationLevels:
 class TableEducationForms:
     """ Columns of EducationForms database table.
     """
-    ID =   'edu_form_id'
-    NAME = 'edu_form_name'
+    ID =   'form_id'
+    NAME = 'form_name'
 
 
 class TableEducationSpecialties:
-    """ Columns of EducationSpecialties database table.
+    """ Columns of Specialties database table (FK target of res_edu_specialty).
     """
-    ID =   'edu_spec_id'
-    NAME = 'edu_spec_name'
+    ID =   'spec_id'
+    NAME = 'spec_name'
 
 
 class TableEducationDisciplines:
