@@ -27,8 +27,8 @@ def get_year_metrics(year, filter):
 
     participant_ids = list(res_queryset.values_list('res_participant_id', flat=True).distinct())
     total_students = res_queryset.values('res_participant').distinct().count()
-    students_with_courses = Results.objects.filter(
-        course_participant_id__in=participant_ids 
+    students_with_courses = Courseresults.objects.filter(
+        course_participant__in=participant_ids 
     ).count()
     
     for f in MOT.list: ## мотиваторы
