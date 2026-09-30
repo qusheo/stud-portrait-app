@@ -1,7 +1,7 @@
 .Tooltip {
     position: relative;
     display: inline-flex;
-
+    cursor: default;
     .tooltip {
         position: absolute;
         z-index: 1000;
@@ -15,7 +15,7 @@
 
         font-size: 12px;
         font-weight: 490;
-        white-space: nowrap;
+        white-space: wrap;
 
         pointer-events: none;
     }

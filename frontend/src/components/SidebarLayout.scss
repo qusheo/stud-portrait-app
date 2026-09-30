@@ -73,8 +73,9 @@ $modeus-color: #238bc8;
 
     .Content {
         grid-area: content;
-        height: 100%;
+        height: 97%;
         overflow: auto;
+        padding: 20px;
     }
 }
 
@@ -177,10 +178,6 @@ $modeus-color: #238bc8;
                 }
             }
         }
-    }
-
-    .Content {
-        padding: 30px;
     }
 }
 

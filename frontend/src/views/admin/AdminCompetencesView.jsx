@@ -13,7 +13,7 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
+    Tooltip as TooltipRecharts,
     Legend,
     ResponsiveContainer
 } from 'recharts';
@@ -37,6 +37,8 @@ import { AdminService } from '@services';
 
 import './AdminCompetencesView.scss';
 import TabButton from '@components/ui/TabButton';
+import Tooltip from '@components/ui/Tooltip.jsx';
+import DraggablePopover from '@components/ui/DraggablePopover.jsx';
 
 import { useAdminStore } from '@utils/store.jsx';
 
@@ -104,6 +106,47 @@ const Stat = ({ label, value, prev = 0, suffix = '', isGrowth = false, isText = 
     }
 };
 
+function BarChartWithTable({ data, filters, year = '2025' }) {
+    const [range, setRange] = useState([1, 4]);
+    const chartData = data.chart.map(item => {
+        const name = getLabel(item.name);
+        return {
+            ...item,
+            displayName: name
+        };
+    });
+    return (
+        <div className="dashboard-chart-row">
+            <Slider
+                range
+                min={1}
+                max={4}
+                step={1}
+                value={range}
+                onChange={setRange}
+                marks={{
+                    1: '1',
+                    2: '2',
+                    3: '3',
+                    4: '4'
+                }}
+            />
+            <div className="chart-container">
+                <BarChartByYears
+                    data={chartData}
+                    year={year}
+                />
+            <div style={{ padding: 5, marginBottom: 20 }}>
+                <CompetencyTable
+                    data={chartData}
+                    filters={filters}
+                    year={year}
+                />
+            </div>
+            </div>
+        </div>
+    )
+}
 //таблица
 function CompetencyTable({ data, filters, year }) {
     //??data: [{ name: 'Командная работа', score, below350, above650 }]
@@ -204,7 +247,7 @@ function CompetencyTable({ data, filters, year }) {
                                             ) : (
                                                 <span className={delta > 0 ? 'ct-pos' : delta < 0 ? 'ct-neg' : 'ct-zero'}>
                                                     {delta > 0 ? '+' : ''}
-                                                    {delta}
+                                                    {toFixed(delta, 2)}
                                                 </span>
                                             )}
                                         </td>
@@ -229,7 +272,6 @@ function CompetencyTable({ data, filters, year }) {
     );
 }
 function CompetencyTable_course({ data, filters }) {
-    const [tableOpen, setTableOpen] = useState(false);
     const [range, setRange] = useState([1, 4]);
     if (!data) return null;
     const course = [
@@ -309,91 +351,80 @@ function CompetencyTable_course({ data, filters }) {
     };
 
     return (
-        <div className="table">
-            <button
-                className="ct-toggle"
-                onClick={() => setTableOpen(v => !v)}
-            >
-                <span className={`ct-arrow ${tableOpen ? 'open' : ''}`}>▼</span>
-                {tableOpen ? 'Скрыть таблицу' : 'Показать таблицу'}
-            </button>
-            <div className={`ct-table-wrap ${tableOpen ? 'open' : ''}`}>
-                <div className="table-container">
-                    <div className="ct-top">
-                        <button
-                            className="btnExcel"
-                            onClick={() => exportToExcel()}
-                            onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
-                            onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
-                        >
-                            Скачать
-                        </button>
-                        <p className="slider-note">*перетащите полузнки, чтобы изменить</p>
-                    </div>
-                    <table className="ct-table">
-                        <thead>
-                            <tr>
-                                <th rowSpan={2}>Компетенция</th>
-                                <th colSpan={4}>Средний балл</th>
-                                <th rowSpan={2}>
-                                    <div className="slider-wrapper">
-                                        <div className="slider-container">
-                                            <p className="slider-label">
-                                                Динамика по курсам с {range[0]} по {range[1]}
-                                            </p>
-                                            <Slider
-                                                range
-                                                min={1}
-                                                max={4}
-                                                step={1}
-                                                value={range}
-                                                onChange={setRange}
-                                                marks={{
-                                                    1: '1',
-                                                    2: '2',
-                                                    3: '3',
-                                                    4: '4'
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                </th>
-                            </tr>
-                            <tr>
-                                {course.map(i => {
-                                    return <th style={{ textAlign: 'center' }}>{i.name}</th>;
-                                })}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map(row => (
-                                <tr key={row.name}>
-                                    <td className="ct-name">{getLabel(row.name)}</td>
-                                    {Array.from({ length: 4 }, (_, i) => {
-                                        const value = row[`course_${i + 1}`];
-                                        const prev = i > 1 ? row[`course_${i + 1}`] : value;
-                                        const className = value > prev ? 'ct-pos' : value < prev ? 'ct-neg' : 'ct-zero';
-                                        return (
-                                            <td
-                                                className={className}
-                                                key={i}
-                                            >
-                                                {value != 0 || value ? Math.round(value) : '—'}
-                                            </td>
-                                        );
-                                    })}
-                                    <td className="ct-zero">
-                                        {(() => {
-                                            const delta = calculateDelta(row);
-                                            return <DeltaCell value={delta} />;
-                                        })()}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+        <div className="table-container">
+            <div className="ct-top">
+                <button
+                    className="btnExcel"
+                    onClick={() => exportToExcel()}
+                    onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
+                    onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
+                >
+                    Скачать
+                </button>
+                <p className="slider-note">*перетащите полузнки, чтобы изменить</p>
             </div>
+            <table className="ct-table">
+                <thead>
+                    <tr>
+                        <th rowSpan={2}>Компетенция</th>
+                        <th colSpan={4}>Средний балл</th>
+                        <th rowSpan={2} style={{minWidth: '120px'}}>
+                            <div className="slider-wrapper">
+                                <div className="slider-container">
+                                    <p className="slider-label">
+                                        Динамика по курсам с {range[0]} по {range[1]}
+                                    </p>
+                                    <Slider
+                                        range
+                                        min={1}
+                                        max={4}
+                                        step={1}
+                                        value={range}
+                                        onChange={setRange}
+                                        marks={{
+                                            1: '1',
+                                            2: '2',
+                                            3: '3',
+                                            4: '4'
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </th>
+                    </tr>
+                    <tr>
+                        {course.map(i => {
+                            return <th style={{ textAlign: 'center' }}>{i.name}</th>;
+                        })}
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.map(row => (
+                        <tr key={row.name}>
+                            <td className="ct-name">{getLabel(row.name)}</td>
+                            {Array.from({ length: 4 }, (_, i) => {
+                                const value = row[`course_${i + 1}`];
+                                const prev = i > 1 ? row[`course_${i + 1}`] : value;
+                                const className = value > prev ? 'ct-pos' : value < prev ? 'ct-neg' : 'ct-zero';
+                                return (
+                                    <td
+                                        className={className}
+                                        key={i}
+                                    >
+                                        {value != 0 || value ? Math.round(value) : '—'}
+                                    </td>
+                                );
+                            })}
+                            <td className="ct-zero">
+                                {(() => {
+                                    const delta = calculateDelta(row);
+                                    return <DeltaCell value={delta} />;
+                                })()}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 }
@@ -431,12 +462,11 @@ function CompRadar({ data }) {
         }));
     };
 
-    //console.log("данные дошли");
     return (
         <div className="RadarContainer">
             {/*панель с чекбоксами */}
             <div className="chooseBoxes">
-                <h3 style={{ fontSize: '16px', marginBottom: '10px' }}>Курсы</h3>
+                <h3 style={{ fontSize: '16px', marginBottom: '25px' }}>Курсы</h3>
                 {courseConfig.map(course => (
                     <label
                         key={course.key}
@@ -499,7 +529,7 @@ function CompRadar({ data }) {
                                 )
                         )}
 
-                        <Tooltip
+                        <TooltipRecharts
                             labelFormatter={label => getLabel(label)}
                             // name имя из конфига
                             formatter={(value, name) => [value.toFixed(1), name]}
@@ -509,11 +539,11 @@ function CompRadar({ data }) {
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                             }}
                         />
-                        <Legend
+                        {/*<Legend
                             verticalAlign="bottom"
                             onMouseEnter={o => setHoveredCourse(o.dataKey)}
                             onMouseLeave={() => setHoveredCourse(null)}
-                        />
+                        />*/}
                     </RadarChart>
                 </ResponsiveContainer>
             </div>
@@ -521,6 +551,30 @@ function CompRadar({ data }) {
     );
 }
 
+function CompRadarWithTable({ data, filters }) {
+    const [open, setOpen] = useState(false);
+    const [position, setPosition] = useState({ x: 600, y: 350 });
+
+    return (
+        <div>
+            <CompRadar data={data} />
+            <button
+                className="ct-toggle"
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={() => setOpen(!open)}
+            >
+                {open ? 'Скрыть таблицу' : 'Показать таблицу'}
+            </button>
+            <div className={`ct-table-wrap ${open ? 'open' : ''}`}></div>
+            <DraggablePopover open={open} onClose={() => setOpen(false)} width={600} 
+                                initialPosition={position} onPositionChange={(pos) => setPosition(pos)}>
+                <CompetencyTable_course 
+                                data={data}
+                                filters={filters}/>
+            </DraggablePopover>
+        </div>
+    )
+}
 function BarChartByYears({ data, year }) {
     return (
         <>
@@ -567,7 +621,7 @@ function BarChartByYears({ data, year }) {
                             tick={{ fill: ' #94a3b8' }}
                             label={{ value: 'Средний балл', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'rgb(122, 136, 156)' }}
                         />
-                        <Tooltip
+                        <TooltipRecharts
                             cursor={{ fill: '#f8fafc' }}
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                             labelFormatter={label => `Компетенция: ${label}`}
@@ -620,13 +674,6 @@ function BarChartByYears({ data, year }) {
 function Dashboard({ data, filters }) {
     if (!data || !data.chart) return null;
     const year = data.year;
-    const chartData = data.chart.map(item => {
-        const name = getLabel(item.name);
-        return {
-            ...item,
-            displayName: name
-        };
-    });
     const pieData = [
         { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },
         { 'name': 'Не прошли', 'value': data.col2.participated?.students_all - data.col2.participated?.amount_in, fill: 'transparent' }
@@ -666,6 +713,7 @@ function Dashboard({ data, filters }) {
                             value={data.col1.avg_lvl.val}
                             prev={data.col1.avg_lvl.prev}
                         />
+                        <span className='line-separator'></span>
                         <Stat
                             label={
                                 data.col1.motiv.count.curr !== 0
@@ -696,9 +744,8 @@ function Dashboard({ data, filters }) {
                             isText={true}
                             note={'*По доли среди студентов'}
                         />
-                    </div>
+                        <span className='line-separator'></span>
 
-                    {/* Центральная колонка */}
                     <div className="col-center">
                         {data.col2.uni_place !== 0 ? (
                             <Stat
@@ -708,7 +755,11 @@ function Dashboard({ data, filters }) {
                         ) : (
                             <div className="uni-info mb-6">
                                 <h4 className="text-xs uppercase text-gray-400 font-bold">{col2_data['header']}</h4>
-                                <div className="text-xl font-bold text-blue-600">{col2_data['name']}</div>
+                                <div className="text-xl font-bold text-blue-600">
+                                    <Tooltip text={col2_data['name']} placement='right'>
+                                        {col2_data['name'].length > 50 ? `${col2_data['name'].substring(0, 50)}...` : col2_data['name']}
+                                    </Tooltip>
+                                </div>
                                 <div className="text-sm text-gray-500">{toFixed(col2_data['score'], 1)} баллов (среднее)</div>
                             </div>
                         )}
@@ -744,10 +795,12 @@ function Dashboard({ data, filters }) {
                             </div>
                         </div>
                     </div>
+                    </div>
 
                     {/* Правая колонка */}
                     <div className="col-right">
                         <h4 className="text-xs uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
+                        <div style={{display: 'flex', whiteSpace: 'wrap', gap: '30px', maxWidth: '900px'}}>
                         <Stat
                             label={`Наиболее развитая. Средний балл: ${data.col3.best.val}`}
                             value={getLabel(data.col3.best.name)}
@@ -763,27 +816,14 @@ function Dashboard({ data, filters }) {
                                 data.col3.worst_prev.val != 0 ? `${getLabel(data.col3.worst_prev.name)} (${data.col3.worst_prev.val})` : 0
                             }
                         />
+                        </div>
+                        <div className="chart-radar">
+                            <CompRadarWithTable
+                                data={data.radar}
+                                filters={filters}
+                            />
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div className="dashboard-chart-row">
-                <div className="chart-container">
-                    <BarChartByYears
-                        data={chartData}
-                        year={year}
-                    />
-                    <CompetencyTable
-                        data={chartData}
-                        filters={filters}
-                        year={year}
-                    />
-                </div>
-                <CompRadar data={data.radar} />
-                <div style={{ padding: 5, margin: 20 }}>
-                    <CompetencyTable_course
-                        data={data.radar}
-                        filters={filters}
-                    />
                 </div>
             </div>
         </div>
@@ -940,7 +980,7 @@ function CompetencyTrendLine({ data, loading }) {
                             style: { textAnchor: 'middle', fill: '#555' }
                         }}
                     />
-                    <Tooltip
+                    <TooltipRecharts
                         contentStyle={{
                             background: '#fff',
                             border: '1px solid #ccc',
@@ -1100,17 +1140,19 @@ function AdminCompetencesView() {
 
             {activeTab === 'dashboard' && (
                 <>
-                    {' '}
                     {loadingDash ? (
                         <div className="loading-content">
                             <LoadingSpinner text="Загрузка статистики..." />
                         </div>
-                    ) : (
+                    ) : (<>
                         <Dashboard
                             data={dashboardData}
                             filters={filters_}
                         />
-                    )}{' '}
+                        <BarChartWithTable 
+                            data={dashboardData}
+                            filters={filters_}/></>
+                    )}
                 </>
             )}
             {activeTab === 'graphics' && (

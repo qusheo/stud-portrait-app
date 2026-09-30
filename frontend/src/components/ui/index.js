@@ -11,5 +11,5 @@ export { default as Select } from './Select';
 export { default as Slider } from './Slider';
 export { default as TabButton } from './TabButton';
 export { default as Tooltip } from './Tooltip';
-
+export { default as DraggablePopover } from './DraggablePopover';
 export * from './palette';
