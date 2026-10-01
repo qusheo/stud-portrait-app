@@ -1,5 +1,4 @@
-import { useState, useEffect, React, useRef } from 'react';
-import Select from 'react-select';
+import { useState, useEffect, React, useRef, cloneElement } from 'react';
 import {
     PieChart,
     Pie,
@@ -106,50 +105,9 @@ const Stat = ({ label, value, prev = 0, suffix = '', isGrowth = false, isText = 
     }
 };
 
-function BarChartWithTable({ data, filters, year = '2025' }) {
-    const [range, setRange] = useState([1, 4]);
-    const chartData = data.chart.map(item => {
-        const name = getLabel(item.name);
-        return {
-            ...item,
-            displayName: name
-        };
-    });
-    return (
-        <div className="dashboard-chart-row">
-            <Slider
-                range
-                min={1}
-                max={4}
-                step={1}
-                value={range}
-                onChange={setRange}
-                marks={{
-                    1: '1',
-                    2: '2',
-                    3: '3',
-                    4: '4'
-                }}
-            />
-            <div className="chart-container">
-                <BarChartByYears
-                    data={chartData}
-                    year={year}
-                />
-            <div style={{ padding: 5, marginBottom: 20 }}>
-                <CompetencyTable
-                    data={chartData}
-                    filters={filters}
-                    year={year}
-                />
-            </div>
-            </div>
-        </div>
-    )
-}
 //таблица
-function CompetencyTable({ data, filters, year }) {
-    //??data: [{ name: 'Командная работа', score, below350, above650 }]
+function CompetencyTable({ data, filters, range }) {
+    const [ prevYear, year] = range;
     const [tableOpen, setTableOpen] = useState(false);
     if (!data) return null;
 
@@ -172,20 +130,20 @@ function CompetencyTable({ data, filters, year }) {
 
                 excelData.push({
                     'Компетенция': row.displayName || '—',
-                    [`Средний балл ${year - 2}/${year - 1}`]: formatValue(hasPrev ? Math.round(row.prev_score) : null),
-                    [`Средний балл ${year - 1}/${year}`]: formatValue(hasCurrent ? Math.round(row.score) : null),
+                    [`Средний балл ${prevYear}`]: formatValue(hasPrev ? Math.round(row.prev_score) : null),
+                    [`Средний балл ${year}`]: formatValue(hasCurrent ? Math.round(row.score) : null),
                     'Разница': formatDelta(delta),
                     '%': formatPercent(procent)
                 });
             });
 
-            const header = `${filters.institute ? `${filters.institute}, ` : ''} ${filters.specialty ? `${filters.specialty}, ` : ''} ${filters.year ? `${filters.year} учебный год ` : ''}`;
+            const header = `${filters.institute ? `${filters.institute}, ` : ''} ${filters.specialty ? `${filters.specialty}, ` : ''} ${prevYear} - ${year} учебные года `;
             const worksheet = XLSX.utils.aoa_to_sheet([[header]]);
             XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
 
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, `Компетенции ${year ? `${year - 2}_${year}` : ''}`);
-            XLSX.writeFile(workbook, `Показатели_Компетенций${year ? `_${year - 2}_${year}` : ''}.xlsx`);
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Компетенции ${prevYear.split('/')[0]}-${year.split('/')[1]}`);
+            XLSX.writeFile(workbook, `Показатели_Компетенций_${prevYear.split('/')[0]}_${year.split('/')[1]}.xlsx`);
             toast.success('Файл сформирован');
         } catch (error) {
             console.error('Ошибка при генерации Excel файла:', error);
@@ -223,10 +181,10 @@ function CompetencyTable({ data, filters, year }) {
                             </tr>
                             <tr>
                                 <th style={{ textAlign: 'center' }}>
-                                    {year - 2}/{year - 1}
+                                    {prevYear}
                                 </th>
                                 <th style={{ textAlign: 'center' }}>
-                                    {year - 1}/{year}
+                                    {year}
                                 </th>
                                 <th style={{ textAlign: 'center' }}>Разница</th>
                             </tr>
@@ -269,6 +227,192 @@ function CompetencyTable({ data, filters, year }) {
                 </div>
             </div>
         </div>
+    );
+}
+
+function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {} }) {
+    if (!data) return;
+
+    const years = [];
+    const yearsMap = {};
+    yearsOptions.forEach(item => { 
+        const yearValue = parseInt(item.value.split('/')[1]);
+        years.push(yearValue);
+        yearsMap[yearValue] = item.label;
+    });
+
+    const [minValue, setMinValue] = useState(Math.min(...years));
+    const [maxValue, setMaxValue] = useState(Math.max(...years));
+
+    const grouped = {};
+    data.forEach(item => {
+        if (!grouped[item.name]) {
+            grouped[item.name] = {
+                name: item.name,
+                displayName: getLabel(item.name),
+            };
+        }
+        grouped[item.name][item.year] = item.average;
+    });
+    const chartData = Object.values(grouped);
+    const tableData = chartData.map(item => ({
+        name: item.name,
+        displayName: item.displayName,
+        prev_score: item[yearsMap[minValue]] ?? 0,
+        score: item[yearsMap[maxValue]] ?? 0,
+    }));
+    const colors = ['#658ed0', '#904acc'];
+
+    return (
+        <div className="dashboard-chart-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 50, paddingLeft: 50 }}>
+                <h4 className="section-label">Распределение по компетенциям (средний балл)</h4>
+                <div className="slider-wrapper">
+                    <Slider
+                        range
+                        min={Math.min(...years)}
+                        max={Math.max(...years)}
+                        step={1}
+                        value={[minValue, maxValue]}
+                        onChange={([min, max]) => {
+                            setMinValue(min);
+                            setMaxValue(max);
+                        }}
+                        marks={yearsMap}
+                        style={{ width: '400px' }}
+                        handleRender={(node, handleProps) => {
+                            const isStart = handleProps.index === 0;
+                            return cloneElement(node, {
+                                style: {
+                                    ...node.props.style,
+                                    backgroundColor: isStart ? colors[0] : colors[1],
+                                    borderColor: isStart ? colors[0] : colors[1],
+                                },
+                            });
+                        }}
+                        styles={{
+                            rail: {
+                                backgroundColor: '#e5e7eb',
+                                height: 6,
+                            },
+                            track: {
+                                backgroundColor: '#a2bce6',
+                                height: 6,
+                            },
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="chart-container">
+                <BarChartByYears
+                    data={chartData}
+                    range={[yearsMap[minValue], yearsMap[maxValue]]}
+                    colors={colors}
+                />
+            <div style={{ padding: 5, marginBottom: 20 }}>
+                <CompetencyTable
+                    data={tableData}
+                    filters={filters}
+                    range={[yearsMap[minValue], yearsMap[maxValue]]}
+                />
+            </div>
+            </div>
+        </div>
+    )
+}
+
+function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }) {
+    const [minYear, maxYear] = range;
+    return (
+        <>
+            <div style={{ width: '100%', height: 400 }}>
+                <ResponsiveContainer>
+                    <BarChart
+                        data={data}
+                        barGap={5}
+                        barCategoryGap="25%"
+                        margin={{ top: 20, right: 30, left: 10, bottom: 70 }}
+                    >
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="#f1f5f9"
+                        />
+
+                        <ReferenceLine
+                            y={0}
+                            stroke="#333"
+                            strokeWidth={1.5}
+                        />
+                        <XAxis
+                            dataKey="displayName"
+                            interval={0}
+                            angle={-20}
+                            tick={{
+                                fontSize: 11,
+                                fill: ' #64748b',
+                                dy: 11
+                            }}
+                            tickMargin={12}
+                            tickLine={false}
+                            dx={-50}
+                            height={45}
+                            textAnchor="end"
+                        />
+                        <YAxis
+                            domain={[0, 850]}
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fill: ' #94a3b8' }}
+                            label={{ value: 'Средний балл', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'rgb(122, 136, 156)' }}
+                        />
+                        <TooltipRecharts
+                            cursor={{ fill: '#f8fafc' }}
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                            labelFormatter={label => `Компетенция: ${label}`}
+                            formatter={value => [value, 'баллы ']}
+                        />
+
+                        <Bar
+                            name={range[1]}
+                            dataKey={range[1]}
+                            fill={colors[0]}
+                            radius={[6, 6, 0, 0]}
+                            barSize={22}
+                        >
+                            <LabelList
+                                formatter={value => Math.round(value)}
+                                position="top"
+                                offset={5}
+                                fontSize={12}
+                                fill="rgb(81, 87, 110)"
+                            />
+                        </Bar>
+                        <Bar
+                            name={range[0]}
+                            dataKey={range[0]}
+                            fill={colors[1]}
+                            radius={[6, 6, 0, 0]}
+                            barSize={22}
+                        >
+                            <LabelList
+                                formatter={value => Math.round(value)}
+                                position="top"
+                                offset={5}
+                                fontSize={11}
+                                fill="rgb(139, 148, 174)"
+                            />
+                        </Bar>
+                        <Legend
+                            verticalAlign="top"
+                            align="right"
+                            fontSize={8}
+                        ></Legend>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </>
     );
 }
 function CompetencyTable_course({ data, filters }) {
@@ -575,104 +719,61 @@ function CompRadarWithTable({ data, filters }) {
         </div>
     )
 }
-function BarChartByYears({ data, year }) {
+function YearsSelect({ year, yearsOptions, onChange }) {
+    const [isActive, setIsActive] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+
+    const selectedYear = useRef(year);
+    const options = yearsOptions ?? [];
+
+    const onChangeSelect = (value) => {
+        selectedYear.current = parseInt(value);
+        onChange(value);
+    };
+
     return (
-        <>
-            <h4 className="section-label">Распределение по компетенциям (средний балл)</h4>
-            <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
-                    <BarChart
-                        data={data}
-                        barGap={5}
-                        barCategoryGap="25%"
-                        margin={{ top: 20, right: 30, left: 10, bottom: 70 }}
-                    >
-                        <CartesianGrid
-                            strokeDasharray="3 3"
-                            vertical={false}
-                            stroke="#f1f5f9"
-                        />
+        <div className="years-select">
+            <div
+                className="extra-title"
+            >
+                <span>за</span>
 
-                        <ReferenceLine
-                            y={0}
-                            stroke="#333"
-                            strokeWidth={1.5}
-                        />
-                        <XAxis
-                            dataKey="displayName"
-                            interval={0}
-                            angle={-20}
-                            tick={{
-                                fontSize: 11,
-                                fill: ' #64748b',
-                                dy: 11
+                <div
+                    className="selected-year"
+                    onMouseEnter={() => setIsActive(true)}
+                    onMouseLeave={() => {
+                        if (!isFocused) setIsActive(false);
+                    }}
+                    onClick={() => setIsActive(true)}
+                >
+                    {isActive ? (
+                        <select
+                            value={year}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => {
+                                setIsFocused(false);
+                                setIsActive(false);
                             }}
-                            tickMargin={12}
-                            tickLine={false}
-                            dx={-50}
-                            height={45}
-                            textAnchor="end"
-                        />
-                        <YAxis
-                            domain={[0, 850]}
-                            fontSize={12}
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fill: ' #94a3b8' }}
-                            label={{ value: 'Средний балл', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'rgb(122, 136, 156)' }}
-                        />
-                        <TooltipRecharts
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                            labelFormatter={label => `Компетенция: ${label}`}
-                            formatter={value => [value, 'баллы ']}
-                        />
+                            onChange={e => onChangeSelect(e.target.value)}
+                        >
+                            {options.length && options.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    ) : (
+                        <span style={{ fontWeight: 600 }}>{year}</span>
+                    )}
+                </div>
 
-                        <Bar
-                            name={year}
-                            dataKey="score"
-                            fill="rgb(101, 142, 208)"
-                            radius={[6, 6, 0, 0]}
-                            barSize={22}
-                        >
-                            <LabelList
-                                formatter={value => Math.round(value)}
-                                position="top"
-                                offset={5}
-                                fontSize={12}
-                                fill="rgb(81, 87, 110)"
-                            />
-                        </Bar>
-                        <Bar
-                            name={year - 1}
-                            dataKey="prev_score"
-                            fill=" #904acc"
-                            radius={[6, 6, 0, 0]}
-                            barSize={22}
-                        >
-                            <LabelList
-                                formatter={value => Math.round(value)}
-                                position="top"
-                                offset={5}
-                                fontSize={11}
-                                fill="rgb(139, 148, 174)"
-                            />
-                        </Bar>
-                        <Legend
-                            verticalAlign="top"
-                            align="right"
-                            fontSize={8}
-                            formatter={label => `${label - 1}/${label}`}
-                        ></Legend>
-                    </BarChart>
-                </ResponsiveContainer>
+                <span>учебный год</span>
             </div>
-        </>
-    );
+        </div>
+    )
 }
-
-function Dashboard({ data, filters }) {
-    if (!data || !data.chart) return null;
+function Dashboard({ data, filters, onYearChange, yearsOptions }) {
+    if (!data) return null;
     const year = data.year;
     const pieData = [
         { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },
@@ -691,14 +792,10 @@ function Dashboard({ data, filters }) {
     return (
         <div>
             <div className="dashboard-container">
-                <h2 className="dashboard-title">
-                    Статистика
-                    <p className="extra-title">
-                        {' '}
-                        за {year - 1}/{year} учебный год
-                    </p>
-                </h2>
-
+                <div className="dashboard-title">
+                    <p> Статистика </p>
+                    <YearsSelect year={`${year-1}/${year}`} yearsOptions={yearsOptions} onChange={onYearChange} />
+                </div>
                 <div className="dashboard-grid">
                     {/* Левая колонка */}
                     <div className="col-left">
@@ -819,7 +916,7 @@ function Dashboard({ data, filters }) {
                         </div>
                         <div className="chart-radar">
                             <CompRadarWithTable
-                                data={data.radar}
+                                data={data?.radar}
                                 filters={filters}
                             />
                         </div>
@@ -1052,24 +1149,50 @@ function AdminCompetencesView() {
     const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
     const [dashboardData, setDashboardData] = useState(null);
     const [loadingDash, setLoadingDash] = useState(false);
-    const [filters_, setFilters_] = useState({ institute: '', specialty: '', year: '' });
+    
+    const [filters_, setFilters_] = useState(() => {
+        const saved = useAdminStore.getState().savedFilters?.Admin;
 
+        return saved && Object.keys(saved).length
+            ? saved
+            : { institute: '', specialty: '', year: '' };
+    });
+
+    const [yearsCompetencyData, setYearsCompetencyData] = useState(null);
     const [trendData, setTrendData] = useState(null);
     const [loadingTrend, setLoadingTrend] = useState(false);
 
     const [activeTab, setActiveTab] = useState('dashboard');
     const loadDashboardStats = async currentFilters => {
         setLoadingDash(true);
-        const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
-        setLoadingDash(false);
-        if (!data) {
-            toast.error('Ошибка при загрузке дашборда');
-            return;
+        try {
+            const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
+    
+            if (!data) return;
+            setDashboardData(data);
         }
-        setDashboardData(data);
+        finally{ 
+            setLoadingDash(false);
+        }
+    };
+
+    const loadYearsCompetencyData = async currentFilters => {
+        const data = await AdminService.getCompetencyAverageByYears(currentFilters.institute, currentFilters.specialty);
+        setYearsCompetencyData(data?.data);
+    }
+
+    const [yearsOptions, setYearsOptions] = useState([]);
+    const getYearsOptions = async () => {
+        const years = await AdminService.getAvailableYears();
+        setYearsOptions(years ?? []);
     };
     useEffect(() => {
+        getYearsOptions();
+    }, []);
+
+    useEffect(() => {
         loadDashboardStats(filters_);
+        loadYearsCompetencyData(filters_);
     }, [filters_]);
     const updateFilter = (name, value) => {
         setFilters_(prev => {
@@ -1099,14 +1222,12 @@ function AdminCompetencesView() {
         loadCompetencyTrend(filters_);
     }, [filters_]);
 
-    /* подгрузка старых фильтров при маунте компонента */
-    useEffect(() => {
-        const saved = savedFilters?.Admin;
-
-        if (saved && Object.keys(saved).length) {
-            setFilters_(saved);
-        }
-    }, [savedFilters]);
+    const handleYearChange = selectedYear => {
+        setFilters_(prev => {
+            const updated = { ...prev, year: selectedYear };
+            return updated;
+        });
+    };
 
     return (
         <div className="AdminCompetencesView">
@@ -1115,6 +1236,7 @@ function AdminCompetencesView() {
                     onFilterChange={updateFilter}
                     filters={filters_}
                     onResetFilters={resetFilters}
+                    showYearsSelect={activeTab !== 'dashboard'}
                 />
             </div>
             <FlexRow
@@ -1148,10 +1270,15 @@ function AdminCompetencesView() {
                         <Dashboard
                             data={dashboardData}
                             filters={filters_}
+                            onYearChange={handleYearChange}
+                            yearsOptions={yearsOptions}
                         />
                         <BarChartWithTable 
-                            data={dashboardData}
-                            filters={filters_}/></>
+                            data={yearsCompetencyData}
+                            yearsOptions={yearsOptions}
+                            filters={filters_}
+                        />
+                    </>
                     )}
                 </>
             )}

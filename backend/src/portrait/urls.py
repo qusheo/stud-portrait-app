@@ -86,7 +86,9 @@ urlpatterns = [
     path('overall-stats/',     stat.overall_stats,         name='overall_stats'),
     path('scores-result/',     stat.get_scores_result,     name='scores_result'),
     path('comp-boxplot/',      stat.get_data_boxplot, name='comp_boxplot'),
-
+    path('get-available-years/', stat.get_available_years, name='available_years'),
+    path('competency-average-by-years/', stat.get_competency_average_by_years, name='competency_average_by_years'),
+    
     path('grades-competency-correlation/', stat.get_grades_competency_correlation, name='grades_competency_correlation'),
     path('competency-trend-by-year/',      stat.get_competency_trend_by_year,      name='competency_trend_by_year'),
     path('top-correlations/', stat.get_top_correlations, name='top_correlations'),

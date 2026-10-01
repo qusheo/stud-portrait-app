@@ -80,6 +80,13 @@ def filter_options(request):
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
+def get_available_years(request):
+    try:
+        years = Results.objects.values_list('res_year', flat=True).distinct()
+        years_list = [{"value": y, "label": str(y)} for y in years if y]
+        return JsonResponse({"status": "success", "data": years_list})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 @cached()
 def overall_stats(request):
@@ -236,7 +243,6 @@ def get_dashboard_stats(request):
                 "worst_prev": worst_comp_prev
             },
             "year": curr_year.split('/')[1],
-            "chart": chart,
             "radar": radar
         }
         return JsonResponse(response_data)
@@ -246,7 +252,26 @@ def get_dashboard_stats(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
-# это вспомогательная
+def get_competency_average_by_years(request):
+    try:
+        inst = request.GET.get('institute')
+        spec = request.GET.get('specialty')
+
+        base_filter = {}
+        if inst: base_filter['res_institution__inst_name'] = inst
+        if spec: base_filter['res_edu_specialty__spec_name'] = spec
+
+        years = Results.objects.filter(**base_filter).values_list('res_year', flat=True).distinct()
+        years_data = []
+        for year in sorted(years):
+            year_metrics = get_year_metrics(year, base_filter)
+            for k, v in year_metrics['all_comps'].items():
+                years_data.append({"year": year, "name": k, "average": v})
+        return JsonResponse({"status": "success", "data": years_data})
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 def get_competency_stats_courses(filter):
     courses = [1, 2, 3, 4]
     results = {}

@@ -5,24 +5,26 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './views/App';
 import ErrorView from './views/ErrorView';
 
-import AdminAnalysisAdvancedView from './views/admin/analysis/AdminAnalysisAdvancedView';
-import AdminAnalysisDisciplinesView from './views/admin/analysis/AdminAnalysisDisciplinesView';
-import AdminAiAnalyticsView from './views/admin/analysis/AdminAiAnalyticsView';
-import AdminAnalysisEduProfilesView from './views/admin/analysis/AdminAnalysisEduProfilesView';
-import AdminTransferAnalysisView from './views/admin/analysis/AdminTransferAnalysisView';
-import AdminAnomalousStudentView from './views/admin/analysis/AdminAnomalousStudentView';
-import AdminDuplicateAccountsChecker from './views/admin/analysis/AdminDuplicateAccountsChecker';
+import {
+    AdminAnalysisAdvancedView,
+    AdminAnalysisDisciplinesView,
+    AdminAiAnalyticsView,
+    AdminAnalysisEduProfilesView,
+    AdminTransferAnalysisView,
+    AdminAnomalousStudentView,
+    AdminDuplicateAccountsChecker,
+    AdminAPView,
+    AdminCoursesView,
+    AdminGeographyView,
+    AdminGroupingView,
+    AdminHelpView,
+    AdminMotivatorsView,
+    AdminResultsView,
+    AdminStatsView,
+    AdminCompetencesView,
+    AdminStudentView,
+} from './views/admin';
 
-import AdminCoursesView from './views/admin/AdminCoursesView';
-import AdminGeographyView from './views/admin/AdminGeographyView';
-import AdminGroupingView from './views/admin/AdminGroupingView';
-import AdminHelpView from './views/admin/AdminHelpView';
-import AdminMotivatorsView from './views/admin/AdminMotivatorsView';
-import AdminResultsView from './views/admin/AdminResultsView';
-import AdminStatsView from './views/admin/AdminStatsView';
-import AdminAPView from './views/admin/AdminAPView';
-import AdminCompetencesView from './views/admin/AdminCompetencesView';
-import AdminStudentView from './views/admin/AdminStudentView';
 
 import StudentMainView from './views/student/StudentMainView';
 import StudentReportView from './views/student/StudentReportView';

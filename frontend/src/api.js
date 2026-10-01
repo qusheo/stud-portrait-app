@@ -410,9 +410,13 @@ class Api {
         return promise;
     }
 
-    /** GET /portrait/get-institutions/ - список вузов */
     getInstitutions() {
         const promise = fetch(`${HOST}/portrait/get-institutions/`);
+        return promise;
+    }
+
+    getAvailableYears() {
+        const promise = fetch(`${HOST}/portrait/get-available-years/`);
         return promise;
     }
 
@@ -433,6 +437,13 @@ class Api {
         return promise;
     }
 
+    getCompetencyAverageByYears(institute, specialty) {
+        const params = new URLSearchParams();
+        if (institute) params.append('institute', institute);
+        if (specialty) params.append('specialty', specialty);
+        const promise = fetch(`${HOST}/portrait/competency-average-by-years/?${params}`);
+        return promise;
+    }
     getScoresResult(institute, specialty, year) {
         const params = new URLSearchParams();
         if (institute) params.append('institute', institute);

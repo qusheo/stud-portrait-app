@@ -9,6 +9,12 @@ class AdminService extends BaseService {
         return this.request(() => Api.getInstitutions(), 'Ошибка загрузки вузов');
     }
 
+    async getAvailableYears() {
+        const response = await Api.getAvailableYears();
+        if (!response) throw new Error();
+        const data = await response.json();
+        return data?.data;
+    }
     /**
      * Опции фильтров
      */
@@ -23,6 +29,9 @@ class AdminService extends BaseService {
         return this.request(() => Api.getDashboardStats(institute, specialty, year), 'Ошибка загрузки статистики');
     }
 
+    getCompetencyAverageByYears(institute, specialty) {
+        return this.request(() => Api.getCompetencyAverageByYears(institute, specialty));
+    }
     /**
      * Динамика компетенций по курсам
      */

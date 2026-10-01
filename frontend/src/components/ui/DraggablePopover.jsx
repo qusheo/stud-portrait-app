@@ -54,24 +54,32 @@ export default function DraggablePopover({
             x: position.x,
             y: position.y,
         };
-
+        document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', moveDrag);
         document.addEventListener('mouseup', stopDrag);
     };
 
     const moveDrag = (e) => {
-        if (!dragRef.current) return;
+        if (!dragRef.current || !popoverRef.current) return;
+
+        const newX =
+            dragRef.current.x +
+            e.clientX -
+            dragRef.current.startX;
+
+        const newY =
+            dragRef.current.y +
+            e.clientY -
+            dragRef.current.startY;
+
+        const rect = popoverRef.current.getBoundingClientRect();
+
+        const maxX = window.innerWidth - rect.width;
+        const maxY = window.innerHeight - rect.height;
 
         setPosition({
-            x:
-                dragRef.current.x +
-                e.clientX -
-                dragRef.current.startX,
-
-            y:
-                dragRef.current.y +
-                e.clientY -
-                dragRef.current.startY,
+            x: Math.max(0, Math.min(newX, maxX)),
+            y: Math.max(0, Math.min(newY, maxY)),
         });
     };
 

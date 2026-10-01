@@ -5,7 +5,7 @@ import './FilterHeader.scss';
 import TabButton from '@ui/TabButton';
 import Button from '@ui/Button';
 
-export default function FilterHeader({ filters, onFilterChange, onResetFilters }) {
+export default function FilterHeader({ filters, onFilterChange, onResetFilters, showYearsSelect = true }) {
     const [options, setOptions] = useState({ institutes: [], specialties: [], years: [] });
     const [loading, setLoading] = useState(true);
     const reqRef = useRef(0);
@@ -89,7 +89,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 isLoading={loading}
                 loadingMessage={() => 'Загрузка...'}
             />
-
+            {showYearsSelect && (
             <Select
                 name="year"
                 placeholder="Год..."
@@ -101,7 +101,7 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters }
                 styles={customStyles}
                 isLoading={loading}
                 loadingMessage={() => 'Загрузка...'}
-            />
+            />)}
 
             <Button
                 text={'Сбросить'}
