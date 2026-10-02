@@ -83,172 +83,153 @@ function AdminGroupingView() {
     if (loading) {
         return (
             <div className="AdminGroupingView">
-                <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                    <Header
-                        title="Админ: Группировка данных"
-                        name="Администратор1"
-                    />
-                    <Sidebar linkTree={LINK_TREE} />
-                    <Content>
-                        <div className="loading">
-                            <div className="spinner"></div>
-                            <div>Загрузка данных для группировки...</div>
-                        </div>
-                    </Content>
-                </SidebarLayout>
+                <div className="loading">
+                    <div className="spinner"></div>
+                    <div>Загрузка данных для группировки...</div>
+                </div>
             </div>
         );
     }
 
     return (
         <div className="AdminGroupingView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Группировка данных"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <div className="grouping-container">
-                        <div className="grouping-header">
-                            <h1>Группировка данных</h1>
-                            <FlexRow wrap={WRAP.DO}>
-                                <label>Тип диаграммы:</label>
-                                <Select
-                                    initValue={chartType}
-                                    onChange={setChartType}
-                                >
-                                    <Option
-                                        value="line"
-                                        label="Линейная"
-                                    />
-                                    <Option
-                                        value="bar"
-                                        label="Столбчатая"
-                                    />
-                                    <Option
-                                        value="area"
-                                        label="Областная"
-                                    />
-                                </Select>
-                                <Button
-                                    text="← Назад к результатам"
-                                    onClick={() => navigate('/admin/results')}
-                                    palette={ADMIN_PALETTE.GRAY}
+            <div className="grouping-container">
+                <div className="grouping-header">
+                    <h1>Группировка данных</h1>
+                    <FlexRow wrap={WRAP.DO}>
+                        <label>Тип диаграммы:</label>
+                        <Select
+                            initValue={chartType}
+                            onChange={setChartType}
+                        >
+                            <Option
+                                value="line"
+                                label="Линейная"
+                            />
+                            <Option
+                                value="bar"
+                                label="Столбчатая"
+                            />
+                            <Option
+                                value="area"
+                                label="Областная"
+                            />
+                        </Select>
+                        <Button
+                            text="← Назад к результатам"
+                            onClick={() => navigate('/admin/results')}
+                            palette={ADMIN_PALETTE.GRAY}
+                        />
+                        {groupingData && (
+                            <Label>
+                                Группировка по: <strong>{FIELD_NAMES[groupingData.groupingColumn] || groupingData.groupingColumn}</strong> |
+                                Записей: <strong>{groupingData.selectedIds.length}</strong> | Фильтров:{' '}
+                                <strong>{groupingData.filters.length}</strong>
+                            </Label>
+                        )}
+                    </FlexRow>
+                </div>
+
+                {/* Навигация по типам данных */}
+                <FlexRow>
+                    <Button
+                        text="Компетенции"
+                        onClick={() => setActiveTab('competences')}
+                        palette={activeTab === 'competences' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
+                    />
+                    <Button
+                        text="Мотиваторы"
+                        onClick={() => setActiveTab('motivators')}
+                        palette={activeTab === 'motivators' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
+                    />
+                    <Button
+                        text="Ценности"
+                        onClick={() => setActiveTab('values')}
+                        palette={activeTab === 'values' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
+                    />
+                </FlexRow>
+                <div className="data-tabs"></div>
+
+                {/* Компетенции */}
+                {activeTab === 'competences' && chartData?.competences && (
+                    <div className="charts-grid">
+                        {Object.entries(chartData.competences).map(([competence, data]) => (
+                            <TitledCard title={FIELD_NAMES[competence]}>
+                                <Chart
+                                    options={getChartOptions(FIELD_NAMES[competence] || competence, data.groups)}
+                                    series={[
+                                        {
+                                            name: FIELD_NAMES[competence] || competence,
+                                            data: data.values
+                                        }
+                                    ]}
+                                    type={chartType}
+                                    height={400}
                                 />
-                                {groupingData && (
-                                    <Label>
-                                        Группировка по:{' '}
-                                        <strong>{FIELD_NAMES[groupingData.groupingColumn] || groupingData.groupingColumn}</strong> |
-                                        Записей: <strong>{groupingData.selectedIds.length}</strong> | Фильтров:{' '}
-                                        <strong>{groupingData.filters.length}</strong>
-                                    </Label>
-                                )}
-                            </FlexRow>
-                        </div>
-
-                        {/* Навигация по типам данных */}
-                        <FlexRow>
-                            <Button
-                                text="Компетенции"
-                                onClick={() => setActiveTab('competences')}
-                                palette={activeTab === 'competences' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
-                            />
-                            <Button
-                                text="Мотиваторы"
-                                onClick={() => setActiveTab('motivators')}
-                                palette={activeTab === 'motivators' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
-                            />
-                            <Button
-                                text="Ценности"
-                                onClick={() => setActiveTab('values')}
-                                palette={activeTab === 'values' ? ADMIN_PALETTE.BLUE : ADMIN_PALETTE.GRAY}
-                            />
-                        </FlexRow>
-                        <div className="data-tabs"></div>
-
-                        {/* Компетенции */}
-                        {activeTab === 'competences' && chartData?.competences && (
-                            <div className="charts-grid">
-                                {Object.entries(chartData.competences).map(([competence, data]) => (
-                                    <TitledCard title={FIELD_NAMES[competence]}>
-                                        <Chart
-                                            options={getChartOptions(FIELD_NAMES[competence] || competence, data.groups)}
-                                            series={[
-                                                {
-                                                    name: FIELD_NAMES[competence] || competence,
-                                                    data: data.values
-                                                }
-                                            ]}
-                                            type={chartType}
-                                            height={400}
-                                        />
-                                    </TitledCard>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Мотиваторы */}
-                        {activeTab === 'motivators' && chartData?.motivators && (
-                            <div className="charts-grid">
-                                {Object.entries(chartData.motivators).map(([motivator, data]) => (
-                                    <div
-                                        key={motivator}
-                                        className="chart-container"
-                                    >
-                                        <Chart
-                                            options={getChartOptions(FIELD_NAMES[motivator] || motivator, data.groups)}
-                                            series={[
-                                                {
-                                                    name: FIELD_NAMES[motivator] || motivator,
-                                                    data: data.values
-                                                }
-                                            ]}
-                                            type={chartType}
-                                            height={400}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Ценности */}
-                        {activeTab === 'values' && chartData?.values && (
-                            <div className="charts-grid">
-                                {Object.entries(chartData.values).map(([value, data]) => (
-                                    <div
-                                        key={value}
-                                        className="chart-container"
-                                    >
-                                        <Chart
-                                            options={getChartOptions(FIELD_NAMES[value] || value, data.groups)}
-                                            series={[
-                                                {
-                                                    name: FIELD_NAMES[value] || value,
-                                                    data: data.values
-                                                }
-                                            ]}
-                                            type={chartType}
-                                            height={400}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {!chartData && !loading && (
-                            <div className="no-data">
-                                <div className="no-data-icon">📊</div>
-                                <div className="no-data-text">
-                                    <strong>Нет данных для отображения</strong>
-                                    <br />
-                                    Не удалось загрузить данные для группировки
-                                </div>
-                            </div>
-                        )}
+                            </TitledCard>
+                        ))}
                     </div>
-                </Content>
-            </SidebarLayout>
+                )}
+
+                {/* Мотиваторы */}
+                {activeTab === 'motivators' && chartData?.motivators && (
+                    <div className="charts-grid">
+                        {Object.entries(chartData.motivators).map(([motivator, data]) => (
+                            <div
+                                key={motivator}
+                                className="chart-container"
+                            >
+                                <Chart
+                                    options={getChartOptions(FIELD_NAMES[motivator] || motivator, data.groups)}
+                                    series={[
+                                        {
+                                            name: FIELD_NAMES[motivator] || motivator,
+                                            data: data.values
+                                        }
+                                    ]}
+                                    type={chartType}
+                                    height={400}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Ценности */}
+                {activeTab === 'values' && chartData?.values && (
+                    <div className="charts-grid">
+                        {Object.entries(chartData.values).map(([value, data]) => (
+                            <div
+                                key={value}
+                                className="chart-container"
+                            >
+                                <Chart
+                                    options={getChartOptions(FIELD_NAMES[value] || value, data.groups)}
+                                    series={[
+                                        {
+                                            name: FIELD_NAMES[value] || value,
+                                            data: data.values
+                                        }
+                                    ]}
+                                    type={chartType}
+                                    height={400}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {!chartData && !loading && (
+                    <div className="no-data">
+                        <div className="no-data-icon">📊</div>
+                        <div className="no-data-text">
+                            <strong>Нет данных для отображения</strong>
+                            <br />
+                            Не удалось загрузить данные для группировки
+                        </div>
+                    </div>
+                )}
+            </div>
             <ToastContainer
                 position="bottom-right"
                 autoClose={2000}

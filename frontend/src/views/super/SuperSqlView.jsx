@@ -137,119 +137,111 @@ LIMIT 50;`
 
     return (
         <div className="SuperSqlView">
-            <SidebarLayout style={LAYOUT_STYLE.ADMIN}>
-                <Header
-                    title="Суперадмин: SQL-запросник"
-                    name="СуперАдминистратор1"
+            <Sidebar linkTree={SUPER_LINK_TREE} />
+            <h3>SQL Консоль</h3>
+
+            <LabelledBox label="Быстрый доступ">
+                <FlexRow>
+                    <Button
+                        text="Results"
+                        onClick={() => insertExampleQuery('results')}
+                        palette={ADMIN_PALETTE.CYAN}
+                        small
+                    />
+                    <Button
+                        text="Participants"
+                        onClick={() => insertExampleQuery('participants')}
+                        palette={ADMIN_PALETTE.CYAN}
+                        small
+                    />
+                    <Button
+                        text="JOIN"
+                        onClick={() => insertExampleQuery('join')}
+                        palette={ADMIN_PALETTE.CYAN}
+                        small
+                    />
+                </FlexRow>
+            </LabelledBox>
+
+            <FlexColumn>
+                <textarea
+                    className="sql-input"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder="Введите SQL запрос...&#10;Например: SELECT * FROM auth_user LIMIT 10;"
+                    rows={6}
                 />
-                <Sidebar linkTree={SUPER_LINK_TREE} />
-                <Content>
-                    <h3>SQL Консоль</h3>
-
-                    <LabelledBox label="Быстрый доступ">
-                        <FlexRow>
-                            <Button
-                                text="Results"
-                                onClick={() => insertExampleQuery('results')}
-                                palette={ADMIN_PALETTE.CYAN}
-                                small
-                            />
-                            <Button
-                                text="Participants"
-                                onClick={() => insertExampleQuery('participants')}
-                                palette={ADMIN_PALETTE.CYAN}
-                                small
-                            />
-                            <Button
-                                text="JOIN"
-                                onClick={() => insertExampleQuery('join')}
-                                palette={ADMIN_PALETTE.CYAN}
-                                small
-                            />
-                        </FlexRow>
-                    </LabelledBox>
-
-                    <FlexColumn>
-                        <textarea
-                            className="sql-input"
-                            value={query}
-                            onChange={e => setQuery(e.target.value)}
-                            placeholder="Введите SQL запрос...&#10;Например: SELECT * FROM auth_user LIMIT 10;"
-                            rows={6}
+                <FlexRow justifyContent="space-between">
+                    <FlexRow gap="12">
+                        <Button
+                            text="Очистить"
+                            onClick={clearConsole}
+                            palette={ADMIN_PALETTE.RED}
                         />
-                        <FlexRow justifyContent="space-between">
-                            <FlexRow gap="12">
-                                <Button
-                                    text="Очистить"
-                                    onClick={clearConsole}
-                                    palette={ADMIN_PALETTE.RED}
-                                />
-                                <Button
-                                    text={loading ? 'Выполнение...' : 'Выполнить'}
-                                    onClick={executeQuery}
-                                    disabled={loading}
-                                    palette={ADMIN_PALETTE.GREEN}
-                                />
-                            </FlexRow>
-                        </FlexRow>
-                    </FlexColumn>
+                        <Button
+                            text={loading ? 'Выполнение...' : 'Выполнить'}
+                            onClick={executeQuery}
+                            disabled={loading}
+                            palette={ADMIN_PALETTE.GREEN}
+                        />
+                    </FlexRow>
+                </FlexRow>
+            </FlexColumn>
 
-                    {(error || result) && (
-                        <>
-                            <h4>Результат:</h4>
-                            {error && (
-                                <FlexRow>
-                                    <Label
-                                        text={error}
-                                        palette={LABEL_PALETTE.RED}
-                                    />
-                                </FlexRow>
-                            )}
-                            {result?.message && (
-                                <FlexRow>
-                                    <Label
-                                        text={result?.message}
-                                        palette={LABEL_PALETTE.GREEN}
-                                    />
-                                </FlexRow>
-                            )}
-                            {result?.rows && result.rows.length > 0 && (
-                                <FlexColumn>
-                                    <FlexRow>
-                                        <Label
-                                            text={`Найдено строк: ${result.row_count}`}
-                                            palette={LABEL_PALETTE.GREEN}
-                                        />
-                                        <Dropdown label="Выгрузить выбранные данные...">
-                                            <Option
-                                                label="В формате Excel"
-                                                value="xlsx"
-                                                onClick={handleExport}
-                                            />
-                                            <Option
-                                                label="В формате CSV"
-                                                value="csv"
-                                                onClick={handleExport}
-                                            />
-                                        </Dropdown>
-                                    </FlexRow>
-                                    <LabelledBox label="Результат запроса">
-                                        <DbContentTable data={result} />
-                                    </LabelledBox>
-                                </FlexColumn>
-                            )}
-                            {result?.rows && result.rows.length === 0 && (
-                                <FlexRow>
-                                    <Label
-                                        text="Запрос выполнен успешно; данных не выделено"
-                                        palette={LABEL_PALETTE.YELLOW}
-                                    />
-                                </FlexRow>
-                            )}
-                        </>
+            {(error || result) && (
+                <>
+                    <h4>Результат:</h4>
+                    {error && (
+                        <FlexRow>
+                            <Label
+                                text={error}
+                                palette={LABEL_PALETTE.RED}
+                            />
+                        </FlexRow>
                     )}
-                </Content>
-            </SidebarLayout>
+                    {result?.message && (
+                        <FlexRow>
+                            <Label
+                                text={result?.message}
+                                palette={LABEL_PALETTE.GREEN}
+                            />
+                        </FlexRow>
+                    )}
+                    {result?.rows && result.rows.length > 0 && (
+                        <FlexColumn>
+                            <FlexRow>
+                                <Label
+                                    text={`Найдено строк: ${result.row_count}`}
+                                    palette={LABEL_PALETTE.GREEN}
+                                />
+                                <Dropdown label="Выгрузить выбранные данные...">
+                                    <Option
+                                        label="В формате Excel"
+                                        value="xlsx"
+                                        onClick={handleExport}
+                                    />
+                                    <Option
+                                        label="В формате CSV"
+                                        value="csv"
+                                        onClick={handleExport}
+                                    />
+                                </Dropdown>
+                            </FlexRow>
+                            <LabelledBox label="Результат запроса">
+                                <DbContentTable data={result} />
+                            </LabelledBox>
+                        </FlexColumn>
+                    )}
+                    {result?.rows && result.rows.length === 0 && (
+                        <FlexRow>
+                            <Label
+                                text="Запрос выполнен успешно; данных не выделено"
+                                palette={LABEL_PALETTE.YELLOW}
+                            />
+                        </FlexRow>
+                    )}
+                </>
+            )}
         </div>
     );
 }

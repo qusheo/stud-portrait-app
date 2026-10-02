@@ -1,4 +1,92 @@
 .StudentMainView {
+    &-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+        padding: 10px;
+    }
+    .Header {
+        cursor: default;
+        grid-area: header;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+
+        color: #fff;
+        padding: 10px 20px;
+        background-color: #238bc8;
+        font-size: 13px;
+        line-height: 1.5384616;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+
+        .right-side {
+            align-items: center;
+            display: inline-flex;
+            width: 170px;
+            padding-right: 10px;
+            gap: 5px;
+            justify-content: space-between;
+            .user {
+                border: #3e76c3 1px solid;
+                background-color: rgb(109, 166, 219);
+                padding: 8px;
+                border-radius: 10px;
+                align-items: center;
+                gap: 2px;
+                display: inline-flex;
+                gap: 5px;
+                justify-content: space-between;
+                span {
+                    font-weight: 550;
+                    font-size: 13px;
+                }
+            }
+            .exit {
+                cursor: pointer;
+                color: #6e1c32;
+                font-weight: 520;
+                font-size: 14px;
+            }
+            .left-side {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: center;
+                justify-content: left;
+                gap: 50px;
+
+                .logo-area {
+                    display: flex;
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    align-items: center;
+                    justify-content: left;
+                    gap: 5px;
+
+                    img {
+                        height: 30px;
+                    }
+
+                    .logo-title {
+                        font-size: 20px; //16
+                        font-weight: 500; //500
+                    }
+                }
+
+                .title {
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
     .main-controls {
         margin-bottom: 20px;
         display: flex;

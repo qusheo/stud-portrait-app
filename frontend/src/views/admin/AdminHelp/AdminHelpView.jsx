@@ -4,20 +4,7 @@ import { LINK_TREE } from '@utils/utilities';
 import './AdminHelpView.scss';
 
 function AdminHelpView() {
-    return (
-        <div className="AdminHelpView">
-            <SidebarLayout style={LAYOUT_STYLE.MODEUS}>
-                <Header
-                    title="Админ: Справка (библиотека)"
-                    name="Администратор1"
-                />
-                <Sidebar linkTree={LINK_TREE} />
-                <Content>
-                    <span>content</span>
-                </Content>
-            </SidebarLayout>
-        </div>
-    );
+    return <div className="AdminHelpView"></div>;
 }
 
 export default AdminHelpView;

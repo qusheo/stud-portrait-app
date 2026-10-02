@@ -461,18 +461,10 @@ function SuperUploadView() {
 
     return (
         <div className="SuperUploadView">
-            <SidebarLayout style={LAYOUT_STYLE.ADMIN}>
-                <Header
-                    title="Суперадмин: Загрузка данных"
-                    name="СуперАдминистратор1"
-                />
-                <Sidebar linkTree={SUPER_LINK_TREE} />
-                <Content>
-                    <h2>Загрузка данных «Россия — страна возможностей»</h2>
-                    {step === 'upload' && renderUploadStep()}
-                    {step === 'mapping' && renderMappingEditor()}
-                </Content>
-            </SidebarLayout>
+            <Sidebar linkTree={SUPER_LINK_TREE} />
+            <h2>Загрузка данных «Россия — страна возможностей»</h2>
+            {step === 'upload' && renderUploadStep()}
+            {step === 'mapping' && renderMappingEditor()}
         </div>
     );
 }

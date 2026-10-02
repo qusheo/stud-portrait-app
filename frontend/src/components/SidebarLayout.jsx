@@ -15,10 +15,10 @@ export const LAYOUT_STYLE = {
     NORMAL: 'normal'
 };
 
-export function SidebarLayout({ style = LAYOUT_STYLE.MODEUS }) {
+export function SidebarLayout({ style = LAYOUT_STYLE.MODEUS, sidebar = true }) {
     return (
         <div className={`SidebarLayout style--${style}`}>
-            <Sidebar linkTree={LINK_TREE} />
+            {sidebar && <Sidebar linkTree={LINK_TREE} />}
             <Content />
         </div>
     );

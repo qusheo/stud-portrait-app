@@ -283,231 +283,225 @@ function StudentMainView() {
 
     return (
         <div className="StudentMainView">
-            <SidebarLayout style={LAYOUT_STYLE.NORMAL}>
-                <Header
-                    title="Профиль"
-                    name={`${studResults?.student?.stud_name}`}
-                />
-                <Sidebar links={linkList} />
-                <Content>
-                    <Title title="Главная страница" />
-                    <div className="main-controls">
-                        {availableYears.length > 0 && (
-                            <div className="year-selector">
-                                <span className="year-label">Год данных:</span>
-                                <Select
-                                    initValue={selectedYear}
-                                    onChange={setSelectedYear}
-                                >
-                                    {availableYears.map(year => (
-                                        <Option
-                                            value={year}
-                                            label={year}
-                                        />
-                                    ))}
-                                </Select>
-                            </div>
-                        )}
-
-                        <div className="action-buttons">
-                            <Button
-                                text={analyticsLoading ? 'Загрузка...' : showAnalytics ? 'Скрыть аналитику' : 'Показать аналитику'}
-                                onClick={toggleAnalytics}
-                                disabled={analyticsLoading}
-                                palette={STUDENT_PALETTE.BLUE}
-                            />
-                            <Button
-                                text={resumeGenerating ? 'Загрузка...' : 'Скачать резюме DOCX'}
-                                onClick={generateDocxResume}
-                                disabled={resumeGenerating}
-                                palette={STUDENT_PALETTE.GREEN}
-                            />
-                        </div>
-                    </div>
-
-                    {/* АНАЛИТИКА КОМПЕТЕНЦИЙ */}
-                    {showAnalytics && analyticsData && (
-                        <div className="analytics-section">
-                            <div className="analytics-header">
-                                <h2>Аналитика надпрофессиональных компетенций</h2>
-                                <p className="analytics-description">Анализ результатов тестирования с рекомендациями по развитию</p>
-                            </div>
-
-                            {analyticsData.general_interpretation && (
-                                <div className="general-interpretation">
-                                    <p>{analyticsData.general_interpretation}</p>
-                                </div>
-                            )}
-
-                            <div className="analytics-cards-grid">
-                                {analyticsData.competencies?.map(comp => {
-                                    if (!comp.ai) return null;
-                                    return (
-                                        <div
-                                            key={comp.field}
-                                            className="analytics-card"
-                                        >
-                                            <div className="analytics-card-header">
-                                                <div className="competency-title">
-                                                    <span className="emoji">{comp.ai.emoji}</span>
-                                                    <h3>{comp.name}</h3>
-                                                </div>
-                                                <div className="score-badge">{comp.score}/800</div>
-                                            </div>
-                                            <div className="progress-bar">
-                                                <div
-                                                    className="progress-fill"
-                                                    style={{
-                                                        width: `${comp.percentage}%`,
-                                                        backgroundColor: comp.ai.color
-                                                    }}
-                                                ></div>
-                                            </div>
-                                            <div
-                                                className="level-indicator"
-                                                style={{ color: comp.ai.color }}
-                                            >
-                                                <strong>{comp.ai.level.toUpperCase()}</strong> уровень
-                                                <span className="percentile">({comp.ai.percentile}-й процентиль)</span>
-                                            </div>
-                                            <div className="interpretation">
-                                                <p>{comp.ai.interpretation}</p>
-                                            </div>
-                                            {comp.ai.recommendations && comp.ai.recommendations.length > 0 && (
-                                                <div className="recommendations">
-                                                    <strong>📌 Рекомендации:</strong>
-                                                    <ul>
-                                                        {comp.ai.recommendations.map((rec, idx) => (
-                                                            <li key={idx}>{rec}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
+            <Header
+                title="Профиль Студента"
+                name={`${studResults?.student?.stud_name}`}
+            />
+            <div className="StudentMainView-body">
+                <div className="main-controls">
+                    {availableYears.length > 0 && (
+                        <div className="year-selector">
+                            <span className="year-label">Год данных:</span>
+                            <Select
+                                initValue={selectedYear}
+                                onChange={setSelectedYear}
+                            >
+                                {availableYears.map(year => (
+                                    <Option
+                                        value={year}
+                                        label={year}
+                                    />
+                                ))}
+                            </Select>
                         </div>
                     )}
 
-                    {/* ГРАФИКИ РАДИАРНЫХ ДИАГРАММ */}
-                    <div className="charts-grid">
-                        {loading ? (
-                            <div className="loading">Загрузка данных...</div>
-                        ) : chartsData.length > 0 ? (
-                            chartsData.map((chart, index) => (
-                                <div
-                                    key={index}
-                                    className="chart-card"
-                                >
-                                    <div className="chart-header">
-                                        <h3>{chart.title}</h3>
-                                        {chart.year && <span className="chart-year">{chart.year}</span>}
-                                    </div>
-                                    <div className="chart-container">
-                                        <ChartSwitcher
-                                            seriesLabel={`${chart.year} год`}
-                                            seriesData={chart.data}
-                                            categories={chart.labels}
-                                            competencyKeys={chart.competencyKeys}
-                                        />
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="no-data">
-                                {availableYears.length > 0 ? 'Нет данных для отображения' : 'Нет доступных данных'}
-                            </div>
-                        )}
-                        {/* Диаграмма компетенций */}
-                        {/* competencyData.length > 0 && (
-                            <div className="planetary-chart-card">
-                                <PlanetaryChart
-                                    title="Карта компетенций"
-                                    items={competencyData}
-                                    type="competency"
-                                    height={500}
-                                />
-                            </div>
-                        )* /}
-
-                        {/* Диаграмма мотиваторов */}
-                        {/* motivatorData.length > 0 && (
-                            <div className="planetary-chart-card">
-                                <PlanetaryChart
-                                    title="Карта мотиваторов"
-                                    items={motivatorData}
-                                    type="motivator"
-                                    height={500}
-                                />
-                            </div>
-                        ) */}
-                    </div>
-
-                    {/* СРАВНИТЕЛЬНАЯ СТАТИСТИКА */}
-                    <StudentComparisonStats
-                        studentId={studentId}
-                        year={selectedYear}
-                    />
-
-                    {/* VAM ГРАФИК ДЛЯ СТУДЕНТА */}
-                    <div className="student-vam-section">
-                        <h3>📈 Value-Added (индивидуальный анализ)</h3>
-                        <div className="vam-controls">
-                            <label>Компетенция:</label>
-                            <Select
-                                initValue={vamCompetency}
-                                onChange={setVamCompetency}
-                            >
-                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                    <Option
-                                        value={key}
-                                        label={name}
-                                    />
-                                ))}
-                            </Select>
-                        </div>
-                        <StudentVamChart
-                            studentId={studentId}
-                            competency={vamCompetency}
+                    <div className="action-buttons">
+                        <Button
+                            text={analyticsLoading ? 'Загрузка...' : showAnalytics ? 'Скрыть аналитику' : 'Показать аналитику'}
+                            onClick={toggleAnalytics}
+                            disabled={analyticsLoading}
+                            palette={STUDENT_PALETTE.BLUE}
+                        />
+                        <Button
+                            text={resumeGenerating ? 'Загрузка...' : 'Скачать резюме DOCX'}
+                            onClick={generateDocxResume}
+                            disabled={resumeGenerating}
+                            palette={STUDENT_PALETTE.GREEN}
                         />
                     </div>
+                </div>
 
-                    {/* LGM ГРАФИК ДЛЯ СТУДЕНТА */}
-                    <div className="student-lgm-section">
-                        <h3>📈 Динамика развития компетенций (LGM)</h3>
-                        <div className="lgm-controls">
-                            <label>Компетенция:</label>
-                            <Select
-                                initValue={lgmCompetency}
-                                onChange={setLgmCompetency}
-                            >
-                                {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                    <Option
-                                        value={key}
-                                        label={name}
-                                    />
-                                ))}
-                            </Select>
+                {/* АНАЛИТИКА КОМПЕТЕНЦИЙ */}
+                {showAnalytics && analyticsData && (
+                    <div className="analytics-section">
+                        <div className="analytics-header">
+                            <h2>Аналитика надпрофессиональных компетенций</h2>
+                            <p className="analytics-description">Анализ результатов тестирования с рекомендациями по развитию</p>
                         </div>
-                        {lgmData.length === 0 ? (
-                            <div className="no-data">Нет данных для отображения</div>
-                        ) : (
-                            <StudentLgmChart
-                                data={lgmData}
-                                competency={lgmCompetency}
-                                competencyLabel={COMPETENCIES_NAMES[lgmCompetency]}
-                            />
-                        )}
-                    </div>
 
-                    {/* ИНДИВИДУАЛЬНЫЙ АНАЛИЗ ВЛИЯНИЯ ДИСЦИПЛИН */}
-                    <div className="student-discipline-impact-section">
-                        <h3>📚 Влияние дисциплин на ваши компетенции</h3>
-                        <StudentDisciplineImpact studentId={studentId} />
+                        {analyticsData.general_interpretation && (
+                            <div className="general-interpretation">
+                                <p>{analyticsData.general_interpretation}</p>
+                            </div>
+                        )}
+
+                        <div className="analytics-cards-grid">
+                            {analyticsData.competencies?.map(comp => {
+                                if (!comp.ai) return null;
+                                return (
+                                    <div
+                                        key={comp.field}
+                                        className="analytics-card"
+                                    >
+                                        <div className="analytics-card-header">
+                                            <div className="competency-title">
+                                                <span className="emoji">{comp.ai.emoji}</span>
+                                                <h3>{comp.name}</h3>
+                                            </div>
+                                            <div className="score-badge">{comp.score}/800</div>
+                                        </div>
+                                        <div className="progress-bar">
+                                            <div
+                                                className="progress-fill"
+                                                style={{
+                                                    width: `${comp.percentage}%`,
+                                                    backgroundColor: comp.ai.color
+                                                }}
+                                            ></div>
+                                        </div>
+                                        <div
+                                            className="level-indicator"
+                                            style={{ color: comp.ai.color }}
+                                        >
+                                            <strong>{comp.ai.level.toUpperCase()}</strong> уровень
+                                            <span className="percentile">({comp.ai.percentile}-й процентиль)</span>
+                                        </div>
+                                        <div className="interpretation">
+                                            <p>{comp.ai.interpretation}</p>
+                                        </div>
+                                        {comp.ai.recommendations && comp.ai.recommendations.length > 0 && (
+                                            <div className="recommendations">
+                                                <strong>📌 Рекомендации:</strong>
+                                                <ul>
+                                                    {comp.ai.recommendations.map((rec, idx) => (
+                                                        <li key={idx}>{rec}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </Content>
-            </SidebarLayout>
+                )}
+
+                {/* ГРАФИКИ РАДИАРНЫХ ДИАГРАММ */}
+                <div className="charts-grid">
+                    {loading ? (
+                        <div className="loading">Загрузка данных...</div>
+                    ) : chartsData.length > 0 ? (
+                        chartsData.map((chart, index) => (
+                            <div
+                                key={index}
+                                className="chart-card"
+                            >
+                                <div className="chart-header">
+                                    <h3>{chart.title}</h3>
+                                    {chart.year && <span className="chart-year">{chart.year}</span>}
+                                </div>
+                                <div className="chart-container">
+                                    <ChartSwitcher
+                                        seriesLabel={`${chart.year} год`}
+                                        seriesData={chart.data}
+                                        categories={chart.labels}
+                                        competencyKeys={chart.competencyKeys}
+                                    />
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="no-data">{availableYears.length > 0 ? 'Нет данных для отображения' : 'Нет доступных данных'}</div>
+                    )}
+                    {/* Диаграмма компетенций */}
+                    {competencyData.length > 0 && (
+                        <div className="planetary-chart-card">
+                            <PlanetaryChart
+                                title="Карта компетенций"
+                                items={competencyData}
+                                type="competency"
+                                height={500}
+                            />
+                        </div>
+                    )}
+
+                    {/* Диаграмма мотиваторов */}
+                    {motivatorData.length > 0 && (
+                        <div className="planetary-chart-card">
+                            <PlanetaryChart
+                                title="Карта мотиваторов"
+                                items={motivatorData}
+                                type="motivator"
+                                height={500}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* СРАВНИТЕЛЬНАЯ СТАТИСТИКА */}
+                <StudentComparisonStats
+                    studentId={studentId}
+                    year={selectedYear}
+                />
+
+                {/* VAM ГРАФИК ДЛЯ СТУДЕНТА */}
+                <div className="student-vam-section">
+                    <h3>📈 Value-Added (индивидуальный анализ)</h3>
+                    <div className="vam-controls">
+                        <label>Компетенция:</label>
+                        <Select
+                            initValue={vamCompetency}
+                            onChange={setVamCompetency}
+                        >
+                            {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                <Option
+                                    value={key}
+                                    label={name}
+                                />
+                            ))}
+                        </Select>
+                    </div>
+                    <StudentVamChart
+                        studentId={studentId}
+                        competency={vamCompetency}
+                    />
+                </div>
+
+                {/* LGM ГРАФИК ДЛЯ СТУДЕНТА */}
+                <div className="student-lgm-section">
+                    <h3>📈 Динамика развития компетенций (LGM)</h3>
+                    <div className="lgm-controls">
+                        <label>Компетенция:</label>
+                        <Select
+                            initValue={lgmCompetency}
+                            onChange={setLgmCompetency}
+                        >
+                            {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
+                                <Option
+                                    value={key}
+                                    label={name}
+                                />
+                            ))}
+                        </Select>
+                    </div>
+                    {lgmData.length === 0 ? (
+                        <div className="no-data">Нет данных для отображения</div>
+                    ) : (
+                        <StudentLgmChart
+                            data={lgmData}
+                            competency={lgmCompetency}
+                            competencyLabel={COMPETENCIES_NAMES[lgmCompetency]}
+                        />
+                    )}
+                </div>
+
+                {/* ИНДИВИДУАЛЬНЫЙ АНАЛИЗ ВЛИЯНИЯ ДИСЦИПЛИН */}
+                <div className="student-discipline-impact-section">
+                    <h3>📚 Влияние дисциплин на ваши компетенции</h3>
+                    <StudentDisciplineImpact studentId={studentId} />
+                </div>
+            </div>
         </div>
     );
 }
