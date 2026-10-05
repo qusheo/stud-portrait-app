@@ -26,7 +26,6 @@ import pandas as pd
 import pdfplumber
 import requests
 from bs4 import BeautifulSoup
-from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -229,6 +228,8 @@ class _CompetencyMatcher:
     _instance: Optional["_CompetencyMatcher"] = None
 
     def __init__(self, model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"):
+        from sentence_transformers import SentenceTransformer
+
         logger.info("Загрузка модели эмбеддингов: %s", model_name)
         self._model = SentenceTransformer(model_name)
         self._build_index()

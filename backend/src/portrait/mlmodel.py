@@ -1,7 +1,5 @@
 from pathlib import Path
 import threading
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 
 DEVICE_AUTO = "auto"
 DEVICE_CUDA = "cuda"
@@ -19,6 +17,9 @@ class MlModel:
     @classmethod
     def load(cls):
         return False
+        import torch
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+
         with cls.LOAD_LOCK:
             try:
                 print(f"[model] (i): loading model from folder {cls.PATH}")
@@ -82,6 +83,8 @@ class MlModel:
     @classmethod
     def generate(cls, prompt: str, max_length=400, temperature=.15, top_p=.85):
         return None
+        import torch
+
         model, tokenizer = cls.get()
         if model is None:
             return None

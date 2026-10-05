@@ -87,6 +87,34 @@ class Api {
         return fetch(`${HOST}/portrait/parse-curriculum/mappings/`);
     }
 
+    /* *** TEACHERS *** */
+
+    getTeachers(search = '', limit = 100) {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        params.append('limit', limit);
+        return fetch(`${HOST}/portrait/teachers/?${params.toString()}`);
+    }
+
+    getTeacherDetail(teacherId) {
+        return fetch(`${HOST}/portrait/teachers/${teacherId}/`);
+    }
+
+    postParseTeachers(sourceUrls = [], includeLms = true) {
+        return fetch(`${HOST}/portrait/parse-teachers/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                source_urls: sourceUrls,
+                include_lms: includeLms
+            })
+        });
+    }
+
+    getParseTeachersLog() {
+        return fetch(`${HOST}/portrait/parse-teachers/log/`);
+    }
+
     // *** DATASESH *** */
     postPortraitDataseshNew() {
         const promise = fetch(`${HOST}/portrait/datasesh/new/`, {

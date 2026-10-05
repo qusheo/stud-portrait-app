@@ -320,3 +320,57 @@ class CurriculumParseLog(models.Model):
  
     def __str__(self) -> str:
         return f"[{self.status}] {self.started_at:%Y-%m-%d %H:%M}"
+
+
+class Teachers(models.Model):
+    teacher_id = models.AutoField(primary_key=True)
+    full_name = models.CharField(max_length=512, unique=True)
+    position = models.CharField(max_length=1024, blank=True, null=True)
+    degree = models.CharField(max_length=512, blank=True, null=True)
+    department = models.CharField(max_length=1024, blank=True, null=True)
+    email = models.CharField(max_length=256, blank=True, null=True)
+    profile_url = models.URLField(max_length=1024, blank=True, null=True)
+    source_url = models.URLField(max_length=1024, blank=True, null=True)
+    interests = models.JSONField(default=list)
+    qualification_courses = models.JSONField(default=list)
+    publications = models.JSONField(default=list)
+    projects = models.JSONField(default=list)
+    modeus_disciplines = models.JSONField(default=list)
+    raw_profile = models.JSONField(default=dict)
+    parsed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = "teachers"
+        ordering = ["full_name"]
+
+    def __str__(self) -> str:
+        return self.full_name
+
+
+class TeacherParseLog(models.Model):
+    STATUS_RUNNING = "running"
+    STATUS_SUCCESS = "success"
+    STATUS_ERROR = "error"
+    STATUS_CHOICES = [
+        (STATUS_RUNNING, "Выполняется"),
+        (STATUS_SUCCESS, "Успешно"),
+        (STATUS_ERROR, "Ошибка"),
+    ]
+
+    id = models.AutoField(primary_key=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_RUNNING)
+    source_urls = models.JSONField(default=list)
+    teachers_found = models.IntegerField(default=0)
+    teachers_saved = models.IntegerField(default=0)
+    error_message = models.TextField(blank=True)
+
+    class Meta:
+        managed = False
+        db_table = "teacherparselog"
+        ordering = ["-started_at"]
+
+    def __str__(self) -> str:
+        return f"[{self.status}] {self.started_at:%Y-%m-%d %H:%M}"
