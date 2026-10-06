@@ -248,7 +248,7 @@ class TableAcademicPerformances:
     """
     ID =             'perf_id'
     PARTICIPANT =    'perf_participant'
-    EDU_DISCIPLINE = 'perf_edu_discipline'
+    DISCIPLINE =     'perf_discipline'
     YEAR =           'perf_year'
     CURRENT =        'perf_current'
     DIGITAL =        'perf_digital'

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
@@ -455,82 +455,57 @@ function AdminAnalysisDisciplinesView() {
 
         return (
             <div className="discipline-impact-results">
-                {disciplineData.map((result, idx) => (
-                    <div
-                        key={idx}
-                        className="discipline-result-card"
-                    >
-                        <h5>📊 {COMPETENCIES_NAMES[result.competency] || result.competency}</h5>
+                {disciplineData.map((compResult, idx) => {
+                    const competency = compResult.results?.[0]?.competency;
+                    return (
+                        <div key={idx} className="discipline-result-card">
+                            <h5>📊 {COMPETENCIES_NAMES[competency] || competency || 'Без компетенции'}</h5>
 
-                        {result.results && result.results.length > 0 ? (
-                            result.results.map((disc, didx) => (
-                                <TitledCard title={disc.discipline}>
-                                    {/* ── Агрегат по всем направлениям ── */}
-                                    <h6 style={{ margin: '0 0 6px', color: '#555', fontWeight: 500 }}>Все направления</h6>
-                                    <Table>
-                                        {TABLE_HEADER}
-                                        {renderGradeRows(disc.grade_impacts)}
-                                    </Table>
+                            {compResult.results && compResult.results.length > 0 ? (
+                                compResult.results.map((disc, didx) => (
+                                    <TitledCard key={didx} title={disc.discipline}>
+                                        <h6 style={{ margin: '0 0 6px', color: '#555', fontWeight: 500 }}>Все направления</h6>
+                                        <Table>
+                                            {TABLE_HEADER}
+                                            {renderGradeRows(disc.grade_impacts)}
+                                        </Table>
 
-                                    {/* ── Разбивка по направлениям ── */}
-                                    {disc.by_direction && Object.keys(disc.by_direction).length > 0 && (
-                                        <details style={{ marginTop: 12 }}>
-                                            <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#1565c0', padding: '4px 0' }}>
-                                                📂 По направлениям ({Object.keys(disc.by_direction).length})
-                                            </summary>
-                                            {Object.entries(disc.by_direction).map(([direction, dirData]) => (
-                                                <div
-                                                    key={direction}
-                                                    style={{ marginTop: 10 }}
-                                                >
-                                                    <div
-                                                        style={{
+                                        {disc.by_direction && Object.keys(disc.by_direction).length > 0 && (
+                                            <details style={{ marginTop: 12 }}>
+                                                <summary style={{ cursor: 'pointer', fontWeight: 500, color: '#1565c0', padding: '4px 0' }}>
+                                                    📂 По направлениям ({Object.keys(disc.by_direction).length})
+                                                </summary>
+                                                {Object.entries(disc.by_direction).map(([direction, dirData]) => (
+                                                    <div key={direction} style={{ marginTop: 10 }}>
+                                                        <div style={{
                                                             fontWeight: 500,
                                                             fontSize: 13,
                                                             color: '#333',
                                                             marginBottom: 4,
                                                             paddingLeft: 4,
                                                             borderLeft: '3px solid #1565c0'
-                                                        }}
-                                                    >
-                                                        {direction}
+                                                        }}>
+                                                            {direction}
+                                                        </div>
+                                                        <Table>
+                                                            {TABLE_HEADER}
+                                                            {renderGradeRows(dirData.grade_impacts, direction)}
+                                                        </Table>
                                                     </div>
-                                                    <Table>
-                                                        {TABLE_HEADER}
-                                                        {renderGradeRows(dirData.grade_impacts, direction)}
-                                                    </Table>
-                                                </div>
-                                            ))}
-                                        </details>
-                                    )}
-
-                                    <FlexRow>
-                                        <Label>
-                                            <FlexRow gap="15">
-                                                <span>{disc.summary?.effective ? 'Эффективна' : 'Неэффективна'}</span>
-                                                {disc.summary && (
-                                                    <>
-                                                        <span>
-                                                            Средний эффект: {disc.summary.average_effect_size?.toFixed(3) || '0.000'}
-                                                        </span>
-                                                        <span>Средний прирост: {disc.summary.average_gain?.toFixed(1) || '0.0'}</span>
-                                                    </>
-                                                )}
-                                            </FlexRow>
-                                        </Label>
-                                    </FlexRow>
-                                </TitledCard>
-                            ))
-                        ) : (
-                            <NoData text="Нет результатов для этой компетенции" />
-                        )}
-                    </div>
-                ))}
+                                                ))}
+                                            </details>
+                                        )}
+                                    </TitledCard>
+                                ))
+                            ) : (
+                                <NoData text="Нет данных по этой компетенции" />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
         );
     };
-
-    // Функция преобразования
     const prepareSankeyFromHeatmap = heatmapData => {
         if (!heatmapData || heatmapData.length === 0) return null;
         const disciplines = [...new Set(heatmapData.map(d => d.discipline))];

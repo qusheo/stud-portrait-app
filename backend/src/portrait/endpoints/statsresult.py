@@ -1,4 +1,4 @@
-# Модуль статистики и результатов.
+﻿# Модуль статистики и результатов.
 
 from django.db.models import Count, Q
 
@@ -248,20 +248,20 @@ def get_filter_options_with_counts(request):
         institutions_query = institutions_query.filter(res_participant__in=valid_students)
 
     institutions_counts = institutions_query                                                                  \
-        .values('res_institution__inst_id', 'res_institution__inst_name') \
+        .values('res_institution_id')                                                                         \
         .annotate(count=Count('res_id'))                                                                      \
         .order_by('-count')
 
+    _inst_names = dict(Institutions.objects.values_list('inst_id', 'inst_name'))
     institutions_list = [
         {
-            "id":    item['res_institution__inst_id'],
-            "name":  item['res_institution__inst_name'],
+            "id":    item['res_institution_id'],
+            "name":  _inst_names.get(item['res_institution_id']),
             "count": item['count']
         }
         for item in institutions_counts
-        if item['res_institution__inst_name']
+        if item['res_institution_id'] and _inst_names.get(item['res_institution_id'])
     ]
-
     # majors
 
     directions_query = base_results
@@ -293,19 +293,20 @@ def get_filter_options_with_counts(request):
         directions_query = directions_query.filter(res_participant__in=valid_students)
 
     directions_counts = directions_query                 \
-        .values('res_edu_specialty__spec_id', 'res_edu_specialty__spec_name') \
+        .values('res_edu_specialty_id')                  \
         .annotate(count=Count('res_id'))                 \
         .order_by('-count')
 
+    _spec_names = dict(Specialties.objects.values_list('spec_id', 'spec_name'))
     directions_list = [
         {
-            "id":    item['res_edu_specialty__spec_id'],
-            "name":  item['res_edu_specialty__spec_name'],
+            "id":    item['res_edu_specialty_id'],
+            "name":  _spec_names.get(item['res_edu_specialty_id']),
             "count": item['count']
         }
-        for item in directions_counts if item['res_edu_specialty__spec_name']
+        for item in directions_counts
+        if item['res_edu_specialty_id'] and _spec_names.get(item['res_edu_specialty_id'])
     ]
-
     # courses
 
     courses_query = base_results
@@ -836,13 +837,13 @@ def get_student_portrait(request):
         # Получаем оценки по дисциплинам
         academic_performance = AcademicPerformances.objects.filter(
             perf_participant=student
-        ).select_related('perf_edu_discipline').order_by('perf_year', 'perf_edu_discipline__edu_disc_name')
+        ).order_by('perf_year', 'perf_discipline')
         
         grades = []
         for grade in academic_performance:
             grades.append({
                 'year': grade.perf_year,
-                'discipline': grade.perf_edu_discipline.edu_disc_name if grade.perf_edu_discipline else None,
+                'discipline': grade.perf_discipline,
                 'main': grade.perf_main,
                 'current': grade.perf_current,
                 'digital': grade.perf_digital,

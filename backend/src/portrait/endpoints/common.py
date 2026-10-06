@@ -1,4 +1,4 @@
-
+﻿
 from docx.document import Document as DocumentObject
 from functools import wraps
 import hashlib
@@ -24,7 +24,7 @@ from ..models import (
     Academicperformances as AcademicPerformances, Competencecenters as CompetenceCenters, Courseresults as Courseresults,
     Datauploadtemplate as DataUploadTemplate, Educationdisciplines as EducationDisciplines, Educationforms as EducationForms,
     Educationlevels as EducationLevels, Educationspecialties as EducationSpecialties, Institutions, Participants,
-    Studentmapping as StudentMapping, Results as Results
+    Studentmapping as StudentMapping, Results as Results, Specialties
 )
 
 

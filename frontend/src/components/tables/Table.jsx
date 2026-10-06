@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+﻿import React, { createContext, useContext } from 'react';
 
 import './Table.scss';
 
@@ -27,11 +27,10 @@ export function TableHeader({ children }) {
     );
 }
 
-export function TableRow({ children, key, className }) {
+export function TableRow({ children, className }) {
     const arr = React.Children.toArray(children);
     return (
         <tr
-            key={key}
             className={className}
         >
             {arr.filter(child => child.type === TableItem)}
@@ -39,13 +38,12 @@ export function TableRow({ children, key, className }) {
     );
 }
 
-export function TableItem({ children, key, className, title, onClick, cssVars }) {
+export function TableItem({ children, className, title, onClick, cssVars }) {
     const { inHeader } = useContext(TableContext);
     const Cell = inHeader ? 'th' : 'td';
     const variables = cssVars && Object.fromEntries(Object.entries(cssVars).filter(([key]) => key.startsWith('--')));
     return (
         <Cell
-            key={key}
             className={className}
             title={title}
             onClick={() => onClick?.()}
