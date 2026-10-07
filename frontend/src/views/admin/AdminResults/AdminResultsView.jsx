@@ -23,6 +23,8 @@ import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
+import DataTable from '@components/tables/DataTable';
+import buildStudentColumns from '@components/tables/buildStudentTable.js';
 
 function AdminResultsView() {
     const [sessionId, setSessionId] = useState(1);
@@ -435,9 +437,17 @@ function AdminResultsView() {
         navigate('/admin/grouping', { state: groupingData });
     };
 
+    const cellClickHandlers = {};
+    const rows = results;
+    const columns = buildStudentColumns();
     return (
         <div className="AdminResultsView">
-            <div className="results-container">
+            <DataTable
+                rows={rows}
+                columns={columns}
+                cellClickHandlers={cellClickHandlers}
+            />
+            <div className="results-container" style={{ hidden: true }}>
                 <div className="results-header">
                     <h2>Результаты тестирования</h2>
                     <FlexRow wrap={WRAP.DO}>
