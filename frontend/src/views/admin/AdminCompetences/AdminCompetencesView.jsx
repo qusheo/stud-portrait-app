@@ -1,15 +1,9 @@
 import { useState, useEffect, React, useRef, cloneElement } from 'react';
-import {
-    PieChart,
-    Pie,
-    Tooltip as TooltipRecharts,
-    Legend,
-    ResponsiveContainer
-} from 'recharts';
+import { PieChart, Pie, Tooltip as TooltipRecharts, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTable_course, CompetencyTrendLine } from './CompetencesCharts.jsx'
+import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTable_course, CompetencyTrendLine } from './CompetencesCharts.jsx';
 import { ToastContainer, toast } from 'react-toastify';
 import CompetencySegmentation from './CompetencySegmentation';
 
@@ -96,7 +90,7 @@ function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {
 
     const years = [];
     const yearsMap = {};
-    yearsOptions.forEach(item => { 
+    yearsOptions.forEach(item => {
         const yearValue = parseInt(item.value.split('/')[1]);
         years.push(yearValue);
         yearsMap[yearValue] = item.label;
@@ -110,7 +104,7 @@ function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {
         if (!grouped[item.name]) {
             grouped[item.name] = {
                 name: item.name,
-                displayName: getLabel(item.name),
+                displayName: getLabel(item.name)
             };
         }
         grouped[item.name][item.year] = item.average;
@@ -120,13 +114,13 @@ function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {
         name: item.name,
         displayName: item.displayName,
         prev_score: item[yearsMap[minValue]] ?? 0,
-        score: item[yearsMap[maxValue]] ?? 0,
+        score: item[yearsMap[maxValue]] ?? 0
     }));
     const colors = ['#658ed0', '#904acc'];
 
     return (
         <div className="dashboard-chart-row">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 50, paddingLeft: 50 }}>
+            <div style={{ display: 'flex', alignItems: 'center', paddingLeft: 50, maxWidth: '100%', justifyContent: 'space-between' }}>
                 <h4 className="section-label">Распределение по компетенциям (средний балл)</h4>
                 <div className="slider-wrapper">
                     <Slider
@@ -140,26 +134,26 @@ function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {
                             setMaxValue(max);
                         }}
                         marks={yearsMap}
-                        style={{ width: '400px' }}
+                        style={{ width: '90%', marginRight: '50px' }}
                         handleRender={(node, handleProps) => {
                             const isStart = handleProps.index === 0;
                             return cloneElement(node, {
                                 style: {
                                     ...node.props.style,
                                     backgroundColor: isStart ? colors[0] : colors[1],
-                                    borderColor: isStart ? colors[0] : colors[1],
-                                },
+                                    borderColor: isStart ? colors[0] : colors[1]
+                                }
                             });
                         }}
                         styles={{
                             rail: {
                                 backgroundColor: '#e5e7eb',
-                                height: 6,
+                                height: 6
                             },
                             track: {
                                 backgroundColor: '#a2bce6',
-                                height: 6,
-                            },
+                                height: 6
+                            }
                         }}
                     />
                 </div>
@@ -170,16 +164,16 @@ function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {
                     range={[yearsMap[minValue], yearsMap[maxValue]]}
                     colors={colors}
                 />
-            <div style={{ padding: 5, marginBottom: 20 }}>
-                <CompetencyTable
-                    data={tableData}
-                    filters={filters}
-                    range={[yearsMap[minValue], yearsMap[maxValue]]}
-                />
-            </div>
+                <div style={{ padding: 5, marginBottom: 20 }}>
+                    <CompetencyTable
+                        data={tableData}
+                        filters={filters}
+                        range={[yearsMap[minValue], yearsMap[maxValue]]}
+                    />
+                </div>
             </div>
         </div>
-    )
+    );
 }
 function CompRadarWithTable({ data, filters }) {
     const [open, setOpen] = useState(false);
@@ -190,20 +184,26 @@ function CompRadarWithTable({ data, filters }) {
             <CompRadar data={data} />
             <button
                 className="ct-toggle"
-                onMouseDown={(e) => e.stopPropagation()}
+                onMouseDown={e => e.stopPropagation()}
                 onClick={() => setOpen(!open)}
             >
                 {open ? 'Скрыть таблицу' : 'Показать таблицу'}
             </button>
             <div className={`ct-table-wrap ${open ? 'open' : ''}`}></div>
-            <DraggablePopover open={open} onClose={() => setOpen(false)} width={600} 
-                                initialPosition={position} onPositionChange={(pos) => setPosition(pos)}>
-                <CompetencyTable_course 
-                                data={data}
-                                filters={filters}/>
+            <DraggablePopover
+                open={open}
+                onClose={() => setOpen(false)}
+                width={600}
+                initialPosition={position}
+                onPositionChange={pos => setPosition(pos)}
+            >
+                <CompetencyTable_course
+                    data={data}
+                    filters={filters}
+                />
             </DraggablePopover>
         </div>
-    )
+    );
 }
 function YearsSelect({ year, yearsOptions, onChange }) {
     const [isActive, setIsActive] = useState(false);
@@ -212,16 +212,14 @@ function YearsSelect({ year, yearsOptions, onChange }) {
     const selectedYear = useRef(year);
     const options = yearsOptions ?? [];
 
-    const onChangeSelect = (value) => {
+    const onChangeSelect = value => {
         selectedYear.current = parseInt(value);
         onChange(value);
     };
 
     return (
         <div className="years-select">
-            <div
-                className="extra-title"
-            >
+            <div className="extra-title">
                 <span>за</span>
 
                 <div
@@ -242,11 +240,15 @@ function YearsSelect({ year, yearsOptions, onChange }) {
                             }}
                             onChange={e => onChangeSelect(e.target.value)}
                         >
-                            {options.length && options.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
+                            {options.length &&
+                                options.map(option => (
+                                    <option
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </option>
+                                ))}
                         </select>
                     ) : (
                         <span style={{ fontWeight: 600 }}>{year}</span>
@@ -256,7 +258,7 @@ function YearsSelect({ year, yearsOptions, onChange }) {
                 <span>учебный год</span>
             </div>
         </div>
-    )
+    );
 }
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
     if (!data) return null;
@@ -280,7 +282,11 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
             <div className="dashboard-container">
                 <div className="dashboard-title">
                     <p> Статистика </p>
-                    <YearsSelect year={`${year-1}/${year}`} yearsOptions={yearsOptions} onChange={onYearChange} />
+                    <YearsSelect
+                        year={`${year - 1}/${year}`}
+                        yearsOptions={yearsOptions}
+                        onChange={onYearChange}
+                    />
                 </div>
                 <div className="dashboard-grid">
                     {/* Левая колонка */}
@@ -296,7 +302,7 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                             value={data.col1.avg_lvl.val}
                             prev={data.col1.avg_lvl.prev}
                         />
-                        <span className='line-separator'></span>
+                        <span className="line-separator"></span>
                         <Stat
                             label={
                                 data.col1.motiv.count.curr !== 0
@@ -327,78 +333,89 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                             isText={true}
                             note={'*По доли среди студентов'}
                         />
-                        <span className='line-separator'></span>
+                        <span className="line-separator"></span>
 
-                    <div className="col-center">
-                        {data.col2.uni_place !== 0 ? (
-                            <Stat
-                                label={col2_data['header']}
-                                value={col2_data['name']}
-                            />
-                        ) : (
-                            <div className="uni-info mb-6">
-                                <h4 className="text-xs uppercase text-gray-400 font-bold">{col2_data['header']}</h4>
-                                <div className="text-xl font-bold text-blue-600">
-                                    <Tooltip text={col2_data['name']} placement='right'>
-                                        {col2_data['name'].length > 50 ? `${col2_data['name'].substring(0, 50)}...` : col2_data['name']}
-                                    </Tooltip>
+                        <div className="col-center">
+                            {data.col2.uni_place !== 0 ? (
+                                <Stat
+                                    label={col2_data['header']}
+                                    value={col2_data['name']}
+                                />
+                            ) : (
+                                <div className="uni-info mb-6">
+                                    <h4 className="text-xs uppercase text-gray-400 font-bold">{col2_data['header']}</h4>
+                                    <div className="text-xl font-bold text-blue-600">
+                                        <Tooltip
+                                            text={col2_data['name']}
+                                            placement="right"
+                                        >
+                                            {col2_data['name'].length > 50 ? `${col2_data['name'].substring(0, 50)}...` : col2_data['name']}
+                                        </Tooltip>
+                                    </div>
+                                    <div className="text-sm text-gray-500">{toFixed(col2_data['score'], 1)} баллов (среднее)</div>
                                 </div>
-                                <div className="text-sm text-gray-500">{toFixed(col2_data['score'], 1)} баллов (среднее)</div>
-                            </div>
-                        )}
-                        <div className="chart-wrapper">
-                            <ResponsiveContainer
-                                width="100%"
-                                height="300"
-                            >
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        dataKey={'value'}
-                                        nameKey={'name'}
-                                        innerRadius="80"
-                                        outerRadius="100"
-                                        startAngle={90}
-                                        endAngle={-270}
-                                    ></Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
+                            )}
+                            <div className="chart-wrapper">
+                                <ResponsiveContainer
+                                    width="100%"
+                                    height="300"
+                                >
+                                    <PieChart>
+                                        <Pie
+                                            data={pieData}
+                                            dataKey={'value'}
+                                            nameKey={'name'}
+                                            innerRadius="80"
+                                            outerRadius="100"
+                                            startAngle={90}
+                                            endAngle={-270}
+                                        ></Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
 
-                            <div className="absolute-center">
-                                {data.col2.participated.students_all === 0 ? (
-                                    <p> Нет данных </p>
-                                ) : (
-                                    <>
-                                        <h2>
-                                            {toFixed((data.col2.participated?.amount_in / data.col2.participated?.students_all) * 100, 1)}%
-                                        </h2>
-                                        <p>Студентов прошли тестирование</p>
-                                    </>
-                                )}
+                                <div className="absolute-center">
+                                    {data.col2.participated.students_all === 0 ? (
+                                        <p> Нет данных </p>
+                                    ) : (
+                                        <>
+                                            <h2>
+                                                {toFixed(
+                                                    (data.col2.participated?.amount_in / data.col2.participated?.students_all) * 100,
+                                                    1
+                                                )}
+                                                %
+                                            </h2>
+                                            <p>Студентов прошли тестирование</p>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
 
                     {/* Правая колонка */}
                     <div className="col-right">
                         <h4 className="text-xs uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
-                        <div style={{display: 'flex', whiteSpace: 'wrap', gap: '30px', maxWidth: '900px'}}>
-                        <Stat
-                            label={`Наиболее развитая. Средний балл: ${data.col3.best.val}`}
-                            value={getLabel(data.col3.best.name)}
-                            isText={true}
-                            prev={data.col3.best_prev.val != 0 ? `${getLabel(data.col3.best_prev.name)} (${data.col3.best_prev.val})` : 0}
-                        />
-                        <div style={{ height: 20 }}></div>
-                        <Stat
-                            label={`Наименее развитая. Средний балл: ${data.col3.worst.val}`}
-                            value={getLabel(data.col3.worst.name)}
-                            isText={true}
-                            prev={
-                                data.col3.worst_prev.val != 0 ? `${getLabel(data.col3.worst_prev.name)} (${data.col3.worst_prev.val})` : 0
-                            }
-                        />
+                        <div style={{ display: 'flex', whiteSpace: 'wrap', gap: '30px', maxWidth: '900px' }}>
+                            <Stat
+                                label={`Наиболее развитая. Средний балл: ${data.col3.best.val}`}
+                                value={getLabel(data.col3.best.name)}
+                                isText={true}
+                                prev={
+                                    data.col3.best_prev.val != 0 ? `${getLabel(data.col3.best_prev.name)} (${data.col3.best_prev.val})` : 0
+                                }
+                            />
+                            <div style={{ height: 20 }}></div>
+                            <Stat
+                                label={`Наименее развитая. Средний балл: ${data.col3.worst.val}`}
+                                value={getLabel(data.col3.worst.name)}
+                                isText={true}
+                                prev={
+                                    data.col3.worst_prev.val != 0
+                                        ? `${getLabel(data.col3.worst_prev.name)} (${data.col3.worst_prev.val})`
+                                        : 0
+                                }
+                            />
                         </div>
                         <div className="chart-radar">
                             <CompRadarWithTable
@@ -418,13 +435,11 @@ function AdminCompetencesView() {
     const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
     const [dashboardData, setDashboardData] = useState(null);
     const [loadingDash, setLoadingDash] = useState(false);
-    
+
     const [filters_, setFilters_] = useState(() => {
         const saved = useAdminStore.getState().savedFilters?.Admin;
 
-        return saved && Object.keys(saved).length
-            ? saved
-            : { institute: '', specialty: '', year: '' };
+        return saved && Object.keys(saved).length ? saved : { institute: '', specialty: '', year: '' };
     });
 
     const [yearsCompetencyData, setYearsCompetencyData] = useState(null);
@@ -436,11 +451,10 @@ function AdminCompetencesView() {
         setLoadingDash(true);
         try {
             const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
-    
+
             if (!data) return;
             setDashboardData(data);
-        }
-        finally{ 
+        } finally {
             setLoadingDash(false);
         }
     };
@@ -448,7 +462,7 @@ function AdminCompetencesView() {
     const loadYearsCompetencyData = async currentFilters => {
         const data = await AdminService.getCompetencyAverageByYears(currentFilters.institute, currentFilters.specialty);
         setYearsCompetencyData(data?.data);
-    }
+    };
 
     const [yearsOptions, setYearsOptions] = useState([]);
     const getYearsOptions = async () => {
@@ -460,11 +474,11 @@ function AdminCompetencesView() {
     }, []);
 
     useEffect(() => {
-        if (activeTab !== 'dashboard') return; 
+        if (activeTab !== 'dashboard') return;
         loadDashboardStats(filters_);
         loadYearsCompetencyData(filters_);
     }, [filters_, activeTab]);
-    
+
     const updateFilter = (name, value) => {
         setFilters_(prev => {
             const updated = { ...prev, [name]: value };
@@ -490,7 +504,7 @@ function AdminCompetencesView() {
         }
     };
     useEffect(() => {
-        if (activeTab !== 'segmentation') return; 
+        if (activeTab !== 'segmentation') return;
         loadCompetencyTrend(filters_);
     }, [filters_, activeTab]);
 
@@ -538,19 +552,20 @@ function AdminCompetencesView() {
                         <div className="loading-content">
                             <LoadingSpinner text="Загрузка статистики..." />
                         </div>
-                    ) : (<>
-                        <Dashboard
-                            data={dashboardData}
-                            filters={filters_}
-                            onYearChange={handleYearChange}
-                            yearsOptions={yearsOptions}
-                        />
-                        <BarChartWithTable 
-                            data={yearsCompetencyData}
-                            yearsOptions={yearsOptions}
-                            filters={filters_}
-                        />
-                    </>
+                    ) : (
+                        <>
+                            <Dashboard
+                                data={dashboardData}
+                                filters={filters_}
+                                onYearChange={handleYearChange}
+                                yearsOptions={yearsOptions}
+                            />
+                            <BarChartWithTable
+                                data={yearsCompetencyData}
+                                yearsOptions={yearsOptions}
+                                filters={filters_}
+                            />
+                        </>
                     )}
                 </>
             )}

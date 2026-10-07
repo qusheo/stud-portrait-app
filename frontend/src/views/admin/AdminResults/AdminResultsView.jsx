@@ -24,7 +24,7 @@ import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
 import DataTable from '@components/tables/DataTable';
-import buildStudentColumns from '@components/tables/buildStudentTable.js';
+import { buildStudentColumns } from '@components/tables/buildStudentTable.js';
 
 function AdminResultsView() {
     const [sessionId, setSessionId] = useState(1);
@@ -438,16 +438,37 @@ function AdminResultsView() {
     };
 
     const cellClickHandlers = {};
-    const rows = results;
+    const rows = results.map(row => ({
+        ...row,
+
+        // participant разворачиваем
+        ...row.participant,
+
+        // результаты разворачиваем
+        ...row.competences,
+        ...row.motivators,
+        ...row.values,
+        participant: row.participant?.part_rsv_id ?? null
+    }));
     const columns = buildStudentColumns();
+    console.log(rows);
     return (
         <div className="AdminResultsView">
-            <DataTable
-                rows={rows}
-                columns={columns}
-                cellClickHandlers={cellClickHandlers}
-            />
-            <div className="results-container" style={{ hidden: true }}>
+            <div
+                className="table-container"
+                style={{ height: 100 }}
+            >
+                <DataTable
+                    rows={rows ?? []}
+                    columns={columns}
+                    cellClickHandlers={cellClickHandlers}
+                    pageSize={20}
+                />
+            </div>
+            <div
+                className="results-container"
+                style={{ hidden: true }}
+            >
                 <div className="results-header">
                     <h2>Результаты тестирования</h2>
                     <FlexRow wrap={WRAP.DO}>

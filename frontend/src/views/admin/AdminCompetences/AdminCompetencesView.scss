@@ -163,6 +163,8 @@
             padding-left: 4rem;
 
             h4 {
+                max-width: 60%;
+                min-width: 90px;
                 font-size: 0.75rem;
                 text-transform: uppercase;
                 font-weight: 700;
@@ -411,6 +413,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
+    max-width: 500px;
 
     .slider-container {
         width: 120px;

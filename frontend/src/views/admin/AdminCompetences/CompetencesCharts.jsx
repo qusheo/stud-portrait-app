@@ -20,9 +20,9 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'r
 import * as XLSX from 'xlsx';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
 import { ToastContainer, toast } from 'react-toastify';
-import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 
 import './AdminCompetencesView.scss';
 
@@ -38,7 +38,7 @@ const getLabel = key =>
     competencyLabels[key] ||
     competencyLabels[key.replace('res_comp_', '').replace('_', ' ')] ||
     key.replace('res_comp_', '').replace('_', ' ');
-    
+
 export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }) {
     const [minYear, maxYear] = range;
     return (
@@ -135,7 +135,7 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
 }
 //таблица
 export function CompetencyTable({ data, filters, range }) {
-    const [ prevYear, year] = range;
+    const [prevYear, year] = range;
     const [tableOpen, setTableOpen] = useState(false);
     if (!data) return null;
 
@@ -208,12 +208,8 @@ export function CompetencyTable({ data, filters, range }) {
                                 <th rowSpan={2}>%</th>
                             </tr>
                             <tr>
-                                <th style={{ textAlign: 'center' }}>
-                                    {prevYear}
-                                </th>
-                                <th style={{ textAlign: 'center' }}>
-                                    {year}
-                                </th>
+                                <th style={{ textAlign: 'center' }}>{prevYear}</th>
+                                <th style={{ textAlign: 'center' }}>{year}</th>
                                 <th style={{ textAlign: 'center' }}>Разница</th>
                             </tr>
                         </thead>
@@ -355,7 +351,10 @@ export function CompetencyTable_course({ data, filters }) {
                     <tr>
                         <th rowSpan={2}>Компетенция</th>
                         <th colSpan={4}>Средний балл</th>
-                        <th rowSpan={2} style={{minWidth: '120px'}}>
+                        <th
+                            rowSpan={2}
+                            style={{ minWidth: '120px' }}
+                        >
                             <div className="slider-wrapper">
                                 <div className="slider-container">
                                     <p className="slider-label">
