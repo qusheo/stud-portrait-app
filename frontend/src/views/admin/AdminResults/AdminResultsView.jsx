@@ -9,7 +9,6 @@ import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
 import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
