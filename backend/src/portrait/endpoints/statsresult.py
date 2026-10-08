@@ -692,8 +692,8 @@ def get_students_list(request):
             ).values_list('mapping_rsv', flat=True)
             
             queryset = queryset.filter(
-                Q(part_rsv__icontains=search) |
-                Q(part_rsv__in=matching_mappings)
+                Q(part_rsv_id__icontains=search) |
+                Q(part_rsv_id__in=matching_mappings)
             )
         
         students = []

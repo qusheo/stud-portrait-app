@@ -9,7 +9,6 @@ import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
 import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
@@ -24,6 +23,8 @@ import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
+import DataTable from '@components/tables/DataTable';
+import { buildStudentColumns } from './buildStudentTable.js';
 
 function AdminResultsView() {
     const [sessionId, setSessionId] = useState(1);
@@ -436,9 +437,45 @@ function AdminResultsView() {
         navigate('/admin/grouping', { state: groupingData });
     };
 
+    const cellClickHandlers = {};
+    const rows = results.map((row, index) => ({
+        rowId: index,
+        ...row,
+
+        // participant разворачиваем
+        ...row.participant,
+
+        // результаты разворачиваем
+        ...row.competences,
+        ...row.motivators,
+        ...row.values,
+        participant: row.participant?.part_rsv_id ?? null
+    }));
+    const columns = buildStudentColumns();
     return (
         <div className="AdminResultsView">
-            <div className="results-container">
+            <div
+                className="table-container"
+                style={{ height: 300 }}
+            >
+                {loading || !results.length ? (
+                    <div className="loading">
+                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
+                    </div>
+                ) : (
+                    <DataTable
+                        rows={rows ?? []}
+                        columns={columns}
+                        rowKey={'rowId'}
+                        cellClickHandlers={cellClickHandlers}
+                        pageSize={20}
+                    />
+                )}
+            </div>
+            <div
+                className="results-container"
+                style={{ hidden: true }}
+            >
                 <div className="results-header">
                     <h2>Результаты тестирования</h2>
                     <FlexRow wrap={WRAP.DO}>

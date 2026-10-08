@@ -8,14 +8,14 @@ export default function DraggablePopover({
     initialPosition = { x: 0, y: 0 },
     width = 400,
     height = 500,
-    onPositionChange,
+    onPositionChange
 }) {
     const popoverRef = useRef(null);
     const dragRef = useRef(null);
 
     const [position, setPosition] = useState({
         x: 0,
-        y: 0,
+        y: 0
     });
 
     const prevOpen = useRef(false);
@@ -29,11 +29,8 @@ export default function DraggablePopover({
     }, [open]);
 
     useEffect(() => {
-        const handleOutside = (e) => {
-            if (
-                popoverRef.current &&
-                !popoverRef.current.contains(e.target)
-            ) {
+        const handleOutside = e => {
+            if (popoverRef.current && !popoverRef.current.contains(e.target)) {
                 onClose?.();
             }
         };
@@ -47,30 +44,24 @@ export default function DraggablePopover({
         };
     }, [open, onClose]);
 
-    const startDrag = (e) => {
+    const startDrag = e => {
         dragRef.current = {
             startX: e.clientX,
             startY: e.clientY,
             x: position.x,
-            y: position.y,
+            y: position.y
         };
         document.body.style.userSelect = 'none';
         document.addEventListener('mousemove', moveDrag);
         document.addEventListener('mouseup', stopDrag);
     };
 
-    const moveDrag = (e) => {
+    const moveDrag = e => {
         if (!dragRef.current || !popoverRef.current) return;
 
-        const newX =
-            dragRef.current.x +
-            e.clientX -
-            dragRef.current.startX;
+        const newX = dragRef.current.x + e.clientX - dragRef.current.startX;
 
-        const newY =
-            dragRef.current.y +
-            e.clientY -
-            dragRef.current.startY;
+        const newY = dragRef.current.y + e.clientY - dragRef.current.startY;
 
         const rect = popoverRef.current.getBoundingClientRect();
 
@@ -79,7 +70,7 @@ export default function DraggablePopover({
 
         setPosition({
             x: Math.max(0, Math.min(newX, maxX)),
-            y: Math.max(0, Math.min(newY, maxY)),
+            y: Math.max(0, Math.min(newY, maxY))
         });
     };
 
@@ -102,7 +93,7 @@ export default function DraggablePopover({
                 left: position.x,
                 top: position.y,
                 width,
-                height,
+                height
             }}
         >
             <div
@@ -110,9 +101,7 @@ export default function DraggablePopover({
                 onMouseDown={startDrag}
             />
 
-            <div className="draggable-popover__content">
-                {children}
-            </div>
+            <div className="draggable-popover__content">{children}</div>
         </div>
     );
 }

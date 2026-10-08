@@ -90,18 +90,19 @@ export default function FilterHeader({ filters, onFilterChange, onResetFilters, 
                 loadingMessage={() => 'Загрузка...'}
             />
             {showYearsSelect && (
-            <Select
-                name="year"
-                placeholder="Год..."
-                isClearable
-                isSearchable
-                options={sorted(options?.years) || []}
-                value={findOption(options?.years, filters?.year) ?? null}
-                onChange={opt => handleChange(opt, 'year')}
-                styles={customStyles}
-                isLoading={loading}
-                loadingMessage={() => 'Загрузка...'}
-            />)}
+                <Select
+                    name="year"
+                    placeholder="Год..."
+                    isClearable
+                    isSearchable
+                    options={sorted(options?.years) || []}
+                    value={findOption(options?.years, filters?.year) ?? null}
+                    onChange={opt => handleChange(opt, 'year')}
+                    styles={customStyles}
+                    isLoading={loading}
+                    loadingMessage={() => 'Загрузка...'}
+                />
+            )}
 
             <Button
                 text={'Сбросить'}

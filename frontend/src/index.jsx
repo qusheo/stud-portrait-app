@@ -16,15 +16,17 @@ import {
     AdminAPView,
     AdminCoursesView,
     AdminGeographyView,
-    AdminGroupingView,
+    AdminGroupedDiagramsView,
     AdminHelpView,
     AdminMotivatorsView,
     AdminResultsView,
     AdminStatsView,
     AdminCompetencesView,
     AdminStudentView,
+    AdminTargetSearchView,
+    AdminTeachersView,
+    AdminGroupingView
 } from './views/admin';
-
 
 import StudentMainView from './views/student/StudentMainView';
 import StudentReportView from './views/student/StudentReportView';
@@ -56,6 +58,14 @@ const router = createBrowserRouter([
             {
                 path: '/admin/stats',
                 element: <AdminStatsView />
+            },
+            {
+                path: '/admin/search',
+                element: <AdminTargetSearchView />
+            },
+            {
+                path: '/admin/grouping',
+                element: <AdminGroupingView />
             },
             {
                 path: '/admin/results',
@@ -95,7 +105,7 @@ const router = createBrowserRouter([
             },
             {
                 path: '/admin/grouping',
-                element: <AdminGroupingView />
+                element: <AdminGroupedDiagramsView />
             },
             {
                 path: '/admin/competences',
@@ -112,6 +122,10 @@ const router = createBrowserRouter([
             {
                 path: '/admin/student/',
                 element: <AdminStudentView />
+            },
+            {
+                path: '/admin/teachers',
+                element: <AdminTeachersView />
             },
 
             /* SUPERADMIN VIEWS */
