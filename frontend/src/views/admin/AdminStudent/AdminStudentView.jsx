@@ -370,7 +370,7 @@ const CoursesCard = ({ courses }) => {
     );
 };
 
-function AdminStudentView() {
+function AdminStudentView(studentId = undefined) {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);

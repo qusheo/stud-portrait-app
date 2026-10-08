@@ -13,7 +13,7 @@ function Button({ text, onClick, type, disabled = false, loading = false, toolti
     style = disabled ? { ...style, cursor: 'not-allowed', filter: 'brightness(150%)' } : style;
     const button = (
         <button
-            className={`Button-${TYPES[type] ?? 'common'}`}
+            className={`Button-${type ?? 'common'}`}
             onClick={() => (!disabled && !loading ? onClick() : '')}
             disabled={disabled}
             style={style}

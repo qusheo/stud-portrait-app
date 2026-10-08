@@ -24,7 +24,7 @@ import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
 
 import './AdminResultsView.scss';
 import DataTable from '@components/tables/DataTable';
-import { buildStudentColumns } from '@components/tables/buildStudentTable.js';
+import { buildStudentColumns } from './buildStudentTable.js';
 
 function AdminResultsView() {
     const [sessionId, setSessionId] = useState(1);
@@ -438,7 +438,8 @@ function AdminResultsView() {
     };
 
     const cellClickHandlers = {};
-    const rows = results.map(row => ({
+    const rows = results.map((row, index) => ({
+        rowId: index,
         ...row,
 
         // participant разворачиваем
@@ -451,19 +452,25 @@ function AdminResultsView() {
         participant: row.participant?.part_rsv_id ?? null
     }));
     const columns = buildStudentColumns();
-    console.log(rows);
     return (
         <div className="AdminResultsView">
             <div
                 className="table-container"
-                style={{ height: 100 }}
+                style={{ height: 300 }}
             >
-                <DataTable
-                    rows={rows ?? []}
-                    columns={columns}
-                    cellClickHandlers={cellClickHandlers}
-                    pageSize={20}
-                />
+                {loading || !results.length ? (
+                    <div className="loading">
+                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
+                    </div>
+                ) : (
+                    <DataTable
+                        rows={rows ?? []}
+                        columns={columns}
+                        rowKey={'rowId'}
+                        cellClickHandlers={cellClickHandlers}
+                        pageSize={20}
+                    />
+                )}
             </div>
             <div
                 className="results-container"

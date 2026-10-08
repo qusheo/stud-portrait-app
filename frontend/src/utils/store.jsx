@@ -24,5 +24,8 @@ export const useAdminStore = create(
         {
             name: 'admin-filters'
         }
-    )
+    ),
+    persist(set => ({}), {
+        name: 'admin-profile-redirect'
+    })
 );

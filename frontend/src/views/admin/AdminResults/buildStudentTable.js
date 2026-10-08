@@ -9,8 +9,9 @@ const BASE_COLUMNS_NAMES = {
     edu_level: 'Уровень образования',
     res_course_num: 'Курс',
     study_form: 'Форма обучения',
-    specialty: 'Специальность',
+    specialty: 'Специальность'
 };
+const searchableCols = ['res_year', 'participant', 'center', 'institution', 'study_form', 'specialty'];
 
 export const buildStudentColumns = () => {
     const columnOrder = [
@@ -25,56 +26,69 @@ export const buildStudentColumns = () => {
         'specialty',
         ...Object.keys(COMPETENCIES_NAMES),
         ...Object.keys(MOTIVATORS_NAMES),
-        ...Object.keys(VALUES_NAMES),
+        ...Object.keys(VALUES_NAMES)
     ];
 
-    const resultsColumns = new Set([
-        ...Object.keys(COMPETENCIES_NAMES),
-        ...Object.keys(MOTIVATORS_NAMES),
-        ...Object.keys(VALUES_NAMES),
-    ]);
+    const resultsColumns = new Set([...Object.keys(COMPETENCIES_NAMES), ...Object.keys(MOTIVATORS_NAMES), ...Object.keys(VALUES_NAMES)]);
 
     const names = {
         ...BASE_COLUMNS_NAMES,
         ...COMPETENCIES_NAMES,
         ...MOTIVATORS_NAMES,
-        ...VALUES_NAMES,
+        ...VALUES_NAMES
     };
 
-    return columnOrder.map(id => ({
-        id,
-        title: names[id] ?? id,
-        width: getColumnWidth(id),
+    const numberCol = {
+        id: '',
+        title: '№',
+        width: 50,
         sortable: true,
         filterable: true,
-        tooltip: true,
-        clickable: id === 'participant',
-        results: resultsColumns.has(id),
-    }));
+        searchable: false,
+        tooltip: false,
+        clickable: false,
+        results: false
+    };
+
+    return [
+        numberCol,
+        ...columnOrder.map(id => ({
+            id,
+            title: names[id] ?? id,
+            width: getColumnWidth(id),
+            sortable: true,
+            filterable: id !== 'participant',
+            filterType: resultsColumns.has(id) ? 'number' : 'text',
+            searchable: !!searchableCols.find(id_ => id === id_),
+            tooltip: true,
+            clickable: id === 'participant',
+            results: resultsColumns.has(id)
+        }))
+    ];
 };
 
 const getColumnWidth = id => {
     switch (id) {
         case 'participant':
-            return 240;
+            return 200;
 
         case 'institution':
         case 'specialty':
-            return 280;
+            return 220;
 
         case 'center':
-            return 220;
+            return 200;
 
         case 'edu_level':
         case 'study_form':
-            return 180;
+            return 120;
 
         case 'res_year':
         case 'part_gender':
         case 'res_course_num':
-            return 120;
+            return 80;
 
         default:
-            return 160;
+            return 120;
     }
 };
