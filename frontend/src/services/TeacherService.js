@@ -1,7 +1,9 @@
 import Api from '../api.js';
-import { toast } from 'react-toastify';
+import BaseService from './BaseService';
 
-class TeacherService {
-    constructor() {}
+class TeacherService extends BaseService {
+    getTeachersTable() {
+        return this.request(() => Api.getTeachersTable(), 'Ошибка загрузки таблицы преподавателей');
+    }
 }
-export default TeacherService;
+export default new TeacherService();

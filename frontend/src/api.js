@@ -444,6 +444,25 @@ class Api {
         const promise = fetch(`${HOST}/portrait/competency-average-by-years/?${params}`);
         return promise;
     }
+
+    getTeachersTable() {
+        return fetch(`${HOST}/portrait/teachers/get_teachers_table/`);
+    }
+
+    getMatchingTeachersByStudent(studentId) {
+        const params = new URLSearchParams({ student_id: studentId });
+        return fetch(`${HOST}/portrait/matching/get_matching_teachers_by_student/?${params}`);
+    }
+
+    getMatchGroups(specialty, university, course) {
+        const params = new URLSearchParams({ specialty, university, course });
+        return fetch(`${HOST}/portrait/matching/get_match_groups/?${params}`);
+    }
+
+    getMatchingStudents(studentId, amount = 1) {
+        const params = new URLSearchParams({ student_id: studentId, amount });
+        return fetch(`${HOST}/portrait/matching/get_matching_students/?${params}`);
+    }
     getScoresResult(institute, specialty, year) {
         const params = new URLSearchParams();
         if (institute) params.append('institute', institute);

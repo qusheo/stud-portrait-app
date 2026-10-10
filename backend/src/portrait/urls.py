@@ -13,6 +13,7 @@ from .endpoints import (
     gendox,
     curriculum_end,
     matching,
+    teachers,
 )
 
 urlpatterns = [
@@ -94,8 +95,13 @@ urlpatterns = [
     path('top-correlations/', stat.get_top_correlations, name='top_correlations'),
     path('competency-segmentation/', stat.get_competency_segmentation, name='competency_segmentation'),
 
-    # AINTERP module
-    # *empty*
+    # teachers
+    path('teachers/get_teachers_table/', teachers.get_teachers_table, name='teachers_table'),
+
+    # matching
+    path('matching/get_matching_teachers_by_student/', matching.get_matching_teachers_by_student, name='matching_teachers_by_student'),
+    path('matching/get_match_groups/', matching.get_match_groups, name='match_groups'),
+    path('matching/get_matching_students/', matching.get_matching_students, name='matching_students'),
 
     path('parse-curriculum/',          curriculum_end.parse_curriculum_view, name='parse_curriculum'),
     path('parse-curriculum/log/',      curriculum_end.get_parse_log,         name='parse_curriculum_log'),

@@ -16,6 +16,7 @@ import Label, { LABEL_PALETTE } from '@components/ui/Label';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 import './AdminStudentView.scss';
+import { MatchingService } from '@services';
 
 // Компонент поиска студента
 const StudentSearch = ({ onSelectStudent }) => {
@@ -374,6 +375,8 @@ function AdminStudentView(studentId = undefined) {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [ isMatchingStudentsLoading, setMatchingStudentsLoading] = useState(false);
+    const [ isMatchingTeachersLoading, setMatchingTeachersLoading] = useState(false);
 
     useEffect(() => {
         if (selectedStudentId) {
@@ -395,6 +398,32 @@ function AdminStudentView(studentId = undefined) {
             setLoading(false);
         }
     };
+    // подбор преподов
+    const teachers = [];
+    const getMatchingTeachers = async (studentId) => {
+        try {
+            setMatchingTeachersLoading(true);
+            const data = await MatchingService.getMatchingTeachersByStudent(studentId);
+            teachers = data ?? [];
+        }
+        catch (e) {}
+        finally{
+            setMatchingTeachersLoading(false);
+        }
+    }
+    // подбор группы 
+    const studentsGroup = [];
+    const getMatchingStudents = async (studentId) => {
+        try {
+            setMatchingStudentsLoading(true);
+            const data = await MatchingService.getMatchingStudents(studentId);
+            studentsGroup = data ?? [];
+        }
+        catch (e) {}
+        finally{
+            setMatchingStudentsLoading(false);
+        }
+    }
 
     return (
         <div className="AdminStudentView">
