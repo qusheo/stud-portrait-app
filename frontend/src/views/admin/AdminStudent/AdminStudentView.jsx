@@ -399,7 +399,7 @@ function AdminStudentView(studentId = undefined) {
         }
     };
     // подбор преподов
-    const teachers = [];
+    let teachers = [];
     const getMatchingTeachers = async (studentId) => {
         try {
             setMatchingTeachersLoading(true);
@@ -412,7 +412,7 @@ function AdminStudentView(studentId = undefined) {
         }
     }
     // подбор группы 
-    const studentsGroup = [];
+    let studentsGroup = [];
     const getMatchingStudents = async (studentId) => {
         try {
             setMatchingStudentsLoading(true);

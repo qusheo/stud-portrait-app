@@ -12,7 +12,7 @@ function AdminTeachersView() {
     const [disciplinesList, setDisciplinesList] = useState([]);
     const [isTableLoading, setTableLoading] = useState(false);
     const columns = buildColumns();
-    const rows = [];
+    let rows = [];
     // disciplines = [], надо будет кол-во в ячейке писать / если 1, то дисциплину
 
     const getTeachersTable = async () => {
