@@ -39,8 +39,8 @@ function AdminTeachersView() {
         setDisciplinesList(row.disciplines);
     }
 
-    useEffect( async () => {
-        await getTeachersTable();
+    useEffect( () => {
+        getTeachersTable();
     }, []);
 
     // вверху поиск препода, снизу таблица всех

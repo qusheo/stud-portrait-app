@@ -51,7 +51,7 @@ export const buildColumns = () => {
             width: getColumnWidth(id),
             sortable: true,
             filterable: id !== 'name',
-            filterType: numberCols.has(id) ? 'number' : 'text',
+            filterType: numberCols.includes(id) ? 'number' : 'text',
             searchable: !!searchableCols.find(id_ => id === id_),
             tooltip: true,
             clickable: id === 'name' || id === 'disciplines',
