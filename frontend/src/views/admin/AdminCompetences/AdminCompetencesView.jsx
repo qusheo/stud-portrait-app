@@ -491,6 +491,7 @@ function AdminCompetencesView() {
     };
     const resetFilters = () => {
         setFilters_({ institute: '', specialty: '', year: '' });
+        saveFilters('Admin', { institute: '', specialty: '', year: '' });
     };
     const loadCompetencyTrend = async currentFilters => {
         setLoadingTrend(true);

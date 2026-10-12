@@ -16,5 +16,11 @@ export default defineConfig({
             '@services': path.resolve('src/services'),
             '@utils': path.resolve('src/utils')
         }
+    },
+    test: {
+        environment: 'jsdom',
+        setupFiles: ['./vitest.setup.js'],
+        include: ['**/*.test.jsx'],
+        exclude: ['node_modules/**', 'test/selenium/**']
     }
 });
