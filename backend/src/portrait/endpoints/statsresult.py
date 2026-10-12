@@ -677,56 +677,42 @@ def get_students_list(request):
         - limit: лимит результатов (по умолчанию 50)
     """
     try:
-        search = request.GET.get('search', '')
+        search = request.GET.get('search', '').strip()
         limit = int(request.GET.get('limit', 50))
-        
-        # Participants теперь содержит только базовую информацию
-        queryset = Participants.objects.all()
-        
-        # Поиск по RSV или через StudentMapping
+
+        queryset = ParticipantsWithNames.objects.select_related(
+            'part_institution', 'part_spec'
+        )
+
         if search:
-            # Ищем в StudentMapping по имени
-            matching_mappings = StudentMapping.objects.filter(
-                Q(mapping_stud_name__icontains=search) |
-                Q(mapping_rsv__icontains=search)
-            ).values_list('mapping_rsv', flat=True)
-            
             queryset = queryset.filter(
+                Q(student_name__icontains=search) |
                 Q(part_rsv_id__icontains=search) |
-                Q(part_rsv_id__in=matching_mappings)
+                Q(part_institution__inst_name__icontains=search) |
+                Q(part_spec__spec_name__icontains=search)
             )
-        
-        students = []
-        for student in queryset[:limit]:
-            # Пытаемся получить имя из StudentMapping
-            try:
-                mapping = StudentMapping.objects.get(mapping_rsv=student.part_rsv_id)
-                student_name = mapping.mapping_stud_name
-            except StudentMapping.DoesNotExist:
-                student_name = student.part_rsv_id
-                
-            # Ищем последний результат для учебной информации
-            latest_result = Results.objects.filter(res_participant=student).order_by('-res_year', '-res_course').first()
-            
-            students.append({
-                'id': student.part_id,
-                'rsv_id': student.part_rsv_id,
-                'name': student_name,
-                'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указан',
-                'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
-                'course': student.part_course_num,
-                'gender': student.part_gender
-            })
-        
+
+        students = [
+            {
+                'id': s.part_id,
+                'rsv_id': s.part_rsv_id,
+                'name': s.student_name,
+                'institution': s.part_institution.inst_name if s.part_institution else 'Не указан',
+                'specialty': s.part_spec.spec_name if s.part_spec else 'Не указана',
+                'course': s.part_course_num,
+                'gender': s.part_gender,
+            }
+            for s in queryset[:limit]
+        ]
+
         return JsonResponse({
             'status': 'success',
             'data': students,
             'total': queryset.count()
         })
-        
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
 
 @method("GET")
 @csrf_exempt
@@ -767,7 +753,7 @@ def get_student_portrait(request):
             'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указано',
             'institution_id': latest_result.res_institution.inst_id if latest_result and latest_result.res_institution else None,
             'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
-            'specialty_id': latest_result.res_edu_specialty.edu_spec_id if latest_result and latest_result.res_edu_specialty else None,
+            'specialty_id': latest_result.res_edu_specialty.spec_id if latest_result and latest_result.res_edu_specialty else None,
             'edu_level': attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else 'Не указан',
             'study_form': attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else 'Не указана',
             'current_course': student.part_course_num
