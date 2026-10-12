@@ -147,6 +147,20 @@ class Participants(models.Model):
         managed = False
         db_table = 'participants'
 
+class ParticipantsWithNames(models.Model):
+    part_id = models.AutoField(primary_key=True)
+    part_rsv_id = models.CharField(max_length=512, unique=True)
+    student_name = models.CharField(max_length=512)
+    part_gender = models.CharField(max_length=16, blank=True, null=True)
+    part_institution = models.ForeignKey('Institutions', models.DO_NOTHING, db_column='part_institution', blank=True, null=True)
+    part_spec = models.ForeignKey('Specialties', models.DO_NOTHING, db_column='part_spec', blank=True, null=True)
+    part_edu_level = models.ForeignKey('Educationlevels', models.DO_NOTHING, db_column='part_edu_level', blank=True, null=True)
+    part_form = models.ForeignKey('Studyforms', models.DO_NOTHING, db_column='part_form', blank=True, null=True)
+    part_course_num = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'participants_with_names'
 
 class Studentmapping(models.Model):
     mapping_id = models.AutoField(primary_key=True)

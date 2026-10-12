@@ -4,6 +4,8 @@ import AdminCoursesView from './AdminCourses/AdminCoursesView';
 
 import AdminGeographyView from './AdminGeography/AdminGeographyView';
 
+import AdminGroupedDiagramsView from './AdminGroupedDiagrams/AdminGroupedDiagramsView';
+
 import AdminGroupingView from './AdminGrouping/AdminGroupingView';
 
 import AdminHelpView from './AdminHelp/AdminHelpView';
@@ -26,11 +28,14 @@ import AdminTransferAnalysisView from './analysis/AdminTransferAnalysisView';
 
 import AdminAPView from './analysis/AdminAP/AdminAPView';
 
+import AdminTargetSearchView from './AdminTargetSearch/AdminTargetSearchView';
+import AdminTeachersView from './AdminTeachers/AdminTeachersView';
+
 export {
     AdminCompetencesView,
     AdminCoursesView,
     AdminGeographyView,
-    AdminGroupingView,
+    AdminGroupedDiagramsView,
     AdminHelpView,
     AdminMotivatorsView,
     AdminResultsView,
@@ -44,4 +49,7 @@ export {
     AdminDuplicateAccountsChecker,
     AdminTransferAnalysisView,
     AdminAPView,
+    AdminTargetSearchView,
+    AdminGroupingView,
+    AdminTeachersView
 };

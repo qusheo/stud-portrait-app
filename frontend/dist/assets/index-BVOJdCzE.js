@@ -155768,7 +155768,7 @@ function PPt() {
         });
     return o
         ? b.jsx('div', {
-              className: 'AdminGroupingView',
+              className: 'AdminGroupedDiagramsView',
               children: b.jsxs(Aa, {
                   style: Sa.MODEUS,
                   children: [
@@ -155787,7 +155787,7 @@ function PPt() {
               })
           })
         : b.jsxs('div', {
-              className: 'AdminGroupingView',
+              className: 'AdminGroupedDiagramsView',
               children: [
                   b.jsxs(Aa, {
                       style: Sa.MODEUS,

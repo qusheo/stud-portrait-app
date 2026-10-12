@@ -1,4 +1,4 @@
-.AdminGroupingView {
+.AdminGroupedDiagramsView {
     .grouping-container {
         padding: 20px;
     }
@@ -92,7 +92,7 @@
 
 // Адаптивность
 @media (max-width: 768px) {
-    .AdminGroupingView {
+    .AdminGroupedDiagramsView {
         .grouping-container {
             padding: 15px;
         }

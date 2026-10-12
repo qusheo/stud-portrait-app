@@ -1,4 +1,4 @@
-# ═══════════════════════════════════════════════════════════
+﻿# ═══════════════════════════════════════════════════════════
 # portrait/analysis_end.py
 # API endpoints для статистического анализа
 # ═══════════════════════════════════════════════════════════
@@ -554,52 +554,54 @@ def analyze_all_disciplines_impact(request):
 def _get_discipline_impact_for_competency(competency):
     """Вспомогательная функция для получения влияния дисциплин на компетенцию."""
     try:
+        all_results = list(
+            Results.objects.select_related('res_edu_specialty', 'res_institution')
+            .order_by('res_participant_id', '-res_year', '-res_course')
+        )
+        results_by_part = {}
+        for _r in all_results:
+            results_by_part.setdefault(_r.res_participant_id, []).append(_r)
+
         perf_data = []
-        
-        for perf in AcademicPerformances.objects.select_related('perf_participant', 'perf_edu_discipline').all():
+
+        for perf in AcademicPerformances.objects.select_related('perf_participant').all():
             year = perf.perf_year
             student = perf.perf_participant
-            
+
             try:
                 year_start = int(year.split('/')[0])
-            except:
+            except Exception:
                 continue
-            
-            # До и после
-            before_result = Results.objects.filter(
-                res_participant=student
-            ).filter(
-                Q(res_year__lt=year)
-            ).order_by('-res_year', '-res_course').first()
-            
+
+            student_results = results_by_part.get(student.part_id, [])
+            # before: самый поздний результат с res_year < year (список уже отсортирован desc)
+            before_result = next((_r for _r in student_results if _r.res_year < year), None)
+
             after_year = f"{year_start+1}/{year_start+2}"
-            after_result = Results.objects.filter(
-                res_participant=student,
-                res_year=after_year
-            ).first()
-            
+            after_result = next((_r for _r in student_results if _r.res_year == after_year), None)
+
             if before_result and after_result:
                 before_score = getattr(before_result, competency, None)
                 after_score = getattr(after_result, competency, None)
-                
+
                 if before_score is not None and after_score is not None:
                     perf_data.append({
                         'student_id': student.part_id,
-                        'discipline': perf.perf_edu_discipline.edu_disc_name,
+                        'discipline': perf.perf_discipline,
                         'grade': perf.perf_main,
                         'year': year,
                         f'{competency}_before': before_score,
                         f'{competency}_after': after_score
                     })
-        
+
         if not perf_data:
             return None
-        
+
         df = pd.DataFrame(perf_data)
         analyzer = DisciplineImpactAnalyzer()
         return analyzer.analyze_discipline_impact(df, competency)
-        
-    except Exception as e:
+
+    except Exception:
         return None
 
 
@@ -622,15 +624,23 @@ def analyze_discipline_impact_advanced(request):
         direction_ids = body.get('direction_ids', []) 
         min_students = body.get('min_students', 5)
         
+        all_results = list(
+            Results.objects.select_related('res_edu_specialty', 'res_institution')
+            .order_by('res_participant_id', '-res_year', '-res_course')
+        )
+        results_by_part = {}
+        for _r in all_results:
+            results_by_part.setdefault(_r.res_participant_id, []).append(_r)
+
         results = []
         
         for competency in competencies:
-            perf_query = AcademicPerformances.objects.select_related('perf_participant', 'perf_edu_discipline')
+            perf_query = AcademicPerformances.objects.select_related('perf_participant')
             
             if disciplines:
                 q = Q()
                 for disc in disciplines:
-                    q |= Q(perf_edu_discipline__edu_disc_name__icontains=disc)
+                    q |= Q(perf_discipline__icontains=disc)
                 perf_query = perf_query.filter(q)
             
             # Фильтрация по institution_ids и direction_ids через Results
@@ -669,14 +679,9 @@ def analyze_discipline_impact_advanced(request):
                 except:
                     continue
                 
-                before_result = Results.objects.filter(
-                    res_participant=student
-                ).filter(Q(res_year__lt=year)).order_by('-res_year', '-res_course').first()
-
-                after_result = Results.objects.filter(
-                    res_participant=student, 
-                    res_year=year
-                ).order_by('-res_course').first()
+                student_results = results_by_part.get(student.part_id, [])
+                before_result = next((_r for _r in student_results if _r.res_year < year), None)
+                after_result = next((_r for _r in student_results if _r.res_year == year), None)
                 
                 if before_result and after_result:
                     before_score = getattr(before_result, competency, None)
@@ -698,7 +703,7 @@ def analyze_discipline_impact_advanced(request):
                         grade_text = convert_grade_to_text(perf.perf_main)
                         perf_data.append({
                             'student_id': student.part_id,
-                            'discipline': perf.perf_edu_discipline.edu_disc_name,
+                            'discipline': perf.perf_discipline,
                             'grade': grade_text,  # теперь текстовая оценка
                             'year': year,
                             'institution': institution,
@@ -838,7 +843,7 @@ def get_discipline_heatmap_data(request):
         # Собираем все дисциплины и их эффекты
         heatmap_data = []
         
-        perf_query = AcademicPerformances.objects.select_related('perf_participant', 'perf_edu_discipline')
+        perf_query = AcademicPerformances.objects.select_related('perf_participant')
         
         if institution_ids or direction_ids:
             participant_filters = Q()
@@ -861,11 +866,19 @@ def get_discipline_heatmap_data(request):
             qualified_participants = Results.objects.filter(participant_filters).values_list('res_participant_id', flat=True).distinct()
             perf_query = perf_query.filter(perf_participant_id__in=qualified_participants)
         
+        all_results = list(
+            Results.objects.select_related('res_edu_specialty')
+            .order_by('res_participant_id', '-res_year', '-res_course')
+        )
+        results_by_part = {}
+        for _r in all_results:
+            results_by_part.setdefault(_r.res_participant_id, []).append(_r)
+
         disciplines = set()
         perf_data_by_disc = {}
         
         for perf in perf_query:
-            disc = perf.perf_edu_discipline.edu_disc_name
+            disc = perf.perf_discipline
             disciplines.add(disc)
             
             if disc not in perf_data_by_disc:
@@ -874,23 +887,15 @@ def get_discipline_heatmap_data(request):
             year = perf.perf_year
             student = perf.perf_participant
             
-            # Результат до (предыдущий год)
-            before_result = Results.objects.filter(
-                res_participant=student
-            ).filter(Q(res_year__lt=year)).order_by('-res_year', '-res_course').first()
-            
-            # Результат после – за тот же год, самая поздняя запись
-            after_result = Results.objects.filter(
-                res_participant=student,
-                res_year=year
-            ).order_by('-res_course').first()
+            student_results = results_by_part.get(student.part_id, [])
+            before_result = next((_r for _r in student_results if _r.res_year < year), None)
+            after_result = next((_r for _r in student_results if _r.res_year == year), None)
             
             if before_result and after_result:
                 # Направление: ищем в результате, затем у участника
                 direction = (
                     (after_result.res_edu_specialty.spec_name if after_result.res_edu_specialty else None) or
                     (before_result.res_edu_specialty.spec_name if before_result.res_edu_specialty else None) or
-                    (student.part_spec.edu_spec_name      if student.part_spec      else None) or
                     'Не указано'
                 )
                 for comp in competencies:
@@ -997,7 +1002,7 @@ def get_disciplines(request):
         
         disciplines_with_counts = []
         for disc in disciplines:
-            count = AcademicPerformances.objects.filter(perf_edu_discipline_id=disc['edu_disc_id']).values('perf_participant').distinct().count()
+            count = AcademicPerformances.objects.filter(perf_discipline=disc['edu_disc_name']).values('perf_participant').distinct().count()
             disciplines_with_counts.append({
                 'id': disc['edu_disc_id'],
                 'name': disc['edu_disc_name'],
@@ -1041,7 +1046,7 @@ def analyze_student_discipline_impact(request):
 
         disciplines = AcademicPerformances.objects.filter(
             perf_participant=participant
-        ).select_related('perf_edu_discipline').order_by('perf_year')
+        ).order_by('perf_year')
 
         results = []
         for disc in disciplines:
@@ -1074,7 +1079,7 @@ def analyze_student_discipline_impact(request):
 
             # Формируем запись
             results.append({
-                'discipline': disc.perf_edu_discipline.edu_disc_name,
+                'discipline': disc.perf_discipline,
                 'year': year,
                 'grade': disc.perf_main,
                 'competencies_before': competencies_before,
@@ -1557,7 +1562,7 @@ def ai_analytics_summary(request):
         elif context_type == 'discipline_impact':
             analyzer = DisciplineImpactAnalyzer()
             perf_data = []
-            perf_qs = AcademicPerformances.objects.select_related('perf_participant', 'perf_edu_discipline')
+            perf_qs = AcademicPerformances.objects.select_related('perf_participant')
             
             # Фильтрация через participants
             if inst_ids or dir_ids:
@@ -1569,6 +1574,11 @@ def ai_analytics_summary(request):
                 qualified_participants = Results.objects.filter(participant_filters).values_list('res_participant_id', flat=True).distinct()
                 perf_qs = perf_qs.filter(perf_participant_id__in=qualified_participants)
 
+            all_results = list(Results.objects.select_related('res_edu_specialty', 'res_institution').order_by('res_participant_id', '-res_year', '-res_course'))
+            results_by_part = {}
+            for _r in all_results:
+                results_by_part.setdefault(_r.res_participant_id, []).append(_r)
+
             for perf in perf_qs[:200]:
                 year_perf = perf.perf_year
                 student = perf.perf_participant
@@ -1576,14 +1586,15 @@ def ai_analytics_summary(request):
                     year_start = int(year_perf.split('/')[0])
                 except:
                     continue
-                before = Results.objects.filter(res_participant=student, res_year__lt=year_perf).order_by('-res_year').first()
-                after = Results.objects.filter(res_participant=student, res_year=year_perf).order_by('-res_course').first()
+                student_results = results_by_part.get(student.part_id, [])
+                before = next((_r for _r in student_results if _r.res_year < year_perf), None)
+                after = next((_r for _r in student_results if _r.res_year == year_perf), None)
                 if before and after:
                     before_score = getattr(before, competency, None)
                     after_score = getattr(after, competency, None)
                     if before_score and after_score:
                         perf_data.append({
-                            'discipline': perf.perf_edu_discipline.edu_disc_name,
+                            'discipline': perf.perf_discipline,
                             'grade': perf.perf_main,
                             f'{competency}_before': before_score,
                             f'{competency}_after': after_score

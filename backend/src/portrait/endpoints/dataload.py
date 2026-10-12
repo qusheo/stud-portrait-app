@@ -1,4 +1,4 @@
-# Модуль загрузки данных
+﻿# Модуль загрузки данных
 
 import openpyxl
 import openpyxl.utils
@@ -372,7 +372,7 @@ def import_excel(request):
 
                     performance, created_perf = AcademicPerformances.objects.update_or_create(
                         perf_participant=participant,
-                        perf_edu_discipline=discipline,
+                        perf_discipline=discipline.edu_disc_name,
                         perf_year=year,
                         defaults=perf_defaults
                     )

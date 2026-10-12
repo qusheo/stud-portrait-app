@@ -29,6 +29,9 @@ class TeacherService extends BaseService {
             'Ошибка загрузки лога парсинга преподавателей'
         );
     }
-}
 
+    getTeachersTable() {
+        return this.request(() => Api.getTeachersTable(), 'Ошибка загрузки таблицы преподавателей');
+    }
+}
 export default new TeacherService();

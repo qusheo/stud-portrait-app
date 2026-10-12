@@ -1,0 +1,198 @@
+.searchPanel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    background: #fff;
+
+    &__content {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    &__bottom {
+        display: flex;
+        justify-content: flex-end;
+        padding: 16px 0 0;
+        margin-top: 8px;
+        border-top: 1px solid #e8ebef;
+    }
+}
+
+.searchItem {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+    padding: 14px 0;
+    border-bottom: 1px solid #eef0f3;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &__main {
+        flex: 0 0 180px;
+        min-width: 180px;
+        padding-top: 7px;
+    }
+
+    &__checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        user-select: none;
+
+        input {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        input:checked + .searchItem__checkmark {
+            background: #1565c0;
+            border-color: #1565c0;
+
+            &::after {
+                opacity: 1;
+            }
+        }
+
+        input:focus-visible + .searchItem__checkmark {
+            outline: 2px solid rgba(21, 101, 192, 0.2);
+            outline-offset: 2px;
+        }
+    }
+
+    &__checkmark {
+        position: relative;
+        flex: 0 0 auto;
+        width: 17px;
+        height: 17px;
+        border: 1px solid #aeb7c2;
+        border-radius: 3px;
+        background: #fff;
+        transition:
+            background 0.15s ease,
+            border-color 0.15s ease;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 4px;
+            height: 8px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            opacity: 0;
+        }
+    }
+
+    &__title {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: 500;
+        color: #252b33;
+    }
+
+    &__options {
+        flex: 1;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+        gap: 10px 18px;
+    }
+
+    &__empty {
+        display: flex;
+        align-items: center;
+        min-height: 34px;
+        font-size: 13px;
+        color: #929aa5;
+    }
+}
+
+.itemOption {
+    display: grid;
+    grid-template-columns: minmax(100px, 1fr) 120px;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+
+    &__label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        line-height: 18px;
+        color: #4a5260;
+    }
+
+    &__select {
+        width: 120px;
+        height: 34px;
+        padding: 0 28px 0 10px;
+        border: 1px solid #d8dde5;
+        border-radius: 5px;
+        outline: none;
+        background: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        color: #252b33;
+        cursor: pointer;
+        transition:
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+
+        &:hover {
+            border-color: #9fb6d4;
+        }
+
+        &:focus {
+            border-color: #1565c0;
+            box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.08);
+        }
+    }
+}
+
+@media (max-width: 800px) {
+    .searchItem {
+        gap: 14px;
+
+        &__main {
+            flex-basis: 140px;
+            min-width: 140px;
+        }
+
+        &__options {
+            grid-template-columns: 1fr;
+        }
+    }
+}
+
+@media (max-width: 560px) {
+    .searchItem {
+        flex-direction: column;
+
+        &__main {
+            flex-basis: auto;
+            min-width: 0;
+            padding-top: 0;
+        }
+
+        &__options {
+            width: 100%;
+        }
+    }
+
+    .itemOption {
+        grid-template-columns: minmax(0, 1fr) 120px;
+    }
+}

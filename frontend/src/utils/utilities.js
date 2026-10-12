@@ -12,13 +12,21 @@ export const LINK_TREE = [
         ]
     },
     {
+        category: 'Подбор',
+        links: [
+            { title: 'Поиск под задачи', to: '/admin/search' },
+            { title: 'Подбор групп', to: '/admin/grouping' }
+        ]
+    },
+    {
         category: 'Результаты',
         links: [
             { title: 'Тестирование профилей', to: '/admin/results' },
             { title: 'Образовательные курсы', to: '/admin/courses' },
             { title: 'Мотиваторы', to: '/admin/motivators' },
             { title: 'Компетенции', to: '/admin/competences' },
-            { title: 'Портрет студента', to: '/admin/student' }
+            { title: 'Портрет студента', to: '/admin/student' },
+            { title: 'Преподаватели', to: '/admin/teachers' }
         ]
     },
     {
@@ -304,6 +312,12 @@ export const COURSES_NAMES = {
     course_mentoring: 'Я — наставник'
 };
 
+export const Mapping = {
+    ...Object.keys(COMPETENCIES_NAMES).map(o => ({ value: o, label: COMPETENCIES_NAMES[o] })),
+    ...Object.keys(MOTIVATORS_NAMES).map(o => ({ value: o, label: MOTIVATORS_NAMES[o] })),
+    ...Object.keys(VALUES_NAMES).map(o => ({ value: o, label: VALUES_NAMES[o] })),
+    ...Object.keys(COURSES_NAMES).map(o => ({ value: o, label: COURSES_NAMES[o] }))
+};
 export function xlsxReadColumns(data) {
     const workbook = XLSX.read(data, { type: 'array' });
     const headers = {};

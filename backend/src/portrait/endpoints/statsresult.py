@@ -1,4 +1,4 @@
-# Модуль статистики и результатов.
+﻿# Модуль статистики и результатов.
 
 from django.db.models import Count, Q
 
@@ -248,20 +248,20 @@ def get_filter_options_with_counts(request):
         institutions_query = institutions_query.filter(res_participant__in=valid_students)
 
     institutions_counts = institutions_query                                                                  \
-        .values('res_institution__inst_id', 'res_institution__inst_name') \
+        .values('res_institution_id')                                                                         \
         .annotate(count=Count('res_id'))                                                                      \
         .order_by('-count')
 
+    _inst_names = dict(Institutions.objects.values_list('inst_id', 'inst_name'))
     institutions_list = [
         {
-            "id":    item['res_institution__inst_id'],
-            "name":  item['res_institution__inst_name'],
+            "id":    item['res_institution_id'],
+            "name":  _inst_names.get(item['res_institution_id']),
             "count": item['count']
         }
         for item in institutions_counts
-        if item['res_institution__inst_name']
+        if item['res_institution_id'] and _inst_names.get(item['res_institution_id'])
     ]
-
     # majors
 
     directions_query = base_results
@@ -293,19 +293,20 @@ def get_filter_options_with_counts(request):
         directions_query = directions_query.filter(res_participant__in=valid_students)
 
     directions_counts = directions_query                 \
-        .values('res_edu_specialty__spec_id', 'res_edu_specialty__spec_name') \
+        .values('res_edu_specialty_id')                  \
         .annotate(count=Count('res_id'))                 \
         .order_by('-count')
 
+    _spec_names = dict(Specialties.objects.values_list('spec_id', 'spec_name'))
     directions_list = [
         {
-            "id":    item['res_edu_specialty__spec_id'],
-            "name":  item['res_edu_specialty__spec_name'],
+            "id":    item['res_edu_specialty_id'],
+            "name":  _spec_names.get(item['res_edu_specialty_id']),
             "count": item['count']
         }
-        for item in directions_counts if item['res_edu_specialty__spec_name']
+        for item in directions_counts
+        if item['res_edu_specialty_id'] and _spec_names.get(item['res_edu_specialty_id'])
     ]
-
     # courses
 
     courses_query = base_results
@@ -676,56 +677,42 @@ def get_students_list(request):
         - limit: лимит результатов (по умолчанию 50)
     """
     try:
-        search = request.GET.get('search', '')
+        search = request.GET.get('search', '').strip()
         limit = int(request.GET.get('limit', 50))
-        
-        # Participants теперь содержит только базовую информацию
-        queryset = Participants.objects.all()
-        
-        # Поиск по RSV или через StudentMapping
+
+        queryset = ParticipantsWithNames.objects.select_related(
+            'part_institution', 'part_spec'
+        )
+
         if search:
-            # Ищем в StudentMapping по имени
-            matching_mappings = StudentMapping.objects.filter(
-                Q(mapping_stud_name__icontains=search) |
-                Q(mapping_rsv__icontains=search)
-            ).values_list('mapping_rsv', flat=True)
-            
             queryset = queryset.filter(
-                Q(part_rsv__icontains=search) |
-                Q(part_rsv__in=matching_mappings)
+                Q(student_name__icontains=search) |
+                Q(part_rsv_id__icontains=search) |
+                Q(part_institution__inst_name__icontains=search) |
+                Q(part_spec__spec_name__icontains=search)
             )
-        
-        students = []
-        for student in queryset[:limit]:
-            # Пытаемся получить имя из StudentMapping
-            try:
-                mapping = StudentMapping.objects.get(mapping_rsv=student.part_rsv_id)
-                student_name = mapping.mapping_stud_name
-            except StudentMapping.DoesNotExist:
-                student_name = student.part_rsv_id
-                
-            # Ищем последний результат для учебной информации
-            latest_result = Results.objects.filter(res_participant=student).order_by('-res_year', '-res_course').first()
-            
-            students.append({
-                'id': student.part_id,
-                'rsv_id': student.part_rsv_id,
-                'name': student_name,
-                'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указан',
-                'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
-                'course': student.part_course_num,
-                'gender': student.part_gender
-            })
-        
+
+        students = [
+            {
+                'id': s.part_id,
+                'rsv_id': s.part_rsv_id,
+                'name': s.student_name,
+                'institution': s.part_institution.inst_name if s.part_institution else 'Не указан',
+                'specialty': s.part_spec.spec_name if s.part_spec else 'Не указана',
+                'course': s.part_course_num,
+                'gender': s.part_gender,
+            }
+            for s in queryset[:limit]
+        ]
+
         return JsonResponse({
             'status': 'success',
             'data': students,
             'total': queryset.count()
         })
-        
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
 
 @method("GET")
 @csrf_exempt
@@ -766,7 +753,7 @@ def get_student_portrait(request):
             'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указано',
             'institution_id': latest_result.res_institution.inst_id if latest_result and latest_result.res_institution else None,
             'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
-            'specialty_id': latest_result.res_edu_specialty.edu_spec_id if latest_result and latest_result.res_edu_specialty else None,
+            'specialty_id': latest_result.res_edu_specialty.spec_id if latest_result and latest_result.res_edu_specialty else None,
             'edu_level': attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else 'Не указан',
             'study_form': attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else 'Не указана',
             'current_course': student.part_course_num
@@ -836,13 +823,13 @@ def get_student_portrait(request):
         # Получаем оценки по дисциплинам
         academic_performance = AcademicPerformances.objects.filter(
             perf_participant=student
-        ).select_related('perf_edu_discipline').order_by('perf_year', 'perf_edu_discipline__edu_disc_name')
+        ).order_by('perf_year', 'perf_discipline')
         
         grades = []
         for grade in academic_performance:
             grades.append({
                 'year': grade.perf_year,
-                'discipline': grade.perf_edu_discipline.edu_disc_name if grade.perf_edu_discipline else None,
+                'discipline': grade.perf_discipline,
                 'main': grade.perf_main,
                 'current': grade.perf_current,
                 'digital': grade.perf_digital,
