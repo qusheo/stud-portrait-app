@@ -4,8 +4,6 @@
     "private": true,
     "dependencies": {
         "@testing-library/dom": "^10.4.1",
-        "@testing-library/jest-dom": "^6.9.1",
-        "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^13.5.0",
         "apexcharts": "^5.3.5",
         "axios": "^1.12.2",
@@ -30,9 +28,10 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
+        "test": "npx vitest run",
         "test:visual": "node test/selenium/visual-runner.js",
         "test:functional": "npx jest test/selenium/ --config=jest.config.js --testPathIgnorePatterns=VisualTests.test.js",
-        "test:all": "npm run test:functional && npm run test:visual",
+        "test:all": "npm run test:functional && npm run test:visual && npx vitest run",
         "test:selenium": "npx jest --config=jest.config.js --verbose",
         "test:selenium:edge": "node tests/selenium/edge-runner.js",
         "format": "prettier --write .",
@@ -62,6 +61,8 @@
     },
     "devDependencies": {
         "@applitools/eyes-selenium": "^4.82.13",
+        "@testing-library/jest-dom": "^7.0.1",
+        "@testing-library/react": "^16.3.3",
         "@types/jest": "^30.0.0",
         "@vitejs/plugin-react": "^4.3.4",
         "chai": "^6.2.0",
@@ -71,12 +72,14 @@
         "expect": "^30.2.0",
         "husky": "^9.1.7",
         "jest": "^27.5.1",
+        "jsdom": "^26.1.0",
         "lint-staged": "^17.5.0",
         "mocha": "^11.7.4",
         "onchange": "^7.1.0",
         "prettier": "^3.9.6",
         "sass": "^1.93.2",
         "selenium-webdriver": "^4.38.0",
-        "vite": "^5.4.19"
+        "vite": "^5.4.21",
+        "vitest": "^3.2.4"
     }
 }
