@@ -1,7 +1,5 @@
 
 DROP TABLE IF EXISTS DataUploadTemplate   CASCADE;
-DROP TABLE IF EXISTS TeacherParseLog      CASCADE;
-DROP TABLE IF EXISTS Teachers             CASCADE;
 DROP TABLE IF EXISTS AcademicPerformances CASCADE;
 DROP TABLE IF EXISTS Courseresults        CASCADE;
 DROP TABLE IF EXISTS Results          CASCADE;
@@ -233,36 +231,4 @@ CREATE TABLE DataUploadTemplate (
     template_config      JSON NOT NULL,
     template_created_at  TIMESTAMP,
     template_updated_at  TIMESTAMP
-);
-
-CREATE TABLE Teachers (
-    teacher_id             INTEGER        PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    full_name              VARCHAR(512)   UNIQUE NOT NULL,
-    position               VARCHAR(1024),
-    degree                 VARCHAR(512),
-    department             VARCHAR(1024),
-    email                  VARCHAR(256),
-    profile_url            VARCHAR(1024),
-    source_url             VARCHAR(1024),
-    interests              JSONB          NOT NULL DEFAULT '[]'::jsonb,
-    qualification_courses  JSONB          NOT NULL DEFAULT '[]'::jsonb,
-    publications           JSONB          NOT NULL DEFAULT '[]'::jsonb,
-    projects               JSONB          NOT NULL DEFAULT '[]'::jsonb,
-    modeus_disciplines     JSONB          NOT NULL DEFAULT '[]'::jsonb,
-    raw_profile            JSONB          NOT NULL DEFAULT '{}'::jsonb,
-    parsed_at              TIMESTAMP      NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_teachers_full_name ON Teachers(full_name);
-CREATE INDEX idx_teachers_department ON Teachers(department);
-
-CREATE TABLE TeacherParseLog (
-    id              INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    started_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    finished_at     TIMESTAMP,
-    status          VARCHAR(16)   NOT NULL DEFAULT 'running',
-    source_urls     JSONB         NOT NULL DEFAULT '[]'::jsonb,
-    teachers_found  INTEGER      NOT NULL DEFAULT 0,
-    teachers_saved  INTEGER      NOT NULL DEFAULT 0,
-    error_message   TEXT         NOT NULL DEFAULT ''
 );

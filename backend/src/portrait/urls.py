@@ -107,12 +107,6 @@ urlpatterns = [
     path('parse-curriculum/log/',      curriculum_end.get_parse_log,         name='parse_curriculum_log'),
     path('parse-curriculum/mappings/', curriculum_end.get_saved_mappings,    name='parse_curriculum_mappings'),
 
-    # TEACHERS module
-    path('teachers/',                 teachers.list_teachers,       name='teachers_list'),
-    path('teachers/<int:teacher_id>/', teachers.teacher_detail,      name='teacher_detail'),
-    path('parse-teachers/',           teachers.parse_teachers_view, name='parse_teachers'),
-    path('parse-teachers/log/',       teachers.parse_teachers_log,  name='parse_teachers_log'),
-
     # GENDOX module
     path('gendox/generate-resume-docx/', gendox.generate_docx_resume,      name='gendox_generate_resume_docx'),
     path('gendox/student-resume-data/',  gendox.get_student_resume_data,   name='gendox_student_resume_data'),
