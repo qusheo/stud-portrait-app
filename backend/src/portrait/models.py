@@ -334,3 +334,29 @@ class CurriculumParseLog(models.Model):
  
     def __str__(self) -> str:
         return f"[{self.status}] {self.started_at:%Y-%m-%d %H:%M}"
+
+
+class TeacherDirectory(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    source_row = models.IntegerField(unique=True)
+    name = models.TextField()
+    gender = models.CharField(max_length=16, null=True, blank=True)
+    position = models.TextField(blank=True)
+    disciplines = models.JSONField(default=list)
+    institution = models.TextField()
+    edu_level = models.TextField(blank=True)
+    academic_degree = models.TextField(blank=True)
+    academic_title = models.TextField(blank=True)
+    qualification = models.TextField(blank=True)
+    experience = models.IntegerField(null=True, blank=True)
+    experience_text = models.TextField(blank=True)
+    education_details = models.JSONField(default=list)
+    professional_development = models.JSONField(default=list)
+    professional_retraining = models.JSONField(default=list)
+    source_url = models.TextField()
+    parsed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        managed = False
+        db_table = "teacher_directory"
+        ordering = ["name", "id"]

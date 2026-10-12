@@ -53,6 +53,21 @@ cd src
 python manage.py test
 ```
 
+### UTMN teacher directory
+
+Import a saved copy of `https://sveden.utmn.ru/sveden/employees/pps/index.html`
+into the database configured in `backend/src/.env`:
+
+```cmd
+backend\.venv\Scripts\python.exe backend\tools\import_teacher_directory.py "C:\path\to\page.html"
+```
+
+The importer creates `teacher_directory` if needed and updates rows by their
+number on the official source page. `backend/create_teacher_directory.sql` can
+also be applied manually to an existing database. The source does not publish
+gender, so that column remains null. Professional development and retraining
+are retained separately from educational qualification.
+
 ---
 
 ### LLM service

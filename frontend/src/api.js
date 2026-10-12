@@ -449,6 +449,10 @@ class Api {
         return fetch(`${HOST}/portrait/teachers/get_teachers_table/`);
     }
 
+    getTeacherById(teacherId) {
+        return fetch(`${HOST}/portrait/teachers/${teacherId}/`);
+    }
+
     getMatchingTeachersByStudent(studentId) {
         const params = new URLSearchParams({ student_id: studentId });
         return fetch(`${HOST}/portrait/matching/get_matching_teachers_by_student/?${params}`);

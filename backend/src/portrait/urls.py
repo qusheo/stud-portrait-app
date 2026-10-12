@@ -97,6 +97,7 @@ urlpatterns = [
 
     # teachers
     path('teachers/get_teachers_table/', teachers.get_teachers_table, name='teachers_table'),
+    path('teachers/<int:teacher_id>/', teachers.get_teacher_by_id, name='teacher_detail'),
 
     # matching
     path('matching/get_matching_teachers_by_student/', matching.get_matching_teachers_by_student, name='matching_teachers_by_student'),

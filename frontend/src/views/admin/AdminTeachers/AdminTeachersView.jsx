@@ -1,79 +1,70 @@
+import { useEffect, useMemo, useState } from 'react';
 import DataTable from '@components/tables/DataTable';
-import './AdminTeachersView.scss';
-import { useEffect, useState } from 'react';
+import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import TeacherService from '@services/TeacherService.js';
 import { buildColumns } from './buildTeachersTable.js';
 import TeacherView from './TeacherView.jsx';
-import TeacherService from '@services/TeacherService.js';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import './AdminTeachersView.scss';
 
 function AdminTeachersView() {
-    const [showTeacherView, setShowTeacherView] = useState(false);
-    const [openDisciplinesModal, setOpenDisciplinesModal] = useState(false);
-    const [disciplinesList, setDisciplinesList] = useState([]);
-    const [isTableLoading, setTableLoading] = useState(false);
-    const columns = buildColumns();
-    let rows = [];
-    // disciplines = [], надо будет кол-во в ячейке писать / если 1, то дисциплину
+    const [rows, setRows] = useState([]);
+    const [search, setSearch] = useState('');
+    const [selectedTeacher, setSelectedTeacher] = useState(null);
+    const [isLoading, setLoading] = useState(true);
+    const columns = useMemo(() => buildColumns(), []);
 
-    const getTeachersTable = async () => {
-        try {
-            setTableLoading(true);
-            const data = await TeacherService.getTeachersTable();
-            rows = data ?? [];
-        }
-        catch (e) {}
-        finally{
-            setTableLoading(false);
-        }
-    }
-    const cellClickHandler = (row, column) => {
-        if (column.id === 'name') {
-            setShowTeacherView(true);
-        }
-        else if (column.id === 'disciplines') {
-            showDisciplinesModal(row);
-        }
-    }
-    function showDisciplinesModal(row) {
-        setOpenDisciplinesModal(true);
-        setDisciplinesList(row.disciplines);
-    }
-
-    useEffect( () => {
-        getTeachersTable();
+    useEffect(() => {
+        let active = true;
+        TeacherService.getTeachersTable()
+            .then(result => {
+                if (active) {
+                    setRows((result.data ?? []).map(row => ({
+                        ...row,
+                        disciplineList: row.disciplines ?? [],
+                        disciplines: row.disciplines?.length || '',
+                    })));
+                }
+            })
+            .catch(() => {})
+            .finally(() => { if (active) setLoading(false); });
+        return () => { active = false; };
     }, []);
 
-    // вверху поиск препода, снизу таблица всех
+    const visibleRows = useMemo(
+        () => rows.filter(row => row.name.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())),
+        [rows, search]
+    );
+
+    const openTeacher = async row => {
+        const result = await TeacherService.getTeacherById(row.rowId);
+        setSelectedTeacher(result.data);
+    };
+
     return (
         <div className="AdminTeachersView">
             <div className="AdminTeachersView__search">
-                <input type="text" placeholder="Поиск преподавателя..." />
+                <input
+                    type="search"
+                    value={search}
+                    onChange={event => setSearch(event.target.value)}
+                    placeholder="Поиск преподавателя"
+                    aria-label="Поиск преподавателя"
+                />
+                <span>{visibleRows.length}</span>
             </div>
-            { showTeacherView && (
-                <div className="AdminTeachersView__teacher-view">
-                    <TeacherView />
-                </div>
+            {isLoading ? <LoadingSpinner text="Загрузка преподавателей" /> : (
+                <DataTable
+                    rows={visibleRows}
+                    columns={columns}
+                    cellClickHandlers={{ name: openTeacher, disciplines: openTeacher }}
+                    rowKey="rowId"
+                    pageSize={20}
+                    selection={false}
+                />
             )}
-            { isTableLoading ? <LoadingSpinner text={'Загрузка таблицы'}/>
-            : <DataTable
-                rows={rows}
-                columns={columns}
-                cellClickHandlers={cellClickHandler}
-                rowKey={'rowId'}
-                pageSize={20}
-            />}
-
-            { openDisciplinesModal && (
-                <div className={`AdminTeachersView__disciplines-modal`}>
-                    <div className="AdminTeachersView__disciplines-modal-content">
-                        {disciplinesList.map((discipline, index) => (
-                            <div key={index} className="AdminTeachersView__discipline-item">
-                                {discipline}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            ) }
+            {selectedTeacher && (
+                <TeacherView teacher={selectedTeacher} onClose={() => setSelectedTeacher(null)} />
+            )}
         </div>
     );
 }
