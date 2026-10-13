@@ -5,6 +5,7 @@ import { buildColumns } from './buildTeachersTable.js';
 import TeacherView from './TeacherView.jsx';
 import TeacherService from '@services/TeacherService.js';
 import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import { AutocompleteInput } from '../../../components/index.js';
 // тестовое
 const teachers = [
     {
@@ -106,6 +107,9 @@ function AdminTeachersView() {
     const columns = buildColumns();
     let rows = teachers.map((r, index) => ({...r, rowId: index}));
     const tableRows = rows.map(r => ({...r, disciplines: r.disciplines.length}));
+    const searchOptions = rows.map(r => ({
+            label: `${r.name}, ${r.position} | ${r.institution}`, 
+            value: r.rowId}));
 
     const getTeachersTable = async () => {
         try {
@@ -135,8 +139,11 @@ function AdminTeachersView() {
         setModalPosition({ x: event.clientX, y: event.clientY });
         setOpenDisciplinesModal(true);
     }
-    function onInputChange(){
-
+    function onInputChange(val){
+        const teacher = rows.find(r => r.rowId === val);
+        if (!teacher) return;
+        setShownTeacher(teacher);
+        setShowTeacherView(true); 
     }
     function handleCloseTeacher(){
         setShowTeacherView(!showTeacherView); 
@@ -175,7 +182,7 @@ function AdminTeachersView() {
     return (
         <div className="AdminTeachersView">
             <div className="AdminTeachersView__search">
-                <input type="text" placeholder="Поиск преподавателя..." onChange={onInputChange} value={shownTeacher?.name ?? ''}/>
+                <AutocompleteInput type="text" placeholder="Поиск преподавателя..." onChange={onInputChange} value={shownTeacher?.name} options={searchOptions}/>
                 {showTeacherView && (<div className="AdminTeachersView__search-close" onClick={() => handleCloseTeacher()}> X Закрыть</div>)}
             </div>
             { showTeacherView && (
@@ -190,6 +197,7 @@ function AdminTeachersView() {
                 cellClickHandlers={cellClickHandler}
                 rowKey={'rowId'}
                 pageSize={20}
+                _selectedRows={ shownTeacher ? [shownTeacher] : []}
             />}
 
             { openDisciplinesModal && (

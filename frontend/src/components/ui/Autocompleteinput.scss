@@ -1,0 +1,48 @@
+.autocomplete {
+    position: relative;
+    width: 100%;
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 12px;
+        border: 1px solid #d9dde3;
+        border-radius: 6px;
+        outline: none;
+
+        &:focus {
+            border-color: #1677ff;
+        }
+    }
+
+    &__options {
+        overflow: hidden;
+        max-width: 60%;
+        font-size: 13px;
+        min-width: 100px;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        max-height: 200px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #d9dde3;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &__option {
+        padding: 8px 12px;
+        overflow: hidden;
+        text-wrap: nowrap;
+        width: calc(100% - 10px);
+        text-overflow: ellipsis;
+        cursor: pointer;
+
+        &:hover {
+            background: #f0f5ff;
+        }
+    }
+}

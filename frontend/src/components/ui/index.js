@@ -12,4 +12,5 @@ export { default as Slider } from './Slider';
 export { default as TabButton } from './TabButton';
 export { default as Tooltip } from './Tooltip';
 export { default as DraggablePopover } from './DraggablePopover';
+export { default as AutocompleteInput } from './AutocompleteInput';
 export * from './palette';

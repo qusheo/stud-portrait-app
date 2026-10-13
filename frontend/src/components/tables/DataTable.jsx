@@ -85,7 +85,8 @@ const DataTable = ({
     pageSize = DEFAULT_PAGE_SIZE,
     cellClickHandlers = {},
     selection = true,
-    onSelectionChange
+    onSelectionChange,
+    _selectedRows = [],
 }) => {
     const [filters, setFilters] = useState({});
     const [sort, setSort] = useState(null);

@@ -15,15 +15,18 @@ export { default as ModalWindow } from './ModalWindow';
 export { default as MotivatorStatistics } from './MotivatorStatistics';
 export { default as ResultTable } from './ResultTable';
 
-export { default as SidebarLayout } from './SidebarLayout';
+export { SidebarLayout } from './SidebarLayout';
 
 export { default as StudentComparisonStats } from './StudentComparisonStats';
 
 export { default as Subtitle } from './Subtitle';
 export { default as Title } from './Title';
 
+export { default as DataTable } from './tables/DataTable';
+export { default as Table } from './tables/Table';
+export { default as DBContentTable } from './tables/DbContentTable';
+
 export * from './charts';
 export * from './cards';
-export * from './icons';
-export * from './tables';
+//export * from './icons';
 export * from './ui';
