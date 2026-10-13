@@ -1,0 +1,42 @@
+.AdminTeachersView{
+    &__search {
+        padding-bottom: 8px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        input {
+            width: 300px;
+            opacity: 70%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid rgb(153, 169, 187);
+            :focus-visible{
+                border: 2px solid rgb(142, 171, 203);
+                outline: none;
+            }
+        }
+        &-close{
+            cursor: pointer;
+            font-size: 14px;
+        }
+    }
+
+    &__disciplines-modal {
+        position: fixed;
+        z-index: 9999;
+        width: max-content;
+        max-width: calc(100vw - 16px);
+        max-height: calc(100vh - 16px);
+        overflow: auto;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgb(0 0 0 / 12%);
+        padding: 10px;
+        font-size: 10px;
+
+        &-content{
+            padding: 4px;
+        }
+    }
+}

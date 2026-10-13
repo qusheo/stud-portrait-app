@@ -1,0 +1,48 @@
+.TeacherView {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 20px;
+    background-color: #f4f6f9;
+    border-radius: 8px;
+    margin: 8px 0 8px 0;
+
+    &__block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 14px;
+        background: #e8eef4;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        min-width: 0;
+    }
+
+    &__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    &__value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e293b;
+        overflow-wrap: anywhere;
+    }
+
+    &__experience {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 0;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid #e5e7eb;
+        }
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react';
 import './DataTable.scss';
 import { Search, SearchX, FilterIcon } from 'lucide-react';
 import { buildTableColumns } from './buildTableFilters';
 import Empty from '../ui/Empty';
+import { createPortal } from 'react-dom';
 const DEFAULT_PAGE_SIZE = 50;
 
 const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
@@ -92,8 +93,11 @@ const DataTable = ({
     const [selectedRowIds, setSelectedRowIds] = useState(new Set());
     const [openedSearch, setOpenedSearch] = useState({});
     const [openedFilter, setOpenedFilter] = useState(null);
+    const [filterPosition, setFilterPosition] = useState({ x: 0, y: 0 });
     const containerRef = useRef(null);
     const sentinelRef = useRef(null);
+    const filterPopoverRef = useRef(null);
+    const filterButtonRectRef = useRef(null);
 
     const tableColumns = useMemo(() => buildTableColumns(columns, rows), [columns, rows]);
     const getRowId = row => row[rowKey];
@@ -105,14 +109,42 @@ const DataTable = ({
             </div>
         );
 
+    useLayoutEffect(() => {
+        if (!openedFilter || !filterPopoverRef.current || !filterButtonRectRef.current) return;
+
+        const { height, width } = filterPopoverRef.current.getBoundingClientRect();
+        const button = filterButtonRectRef.current;
+        const padding = 8;
+
+        const x = Math.max(padding, Math.min(button.left, window.innerWidth - width - padding));
+
+        const y = button.bottom + 6 + height > window.innerHeight - padding
+            ? button.top - height - 6
+            : button.bottom + 6;
+
+        setFilterPosition({
+            x,
+            y: Math.max(padding, y),
+        });
+    }, [openedFilter]);
+
     const toggleSearch = id => {
         setOpenedSearch(prev => ({
             ...prev,
             [id]: !prev[id]
         }));
     };
-    const toggleFilter = columnId => {
+    const toggleFilter = (columnId, event) => {
         setOpenedFilter(current => (current === columnId ? null : columnId));
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const width = 240;
+        const padding = 8;
+        const gap = 6;
+        const x = Math.max(padding, Math.min(rect.left, window.innerWidth - width - padding));
+        const y = rect.bottom + gap;
+
+        setFilterPosition({ x, y });
 
         setOpenedSearch({});
     };
@@ -328,6 +360,18 @@ const DataTable = ({
             return next;
         });
     };
+    useEffect(() => {
+        if (!openedFilter) return;
+
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.data-table__filter-popover')) {
+                setOpenedFilter(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openedFilter]);
 
     const getSortIcon = column => {
         if (!column.sortable) return null;
@@ -359,13 +403,13 @@ const DataTable = ({
         return value ?? '';
     };
 
-    const handleCellClick = (column, row) => {
+    const handleCellClick = (column, row, event) => {
         if (!column.clickable) return;
 
-        const handler = cellClickHandlers[column.id];
-
-        if (handler) {
-            handler(row);
+        if (typeof cellClickHandlers === 'function') {
+            cellClickHandlers(row, column, event);
+        } else {
+            cellClickHandlers[column.id]?.(row, event);
         }
     };
 
@@ -420,21 +464,28 @@ const DataTable = ({
                                                 }`}
                                                 onClick={event => {
                                                     event.stopPropagation();
-                                                    toggleFilter(column.id);
+                                                    toggleFilter(column.id, event);
                                                 }}
                                             >
-                                                <FilterIcon size={10} />
+                                                <FilterIcon className="header-icon" size={10} />
                                             </div>
                                         )}
-                                        {column.filterable && column.filter && openedFilter === column.id && (
-                                            <div className="data-table__filter-popover">
+                                        {column.filterable && column.filter && openedFilter === column.id && createPortal(
+                                            <div className="data-table__filter-popover"
+                                                ref={filterPopoverRef}
+                                                style={{
+                                                    left: filterPosition.x,
+                                                    top: filterPosition.y,
+                                                }}
+                                            >
                                                 <FilterPanel
                                                     column={column}
                                                     handleFilterChange={handleFilterChange}
                                                     filters={filters}
                                                     clearFilter={clearFilter}
                                                 />
-                                            </div>
+                                            </div>,
+                                            document.body
                                         )}
                                         {column.searchable && (
                                             <div
@@ -444,7 +495,7 @@ const DataTable = ({
                                                     toggleSearch(column.id);
                                                 }}
                                             >
-                                                {openedSearch[column.id] ? <SearchX size={10} /> : <Search size={10} />}
+                                                {openedSearch[column.id] ? <SearchX className="header-icon" size={10} /> : <Search className="header-icon" size={10} />}
                                             </div>
                                         )}
                                     </div>
@@ -462,7 +513,6 @@ const DataTable = ({
 
                                         {!!search[column.id] && (
                                             <button
-                                                type="button"
                                                 onClick={event => {
                                                     event.stopPropagation();
                                                     handleSearch(column.id, '');

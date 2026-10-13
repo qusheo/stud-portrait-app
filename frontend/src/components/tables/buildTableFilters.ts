@@ -29,7 +29,7 @@ export function buildColumnFilter(column: ITableColumn, rows: Record<string, any
 
     const field = column.id;
 
-    if (column.filterType) {
+    if (column.filterType === 'number') {
         return {
             type: 'input',
             operators: ['=', '>', '<']
