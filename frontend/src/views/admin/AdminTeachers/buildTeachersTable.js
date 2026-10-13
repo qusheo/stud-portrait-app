@@ -32,7 +32,7 @@ export const buildColumns = () => {
     };
 
     const numberCol = {
-        id: '',
+        id: 'rowId',
         title: '№',
         width: 50,
         sortable: true,

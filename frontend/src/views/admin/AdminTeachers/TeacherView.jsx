@@ -24,15 +24,12 @@ function TeacherView({ teacher }) {
         }
 
         if (key === 'experience') {
-            return Array.isArray(value) && value.length
-                ? value.map((item, index) => (
-                    <div key={index} className="TeacherView__experience">
-                        <div>{item.organization}</div>
-                        <div>{item.position}</div>
-                        <div>{item.years} лет</div>
+            return !teacher?.experience || teacher?.experience === 0
+                ?  '—' : (
+                    <div className="TeacherView__experience">
+                        <div>{teacher.experience} лет</div>
                     </div>
-                ))
-                : '—';
+                );
         }
 
         return value ?? '—';
