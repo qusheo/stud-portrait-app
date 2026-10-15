@@ -119,7 +119,7 @@ export function Sidebar({ links, linkTree }) {
                     onAccountClick={onAccountClick}
                 />
                 <div
-                    className="Sidebar-container"
+                    className="Sidebar-container-closed"
                     style={{ width: '30px', height: 'calc(100vdh - 50px)' }}
                 >
                     <nav className="Sidebar-closed"></nav>

@@ -30,7 +30,7 @@
 
     &__row--selected {
         .data-table__cell:not(.data-table__cell--red, .data-table__cell--yellow, .data-table__cell--green) {
-            background: #f2f6fc;
+            background: #d8e6fccd;
         }
     }
 
@@ -152,7 +152,7 @@
     &__row {
         &:hover {
             .data-table__cell:not(.data-table__cell--red, .data-table__cell--yellow, .data-table__cell--green) {
-                background: #e6ecf7;
+                background: #f0f3f9;
             }
         }
     }
@@ -176,7 +176,7 @@
             cursor: pointer;
 
             &:hover {
-                text-decoration: underline;
+                font-weight: 600;
             }
         }
 
@@ -185,11 +185,11 @@
         }
 
         &--yellow {
-            background: #fff5d4;
+            background: #feffd4;
         }
 
         &--green {
-            background: #d9f3e7;
+            background: #dcfaef;
         }
     }
 
