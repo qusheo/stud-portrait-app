@@ -86,7 +86,7 @@ const DataTable = ({
     cellClickHandlers = {},
     selection = true,
     onSelectionChange,
-    _selectedRows = [],
+    _selectedRows = []
 }) => {
     const [filters, setFilters] = useState({});
     const [sort, setSort] = useState(null);
@@ -119,13 +119,11 @@ const DataTable = ({
 
         const x = Math.max(padding, Math.min(button.left, window.innerWidth - width - padding));
 
-        const y = button.bottom + 6 + height > window.innerHeight - padding
-            ? button.top - height - 6
-            : button.bottom + 6;
+        const y = button.bottom + 6 + height > window.innerHeight - padding ? button.top - height - 6 : button.bottom + 6;
 
         setFilterPosition({
             x,
-            y: Math.max(padding, y),
+            y: Math.max(padding, y)
         });
     }, [openedFilter]);
 
@@ -364,7 +362,7 @@ const DataTable = ({
     useEffect(() => {
         if (!openedFilter) return;
 
-        const handleClickOutside = (event) => {
+        const handleClickOutside = event => {
             if (!event.target.closest('.data-table__filter-popover')) {
                 setOpenedFilter(false);
             }
@@ -468,26 +466,33 @@ const DataTable = ({
                                                     toggleFilter(column.id, event);
                                                 }}
                                             >
-                                                <FilterIcon className="header-icon" size={10} />
+                                                <FilterIcon
+                                                    className="header-icon"
+                                                    size={10}
+                                                />
                                             </div>
                                         )}
-                                        {column.filterable && column.filter && openedFilter === column.id && createPortal(
-                                            <div className="data-table__filter-popover"
-                                                ref={filterPopoverRef}
-                                                style={{
-                                                    left: filterPosition.x,
-                                                    top: filterPosition.y,
-                                                }}
-                                            >
-                                                <FilterPanel
-                                                    column={column}
-                                                    handleFilterChange={handleFilterChange}
-                                                    filters={filters}
-                                                    clearFilter={clearFilter}
-                                                />
-                                            </div>,
-                                            document.body
-                                        )}
+                                        {column.filterable &&
+                                            column.filter &&
+                                            openedFilter === column.id &&
+                                            createPortal(
+                                                <div
+                                                    className="data-table__filter-popover"
+                                                    ref={filterPopoverRef}
+                                                    style={{
+                                                        left: filterPosition.x,
+                                                        top: filterPosition.y
+                                                    }}
+                                                >
+                                                    <FilterPanel
+                                                        column={column}
+                                                        handleFilterChange={handleFilterChange}
+                                                        filters={filters}
+                                                        clearFilter={clearFilter}
+                                                    />
+                                                </div>,
+                                                document.body
+                                            )}
                                         {column.searchable && (
                                             <div
                                                 className="data-table__search-button"
@@ -496,7 +501,17 @@ const DataTable = ({
                                                     toggleSearch(column.id);
                                                 }}
                                             >
-                                                {openedSearch[column.id] ? <SearchX className="header-icon" size={10} /> : <Search className="header-icon" size={10} />}
+                                                {openedSearch[column.id] ? (
+                                                    <SearchX
+                                                        className="header-icon"
+                                                        size={10}
+                                                    />
+                                                ) : (
+                                                    <Search
+                                                        className="header-icon"
+                                                        size={10}
+                                                    />
+                                                )}
                                             </div>
                                         )}
                                     </div>

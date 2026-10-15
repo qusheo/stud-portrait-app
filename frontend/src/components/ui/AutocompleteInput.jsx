@@ -8,9 +8,7 @@ function AutocompleteInput({ options = [], value = '', onChange, placeholder = '
     const selectedOption = options.find(option => option.value === value);
     const displayValue = isOpen ? search : (selectedOption?.label ?? value ?? '');
 
-    const filteredOptions = options.filter(option =>
-        String(option.label).toLowerCase().includes(String(search).toLowerCase())
-    );
+    const filteredOptions = options.filter(option => String(option.label).toLowerCase().includes(String(search).toLowerCase()));
 
     const handleSelect = option => {
         onChange(option.value);

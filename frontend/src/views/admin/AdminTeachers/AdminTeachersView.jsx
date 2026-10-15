@@ -18,7 +18,7 @@ const teachers = [
         academic_degree: 'Доктор физико-математических наук',
         academic_title: 'Профессор',
         qualification: 'Математик',
-        experience: 18,
+        experience: 18
     },
     {
         name: 'Петрова Анна Сергеевна',
@@ -30,7 +30,7 @@ const teachers = [
         academic_degree: 'Кандидат технических наук',
         academic_title: 'Доцент',
         qualification: 'Инженер-программист',
-        experience: 12,
+        experience: 12
     },
     {
         name: 'Сидоров Алексей Викторович',
@@ -42,7 +42,7 @@ const teachers = [
         academic_degree: 'Кандидат физико-математических наук',
         academic_title: 'Отсутствует',
         qualification: 'Инженер-физик',
-        experience: 9,
+        experience: 9
     },
     {
         name: 'Кузнецова Мария Андреевна',
@@ -54,7 +54,7 @@ const teachers = [
         academic_degree: 'Кандидат экономических наук',
         academic_title: 'Доцент',
         qualification: 'Экономист',
-        experience: 12,
+        experience: 12
     },
     {
         name: 'Смирнов Дмитрий Олегович',
@@ -66,7 +66,7 @@ const teachers = [
         academic_degree: 'Отсутствует',
         academic_title: 'Отсутствует',
         qualification: 'Разработчик программного обеспечения',
-        experience: 3,
+        experience: 3
     },
     {
         name: 'Васильева Елена Николаевна',
@@ -78,7 +78,7 @@ const teachers = [
         academic_degree: 'Доктор педагогических наук',
         academic_title: 'Профессор',
         qualification: 'Педагог-психолог',
-        experience: 20,
+        experience: 20
     },
     {
         name: 'Морозов Павел Игоревич',
@@ -90,8 +90,8 @@ const teachers = [
         academic_degree: 'Кандидат технических наук',
         academic_title: 'Доцент',
         qualification: 'Специалист по анализу данных',
-        experience: 7,
-    },
+        experience: 7
+    }
 ];
 
 function AdminTeachersView() {
@@ -105,31 +105,30 @@ function AdminTeachersView() {
     const modalRef = useRef(null);
 
     const columns = buildColumns();
-    let rows = teachers.map((r, index) => ({...r, rowId: index+1}));
-    const tableRows = rows.map(r => ({...r, disciplines: r.disciplines.length}));
+    let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
+    const tableRows = rows.map(r => ({ ...r, disciplines: r.disciplines.length }));
     const searchOptions = rows.map(r => ({
-            label: `${r.name}, ${r.position} | ${r.institution}`, 
-            value: r.rowId}));
+        label: `${r.name}, ${r.position} | ${r.institution}`,
+        value: r.rowId
+    }));
 
     const getTeachersTable = async () => {
         try {
             setTableLoading(true);
             const data = await TeacherService.getTeachersTable();
             rows = data ?? [];
-        }
-        catch (e) {}
-        finally{
+        } catch (e) {
+        } finally {
             setTableLoading(false);
         }
-    }
-    function cellClickHandler(row, column){
+    };
+    function cellClickHandler(row, column) {
         if (column.id === 'name') {
             const teacher = rows.find(r => r.rowId === row.rowId);
             console.log(teacher);
             setShownTeacher(teacher);
             setShowTeacherView(true);
-        }
-        else if (column.id === 'disciplines') {
+        } else if (column.id === 'disciplines') {
             const disciplines = rows.find(r => r.rowId === row.rowId).disciplines;
             showDisciplinesModal(disciplines);
         }
@@ -139,23 +138,23 @@ function AdminTeachersView() {
         setModalPosition({ x: event.clientX, y: event.clientY });
         setOpenDisciplinesModal(true);
     }
-    function onInputChange(val){
+    function onInputChange(val) {
         const teacher = rows.find(r => r.rowId === val);
         if (!teacher) return;
         setShownTeacher(teacher);
-        setShowTeacherView(true); 
+        setShowTeacherView(true);
     }
-    function handleCloseTeacher(){
-        setShowTeacherView(!showTeacherView); 
+    function handleCloseTeacher() {
+        setShowTeacherView(!showTeacherView);
         setShownTeacher(null);
     }
-    useEffect( () => {
+    useEffect(() => {
         getTeachersTable();
     }, []);
     useEffect(() => {
         if (!openDisciplinesModal) return;
 
-        const handleClickOutside = (event) => {
+        const handleClickOutside = event => {
             if (!event.target.closest('.AdminTeachersView__disciplines-modal')) {
                 setOpenDisciplinesModal(false);
             }
@@ -182,40 +181,62 @@ function AdminTeachersView() {
     return (
         <div className="AdminTeachersView">
             <div className="AdminTeachersView__search">
-                <AutocompleteInput type="text" placeholder="Поиск преподавателя..." onChange={onInputChange} value={shownTeacher?.name} options={searchOptions}/>
-                {showTeacherView && (<div className="AdminTeachersView__search-close" onClick={() => handleCloseTeacher()}> X Закрыть</div>)}
+                <AutocompleteInput
+                    type="text"
+                    placeholder="Поиск преподавателя..."
+                    onChange={onInputChange}
+                    value={shownTeacher?.name}
+                    options={searchOptions}
+                />
+                {showTeacherView && (
+                    <div
+                        className="AdminTeachersView__search-close"
+                        onClick={() => handleCloseTeacher()}
+                    >
+                        {' '}
+                        X Закрыть
+                    </div>
+                )}
             </div>
-            { showTeacherView && (
+            {showTeacherView && (
                 <div className="AdminTeachersView__teacher-view">
-                    <TeacherView teacher={shownTeacher}/>
+                    <TeacherView teacher={shownTeacher} />
                 </div>
             )}
-            { isTableLoading ? <LoadingSpinner text={'Загрузка таблицы'}/>
-            : <DataTable
-                rows={tableRows}
-                columns={columns}
-                cellClickHandlers={cellClickHandler}
-                rowKey={'rowId'}
-                pageSize={20}
-                _selectedRows={ shownTeacher ? [shownTeacher] : []}
-            />}
+            {isTableLoading ? (
+                <LoadingSpinner text={'Загрузка таблицы'} />
+            ) : (
+                <DataTable
+                    rows={tableRows}
+                    columns={columns}
+                    cellClickHandlers={cellClickHandler}
+                    rowKey={'rowId'}
+                    pageSize={20}
+                    _selectedRows={shownTeacher ? [shownTeacher] : []}
+                />
+            )}
 
-            { openDisciplinesModal && (
-                <div ref={modalRef} className={`AdminTeachersView__disciplines-modal`}
+            {openDisciplinesModal && (
+                <div
+                    ref={modalRef}
+                    className={`AdminTeachersView__disciplines-modal`}
                     style={{
                         left: modalPosition.x,
-                        top: modalPosition.y,
+                        top: modalPosition.y
                     }}
                 >
                     <div className="AdminTeachersView__disciplines-modal-content">
                         {disciplinesList.map((discipline, index) => (
-                            <div key={index} className="AdminTeachersView__discipline-item">
+                            <div
+                                key={index}
+                                className="AdminTeachersView__discipline-item"
+                            >
                                 {discipline}
                             </div>
                         ))}
                     </div>
                 </div>
-            ) }
+            )}
         </div>
     );
 }

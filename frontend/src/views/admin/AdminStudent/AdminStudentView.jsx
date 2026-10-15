@@ -375,8 +375,8 @@ function AdminStudentView(studentId = undefined) {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [ isMatchingStudentsLoading, setMatchingStudentsLoading] = useState(false);
-    const [ isMatchingTeachersLoading, setMatchingTeachersLoading] = useState(false);
+    const [isMatchingStudentsLoading, setMatchingStudentsLoading] = useState(false);
+    const [isMatchingTeachersLoading, setMatchingTeachersLoading] = useState(false);
 
     useEffect(() => {
         if (selectedStudentId) {
@@ -400,30 +400,28 @@ function AdminStudentView(studentId = undefined) {
     };
     // подбор преподов
     let teachers = [];
-    const getMatchingTeachers = async (studentId) => {
+    const getMatchingTeachers = async studentId => {
         try {
             setMatchingTeachersLoading(true);
             const data = await MatchingService.getMatchingTeachersByStudent(studentId);
             teachers = data ?? [];
-        }
-        catch (e) {}
-        finally{
+        } catch (e) {
+        } finally {
             setMatchingTeachersLoading(false);
         }
-    }
-    // подбор группы 
+    };
+    // подбор группы
     let studentsGroup = [];
-    const getMatchingStudents = async (studentId) => {
+    const getMatchingStudents = async studentId => {
         try {
             setMatchingStudentsLoading(true);
             const data = await MatchingService.getMatchingStudents(studentId);
             studentsGroup = data ?? [];
-        }
-        catch (e) {}
-        finally{
+        } catch (e) {
+        } finally {
             setMatchingStudentsLoading(false);
         }
-    }
+    };
 
     return (
         <div className="AdminStudentView">

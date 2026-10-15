@@ -14,10 +14,12 @@ from .endpoints import (
     curriculum_end,
     matching,
     teachers,
+    access,
 )
 
 urlpatterns = [
     path("health/", status.health),
+    path("user/permissions/", access.get_user_permissions, name="user_permissions"),
 
     # AUDIT module
     path('audit/schema/',      audit.get_database_schema,   name='audit_schema'),

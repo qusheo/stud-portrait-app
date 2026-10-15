@@ -9,6 +9,9 @@ import { useLocation, Outlet } from 'react-router-dom';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
 import { LINK_TREE } from '@utils/utilities.js';
+import { filterLinkTree } from '../user/entities/permissions.ts';
+import { ACCOUNT_TYPE_LABELS } from '../user/entities/accountType.ts';
+import { useUserStore } from '../user/store/userStore.js';
 export const LAYOUT_STYLE = {
     ADMIN: 'admin',
     MODEUS: 'modeus',
@@ -66,17 +69,20 @@ export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();
     const [categoryOpenState, setCategoryOpenState] = React.useState({});
+    const permissions = useUserStore(state => state.permissions);
+    const accountType = useUserStore(state => state.accountType);
+    const visibleLinkTree = React.useMemo(() => (linkTree ? filterLinkTree(linkTree, permissions) : null), [linkTree, permissions]);
 
-    const locationName = linkTree.filter(i => !!i.links?.find(link => link.to === location.pathname));
+    const locationName = visibleLinkTree?.filter(i => !!i.links?.find(link => link.to === location.pathname)) ?? [];
     let title = locationName.length ? locationName[0].links.find(link => link.to === location.pathname).title : '';
 
     React.useEffect(() => {
-        if (!linkTree) return;
+        if (!visibleLinkTree) return;
 
-        const categories = Object.fromEntries(linkTree.map(category => [category.category, true]));
+        const categories = Object.fromEntries(visibleLinkTree.map(category => [category.category, true]));
 
         setCategoryOpenState(categories);
-    }, [linkTree]);
+    }, [visibleLinkTree]);
 
     function onCategoryClick(category) {
         if (categoryOpenState[category] === undefined) return;
@@ -87,7 +93,7 @@ export function Sidebar({ links, linkTree }) {
             <>
                 <Header
                     title={`${title}`}
-                    name="Администратор"
+                    name={ACCOUNT_TYPE_LABELS[accountType]}
                 />
                 <div
                     className="Sidebar-container"
@@ -109,13 +115,13 @@ export function Sidebar({ links, linkTree }) {
             <>
                 <Header
                     title={`${title}`}
-                    name="Администратор"
+                    name={ACCOUNT_TYPE_LABELS[accountType]}
                 />
                 <div className="Sidebar-scroll">
                     <div className="Sidebar-container">
                         <nav className="Sidebar">
                             <ul>
-                                {linkTree.map((category, index) => (
+                                {visibleLinkTree.map((category, index) => (
                                     <li key={index}>
                                         {category.category && (
                                             <span onClick={() => onCategoryClick(category.category)}>
@@ -165,7 +171,7 @@ export function Sidebar({ links, linkTree }) {
         <>
             <Header
                 title={`${title}`}
-                name="Администратор"
+                name={ACCOUNT_TYPE_LABELS[accountType]}
             />
             <div className="Sidebar-scroll">
                 <div className="Sidebar-container">

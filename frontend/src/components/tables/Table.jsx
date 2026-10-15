@@ -29,13 +29,7 @@ export function TableHeader({ children }) {
 
 export function TableRow({ children, className }) {
     const arr = React.Children.toArray(children);
-    return (
-        <tr
-            className={className}
-        >
-            {arr.filter(child => child.type === TableItem)}
-        </tr>
-    );
+    return <tr className={className}>{arr.filter(child => child.type === TableItem)}</tr>;
 }
 
 export function TableItem({ children, className, title, onClick, cssVars }) {

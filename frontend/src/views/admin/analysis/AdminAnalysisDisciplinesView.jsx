@@ -458,12 +458,18 @@ function AdminAnalysisDisciplinesView() {
                 {disciplineData.map((compResult, idx) => {
                     const competency = compResult.results?.[0]?.competency;
                     return (
-                        <div key={idx} className="discipline-result-card">
+                        <div
+                            key={idx}
+                            className="discipline-result-card"
+                        >
                             <h5>📊 {COMPETENCIES_NAMES[competency] || competency || 'Без компетенции'}</h5>
 
                             {compResult.results && compResult.results.length > 0 ? (
                                 compResult.results.map((disc, didx) => (
-                                    <TitledCard key={didx} title={disc.discipline}>
+                                    <TitledCard
+                                        key={didx}
+                                        title={disc.discipline}
+                                    >
                                         <h6 style={{ margin: '0 0 6px', color: '#555', fontWeight: 500 }}>Все направления</h6>
                                         <Table>
                                             {TABLE_HEADER}
@@ -476,15 +482,20 @@ function AdminAnalysisDisciplinesView() {
                                                     📂 По направлениям ({Object.keys(disc.by_direction).length})
                                                 </summary>
                                                 {Object.entries(disc.by_direction).map(([direction, dirData]) => (
-                                                    <div key={direction} style={{ marginTop: 10 }}>
-                                                        <div style={{
-                                                            fontWeight: 500,
-                                                            fontSize: 13,
-                                                            color: '#333',
-                                                            marginBottom: 4,
-                                                            paddingLeft: 4,
-                                                            borderLeft: '3px solid #1565c0'
-                                                        }}>
+                                                    <div
+                                                        key={direction}
+                                                        style={{ marginTop: 10 }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                fontWeight: 500,
+                                                                fontSize: 13,
+                                                                color: '#333',
+                                                                marginBottom: 4,
+                                                                paddingLeft: 4,
+                                                                borderLeft: '3px solid #1565c0'
+                                                            }}
+                                                        >
                                                             {direction}
                                                         </div>
                                                         <Table>

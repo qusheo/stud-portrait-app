@@ -8,10 +8,10 @@ const BASE_COLUMNS_NAMES = {
     academic_degree: 'Учёная степень',
     academic_title: 'Учёное звание',
     qualification: 'Квалификация',
-    experience: 'Стаж работы',
+    experience: 'Стаж работы'
 };
 const searchableCols = ['name', 'institution', 'position', 'disciplines'];
-const numberCols =['experience'];
+const numberCols = ['experience'];
 
 export const buildColumns = () => {
     const columnOrder = [
@@ -24,11 +24,11 @@ export const buildColumns = () => {
         'academic_degree',
         'academic_title',
         'qualification',
-        'experience',
+        'experience'
     ];
 
     const names = {
-        ...BASE_COLUMNS_NAMES,
+        ...BASE_COLUMNS_NAMES
     };
 
     const numberCol = {
@@ -36,7 +36,7 @@ export const buildColumns = () => {
         title: '№',
         width: 50,
         sortable: true,
-        filterable: true,
+        filterable: false,
         searchable: false,
         tooltip: false,
         clickable: false,
@@ -55,7 +55,7 @@ export const buildColumns = () => {
             searchable: !!searchableCols.find(id_ => id === id_),
             tooltip: true,
             clickable: id === 'name' || id === 'disciplines',
-            results: false,
+            results: false
         }))
     ];
 };

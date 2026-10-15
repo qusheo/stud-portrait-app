@@ -1,11 +1,5 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.conf import settings
 
 class Academicperformances(models.Model):
     perf_id = models.AutoField(primary_key=True)
@@ -305,6 +299,32 @@ class DisciplineCompetencyMapping(models.Model):
  
     def __str__(self) -> str:
         return f"{self.disc_name} → {self.rsv_competencies}"
+
+
+class User(models.Model):
+    class AccountType(models.TextChoices):
+        ADMIN = "admin", "Администратор"
+        CENTRE = "centre", "Центр"
+        INSTITUTION_ADMIN = "institution_admin", "Администратор учреждения"
+        TEACHER = "teacher", "Преподаватель"
+        STUDENT = "student", "Студент"
+
+    django_user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="portrait_account",
+    )
+    account_type = models.CharField(
+        max_length=32,
+        choices=AccountType.choices,
+        default=AccountType.ADMIN,
+    )
+
+    class Meta:
+        db_table = "portrait_user"
+
+    def __str__(self):
+        return self.django_user.get_username()
  
  
 class CurriculumParseLog(models.Model):

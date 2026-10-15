@@ -1,6 +1,10 @@
 const HOST = import.meta.env.VITE_API_URL;
 
 class Api {
+    getUserPermissions() {
+        return fetch(`${HOST}/portrait/user/permissions/`, { credentials: 'include' });
+    }
+
     getAuditSchema(tableName = null) {
         const params = new URLSearchParams();
         if (tableName) params.append('table_name', tableName);

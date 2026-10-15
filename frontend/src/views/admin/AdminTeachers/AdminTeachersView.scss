@@ -1,4 +1,4 @@
-.AdminTeachersView{
+.AdminTeachersView {
     &__search {
         padding-bottom: 8px;
         display: flex;
@@ -10,12 +10,12 @@
             padding: 8px;
             border-radius: 8px;
             border: 2px solid rgb(153, 169, 187);
-            :focus-visible{
+            :focus-visible {
                 border: 2px solid rgb(142, 171, 203);
                 outline: none;
             }
         }
-        &-close{
+        &-close {
             width: 100px;
             cursor: pointer;
             font-size: 14px;
@@ -36,7 +36,7 @@
         padding: 10px;
         font-size: 10px;
 
-        &-content{
+        &-content {
             padding: 4px;
         }
     }
