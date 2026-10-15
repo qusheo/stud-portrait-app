@@ -16,8 +16,7 @@ import AdminResultsView from './AdminResults/AdminResultsView';
 
 import AdminStatsView from './AdminStats/AdminStatsView';
 
-import AdminStudentView from './AdminStudent/AdminStudentView';
-
+import AdminPortraitView from './AdminPortrait/AdminPortraitView';
 import AdminAiAnalyticsView from './analysis/AdminAiAnalyticsView';
 import AdminAnalysisAdvancedView from './analysis/AdminAnalysisAdvancedView';
 import AdminAnalysisDisciplinesView from './analysis/AdminAnalysisDisciplinesView';
@@ -40,7 +39,7 @@ export {
     AdminMotivatorsView,
     AdminResultsView,
     AdminStatsView,
-    AdminStudentView,
+    AdminPortraitView,
     AdminAiAnalyticsView,
     AdminAnalysisAdvancedView,
     AdminAnalysisDisciplinesView,

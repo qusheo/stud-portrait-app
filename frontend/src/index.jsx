@@ -24,7 +24,7 @@ import {
     AdminResultsView,
     AdminStatsView,
     AdminCompetencesView,
-    AdminStudentView,
+    AdminPortraitView,
     AdminTargetSearchView,
     AdminTeachersView,
     AdminGroupingView
@@ -96,7 +96,7 @@ const router = createBrowserRouter([
                     { path: '/admin/competences', element: <AdminCompetencesView />, handle: { permission: Permission.COMPETENCES } },
                     { path: '/admin/motivators', element: <AdminMotivatorsView />, handle: { permission: Permission.MOTIVATORS } },
                     { path: '/admin/AP', element: <AdminAPView />, handle: { permission: Permission.AP } },
-                    { path: '/admin/student/', element: <AdminStudentView />, handle: { permission: Permission.STUDENT_PORTRAIT } },
+                    { path: '/admin/portrait', element: <AdminPortraitView />, handle: { permission: Permission.PORTRAIT } },
                     { path: '/admin/teachers', element: <AdminTeachersView />, handle: { permission: Permission.TEACHERS } },
                     { path: '/super/audit', element: <SuperAuditView />, handle: { permission: Permission.AUDIT } },
                     { path: '/super/upload', element: <SuperUploadView />, handle: { permission: Permission.UPLOAD } },

@@ -26,7 +26,7 @@ export const LINK_TREE = [
             { title: 'Образовательные курсы', to: '/admin/courses', permission: Permission.COURSES },
             { title: 'Мотиваторы', to: '/admin/motivators', permission: Permission.MOTIVATORS },
             { title: 'Компетенции', to: '/admin/competences', permission: Permission.COMPETENCES },
-            { title: 'Портрет студента', to: '/admin/student', permission: Permission.STUDENT_PORTRAIT },
+            { title: 'Цифровой профиль', to: '/admin/portrait', permission: Permission.PORTRAIT },
             { title: 'Преподаватели', to: '/admin/teachers', permission: Permission.TEACHERS }
         ]
     },

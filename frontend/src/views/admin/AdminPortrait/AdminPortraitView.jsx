@@ -15,7 +15,7 @@ import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utili
 import Label, { LABEL_PALETTE } from '@components/ui/Label';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
-import './AdminStudentView.scss';
+import './AdminPortraitView.scss';
 import { MatchingService } from '@services';
 
 // Компонент поиска студента
@@ -371,7 +371,7 @@ const CoursesCard = ({ courses }) => {
     );
 };
 
-function AdminStudentView(studentId = undefined) {
+function AdminPortraitView(studentId = undefined) {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -424,7 +424,7 @@ function AdminStudentView(studentId = undefined) {
     };
 
     return (
-        <div className="AdminStudentView">
+        <div className="AdminPortraitView">
             <h2>Цифровой портрет студента</h2>
 
             <StudentSearch onSelectStudent={setSelectedStudentId} />
@@ -445,4 +445,4 @@ function AdminStudentView(studentId = undefined) {
     );
 }
 
-export default AdminStudentView;
+export default AdminPortraitView;
