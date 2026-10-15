@@ -24,7 +24,7 @@ const GROUP_STYLES = {
         border: '#fecaca',
         bg: '#fef2f2',
         accent: '#b91c1c',
-        title: 'Низкий уровень'
+        title: 'базовый уровень'
     },
     middle: {
         border: '#fed7aa',

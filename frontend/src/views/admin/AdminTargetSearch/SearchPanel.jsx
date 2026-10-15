@@ -4,11 +4,25 @@ import { useState } from 'react';
 
 import './SearchPanel.scss';
 
-const LEVEL_OPTIONS = [
+const COMPETENCY_LEVEL_OPTIONS = [
     { value: '', label: 'Не выбрано' },
-    { value: 'low', label: 'Низкий' },
+    { value: 'basic', label: 'Базовый' },
     { value: 'medium', label: 'Средний' },
     { value: 'high', label: 'Высокий' }
+];
+
+const VALUE_LEVEL_OPTIONS = [
+    { value: '', label: 'Не выбрано' },
+    { value: 'basic', label: 'Слабовыраженный' },
+    { value: 'medium', label: 'Средний' },
+    { value: 'high', label: 'Высокий' }
+];
+
+const MOTIVATOR_STATE_OPTIONS = [
+    { value: '', label: 'Не выбрано' },
+    { value: 'demotivator', label: 'Демотиватор' },
+    { value: 'not_manifested', label: 'Не проявленный' },
+    { value: 'motivator', label: 'Мотиватор' }
 ];
 
 function SearchPanel({ onApply }) {
@@ -16,6 +30,7 @@ function SearchPanel({ onApply }) {
         {
             key: 'competencies',
             name: 'Компетенции',
+            options: COMPETENCY_LEVEL_OPTIONS,
             items: Object.keys(COMPETENCIES_NAMES).map(key => ({
                 value: key,
                 label: COMPETENCIES_NAMES[key]
@@ -24,6 +39,7 @@ function SearchPanel({ onApply }) {
         {
             key: 'motivators',
             name: 'Мотиваторы',
+            options: MOTIVATOR_STATE_OPTIONS,
             items: Object.keys(MOTIVATORS_NAMES).map(key => ({
                 value: key,
                 label: MOTIVATORS_NAMES[key]
@@ -32,6 +48,7 @@ function SearchPanel({ onApply }) {
         {
             key: 'values',
             name: 'Ценности',
+            options: VALUE_LEVEL_OPTIONS,
             items: Object.keys(VALUES_NAMES).map(key => ({
                 value: key,
                 label: VALUES_NAMES[key]
@@ -123,7 +140,7 @@ function SearchPanel({ onApply }) {
                                                 value={values[item.key][option.value] ?? ''}
                                                 onChange={event => onChangeItems(item.key, option.value, event.target.value)}
                                             >
-                                                {LEVEL_OPTIONS.map(level => (
+                                                {item.options.map(level => (
                                                     <option
                                                         key={level.value}
                                                         value={level.value}

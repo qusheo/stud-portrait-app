@@ -8,7 +8,6 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 
 import ValueCard from '@components/cards/ValueCard.jsx';
 
-import { ToastContainer, toast } from 'react-toastify';
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
 import Button from '@components/ui/Button.jsx';
@@ -258,7 +257,7 @@ function AdminCoursesView() {
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.RED} />
-                                <span>Низкий (1-29%)</span>
+                                <span>базовый (1-29%)</span>
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.YELLOW} />
@@ -276,15 +275,6 @@ function AdminCoursesView() {
                     </Label>
                 </FlexRow>
             </div>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

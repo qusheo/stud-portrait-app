@@ -5,7 +5,8 @@ import logo from '../static/logo_white.png';
 
 import './SidebarLayout.scss';
 import { ChevronDown, ChevronUp, UserRound, LogOut } from 'lucide-react';
-import { useLocation, Outlet } from 'react-router-dom';
+import { useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
 import { LINK_TREE } from '@utils/utilities.js';
@@ -27,40 +28,49 @@ export function SidebarLayout({ style = LAYOUT_STYLE.MODEUS, sidebar = true }) {
     );
 }
 
-export function Header({ title, name }) {
+export function Header({ title, name, onAccountClick }) {
     return (
         <div className="Header">
-            <div className="left-side">
-                <div className="logo-area">
-                    <img
-                        src={logo}
-                        height="55"
-                        alt="Тюменский государственный университет"
-                    />
-                    <span className="logo-title">StudPortrait</span>
+                <div className="left-side">
+                    <div className="logo-area">
+                        <img
+                            src={logo}
+                            height="55"
+                            alt="Тюменский государственный университет"
+                        />
+                        <span className="logo-title">StudPortrait</span>
+                    </div>
+                    <span className="title">{title}</span>
                 </div>
-                <span className="title">{title}</span>
-            </div>
-            <div className="right-side">
-                <div className="user">
-                    <UserRound
-                        color="white"
-                        size={15}
-                    />
-                    <span className="user-name">{name}</span>
+                <div className="right-side">
+                    <div className="user">
+                        <UserRound
+                            color="white"
+                            size={15}
+                        />
+                        {onAccountClick ? (
+                            <span
+                                className="user-name user-name--button"
+                                onClick={onAccountClick}
+                            >
+                                {name}
+                            </span>
+                        ) : (
+                            <span className="user-name">{name}</span>
+                        )}
+                    </div>
+                    <Tooltip
+                        text="Выйти"
+                        placement="bottom"
+                    >
+                        <LogOut
+                            color="white"
+                            size={17}
+                            onClick={() => null}
+                            style={{ cursor: 'pointer' }}
+                        />
+                    </Tooltip>
                 </div>
-                <Tooltip
-                    text="Выйти"
-                    placement="bottom"
-                >
-                    <LogOut
-                        color="white"
-                        size={17}
-                        onClick={() => null}
-                        style={{ cursor: 'pointer' }}
-                    />
-                </Tooltip>
-            </div>
         </div>
     );
 }
@@ -68,9 +78,12 @@ export function Header({ title, name }) {
 export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();
+    const navigate = useNavigate();
     const [categoryOpenState, setCategoryOpenState] = React.useState({});
     const permissions = useUserStore(state => state.permissions);
     const accountType = useUserStore(state => state.accountType);
+    const userId = useUserStore(state => state.userId);
+    const isAuthenticated = useUserStore(state => state.isAuthenticated);
     const visibleLinkTree = React.useMemo(() => (linkTree ? filterLinkTree(linkTree, permissions) : null), [linkTree, permissions]);
 
     const locationName = visibleLinkTree?.filter(i => !!i.links?.find(link => link.to === location.pathname)) ?? [];
@@ -88,12 +101,22 @@ export function Sidebar({ links, linkTree }) {
         if (categoryOpenState[category] === undefined) return;
         setCategoryOpenState({ ...categoryOpenState, [category]: !categoryOpenState[category] });
     }
+
+    function onAccountClick() {
+        if (!isAuthenticated || !userId) {
+            toast.error('Не выполнен вход в аккаунт');
+            return;
+        }
+
+        navigate(`/user/${userId}`);
+    }
     if (!isOpen) {
         return (
             <>
                 <Header
                     title={`${title}`}
                     name={ACCOUNT_TYPE_LABELS[accountType]}
+                    onAccountClick={onAccountClick}
                 />
                 <div
                     className="Sidebar-container"
@@ -116,6 +139,7 @@ export function Sidebar({ links, linkTree }) {
                 <Header
                     title={`${title}`}
                     name={ACCOUNT_TYPE_LABELS[accountType]}
+                    onAccountClick={onAccountClick}
                 />
                 <div className="Sidebar-scroll">
                     <div className="Sidebar-container">
@@ -172,6 +196,7 @@ export function Sidebar({ links, linkTree }) {
             <Header
                 title={`${title}`}
                 name={ACCOUNT_TYPE_LABELS[accountType]}
+                onAccountClick={onAccountClick}
             />
             <div className="Sidebar-scroll">
                 <div className="Sidebar-container">

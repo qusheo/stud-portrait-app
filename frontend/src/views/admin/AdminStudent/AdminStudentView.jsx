@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { LINK_TREE } from '@utils/utilities';
 import { StudentService } from '@services';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import FlexColumn from '@components/FlexColumn';
 import FlexRow from '@components/FlexRow';
 import LabelledBox from '@components/LabelledBox';
@@ -441,15 +441,6 @@ function AdminStudentView(studentId = undefined) {
             )}
 
             {!loading && !studentPortrait && selectedStudentId && <div className="no-data-large">Не удалось загрузить данные студента</div>}
-            <ToastContainer
-                position="bottom-right"
-                autoClose={3000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

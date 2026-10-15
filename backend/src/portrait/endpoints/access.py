@@ -54,5 +54,7 @@ def get_user_permissions(request):
     return JsonResponse({
         "status": "success",
         "account_type": account_type,
+        "user_id": request.user.pk if request.user.is_authenticated else None,
+        "is_authenticated": request.user.is_authenticated,
         "permissions": permissions,
     })

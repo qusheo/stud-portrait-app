@@ -15,11 +15,11 @@ const PlanetaryChart = ({
     // Конфигурация уровней для компетенций и мотиваторов
     const getLevelConfig = (type, score) => {
         if (type === 'competency') {
-            // Компетенции: 200-399 низкий, 400-599 средний, 600-800 высокий
+            // Компетенции: 200-399 базовый, 400-599 средний, 600-800 высокий
             if (score >= 600) return { name: 'Высокий', key: 'high', colorRange: ['#c8e6c9', '#a5d6a7', '#4caf50'], textColor: '#1b5e20' };
             if (score >= 400)
                 return { name: 'Средний', key: 'medium', colorRange: ['#fff9c4', '#fff176', '#ffeb3b'], textColor: '#f57f17' };
-            return { name: 'Низкий', key: 'low', colorRange: ['#ffcdd2', '#ef9a9a', '#e57373'], textColor: '#c62828' };
+            return { name: 'базовый', key: 'low', colorRange: ['#ffcdd2', '#ef9a9a', '#e57373'], textColor: '#c62828' };
         } else {
             // Мотиваторы: 200-399 демотиватор, 400-599 не проявлено, 600-800 мотиватор
             if (score >= 600)
@@ -55,7 +55,7 @@ const PlanetaryChart = ({
 
         const levelChildren = [];
 
-        // Порядок уровней: Высокий -> Средний -> Низкий
+        // Порядок уровней: Высокий -> Средний -> базовый
         const levelOrder = ['high', 'medium', 'low'];
 
         levelOrder.forEach(levelKey => {
@@ -132,7 +132,7 @@ const PlanetaryChart = ({
         // Настройка легенды в зависимости от типа
         const legendData =
             type === 'competency'
-                ? ['Высокий (600-800)', 'Средний (400-599)', 'Низкий (200-399)']
+                ? ['Высокий (600-800)', 'Средний (400-599)', 'базовый (200-399)']
                 : ['Мотиватор (600-800)', 'Не проявлено (400-599)', 'Демотиватор (200-399)'];
 
         const option = {

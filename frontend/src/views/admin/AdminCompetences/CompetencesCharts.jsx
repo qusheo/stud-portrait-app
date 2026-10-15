@@ -22,7 +22,7 @@ import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import './AdminCompetencesView.scss';
 

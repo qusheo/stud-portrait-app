@@ -25,10 +25,10 @@ import StudentLgmChart from '@components/charts/StudentLgmChart';
 import StudentDisciplineImpact from '@components/charts/StudentDisciplineImpact';
 import PlanetaryChart from '@components/charts/PlanetaryChart';
 
-import './StudentMainView.scss';
+import './UserView.scss';
 
-function StudentMainView() {
-    const { studentId } = useParams();
+function UserView() {
+    const { userId: studentId } = useParams();
     const [studResults, setStudResults] = useState();
     const [linkList, setLinkList] = useState([]);
     const [chartsData, setChartsData] = useState([]);
@@ -77,13 +77,13 @@ function StudentMainView() {
 
             const availableProfiles = getAvailableProfiles(studResults.results);
             const profileLinks = availableProfiles.map(profile => ({
-                to: `/student/${studResults.student.stud_id}/report/${profile.key}`,
+                to: `/user/${studResults.student.stud_id}/report/${profile.key}`,
                 title: profile.title
             }));
 
             setLinkList([
                 {
-                    to: `/student/${studResults.student.stud_id}`,
+                    to: `/user/${studResults.student.stud_id}`,
                     title: 'Главная страница'
                 },
                 ...profileLinks
@@ -282,12 +282,12 @@ function StudentMainView() {
     const motivatorData = prepareMotivatorData();
 
     return (
-        <div className="StudentMainView">
+        <div className="UserView">
             <Header
                 title="Профиль Студента"
                 name={`${studResults?.student?.stud_name}`}
             />
-            <div className="StudentMainView-body">
+            <div className="UserView-body">
                 <div className="main-controls">
                     {availableYears.length > 0 && (
                         <div className="year-selector">
@@ -506,4 +506,4 @@ function StudentMainView() {
     );
 }
 
-export default StudentMainView;
+export default UserView;

@@ -4,7 +4,7 @@ import { ArrowUp, ArrowDown } from 'lucide-react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTable_course, CompetencyTrendLine } from './CompetencesCharts.jsx';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import CompetencySegmentation from './CompetencySegmentation';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
@@ -586,15 +586,6 @@ function AdminCompetencesView() {
                 <>{loadingTrend ? <LoadingSpinner text="Загрузка диаграммы..." /> : <CompetencySegmentation filters={filters_} />}</>
             )}
 
-            <ToastContainer
-                position="bottom-right"
-                autoClose={3000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

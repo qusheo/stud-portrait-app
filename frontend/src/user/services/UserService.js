@@ -3,7 +3,7 @@ import BaseService from '../../services/BaseService.js';
 
 class UserService extends BaseService {
     getPermissions() {
-        return this.request(() => Api.getUserPermissions(), 'Ошибка загрузки прав доступа');
+        return;// this.request(() => Api.getUserPermissions(), 'Ошибка загрузки прав доступа');
     }
 }
 

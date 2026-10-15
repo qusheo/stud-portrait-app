@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AdminService } from '@services';
 import { LINK_TREE } from '@utils/utilities';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import FlexRow from '@components/FlexRow';
 
@@ -131,15 +131,6 @@ function AdminGeographyView() {
                     title={`Центры компетенций ${selectedYear}`}
                 />
             </TitledCard>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

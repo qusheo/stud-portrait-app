@@ -40,7 +40,7 @@ const StudentComparisonStats = ({ studentId, year }) => {
         if (percentile >= 75) return 'Высокий';
         if (percentile >= 50) return 'Выше среднего';
         if (percentile >= 25) return 'Ниже среднего';
-        return 'Низкий';
+        return 'базовый';
     };
 
     const renderComparisonCard = (item, type) => {

@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import App from './views/App';
 import ErrorView from './views/ErrorView';
@@ -28,8 +30,8 @@ import {
     AdminGroupingView
 } from './views/admin';
 
-import StudentMainView from './views/student/StudentMainView';
-import StudentReportView from './views/student/StudentReportView';
+import UserView from './views/user/UserView';
+import UserReportView from './views/user/UserReportView';
 
 import SuperAuditView from './views/super/SuperAuditView';
 import SuperSqlView from './views/super/SuperSqlView';
@@ -104,10 +106,10 @@ const router = createBrowserRouter([
             {
                 element: <Content />,
                 children: [
-                    { path: '/student/:studentId', element: <StudentMainView />, handle: { permission: Permission.OWN_PORTRAIT } },
+                    { path: '/user/:userId', element: <UserView />, handle: { permission: Permission.OWN_PORTRAIT } },
                     {
-                        path: '/student/:studentId/report/:reportType',
-                        element: <StudentReportView />,
+                        path: '/user/:userId/report/:reportType',
+                        element: <UserReportView />,
                         handle: { permission: Permission.OWN_REPORT }
                     }
                 ]
@@ -120,6 +122,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
         <RouterProvider router={router} />
+        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar theme="light" />
     </React.StrictMode>
 );
 

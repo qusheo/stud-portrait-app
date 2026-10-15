@@ -107,7 +107,7 @@ function BarChart({ title, seriesLabel, seriesData, categories, competencyKeys, 
                 };
 
                 const value = series[seriesIndex][dataPointIndex];
-                const category = value < 400 ? 'низкий' : value < 600 ? 'средний' : 'высокий';
+                const category = value < 400 ? 'базовый' : value < 600 ? 'средний' : 'высокий';
                 const color = getBarColor(value);
                 const originalLabel = categories[dataPointIndex];
 

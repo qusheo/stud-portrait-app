@@ -154,7 +154,7 @@ function RadarChart({ title, seriesLabel, seriesData, categories, competencyKeys
                 };
 
                 const value = series[seriesIndex][dataPointIndex];
-                const category = value < 400 ? 'низкий' : value < 600 ? 'средний' : 'высокий';
+                const category = value < 400 ? 'базовый' : value < 600 ? 'средний' : 'высокий';
                 const color = value < 400 ? '#e0cf30ff' : value < 600 ? '#c3da45ff' : '#219b25ff';
                 const originalLabel = categories[dataPointIndex];
 

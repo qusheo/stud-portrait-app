@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
 
-import { ToastContainer, toast } from 'react-toastify';
 import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
@@ -681,7 +680,7 @@ function AdminResultsView() {
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.YELLOW} />
-                                <span>Низкий (200-399)</span>
+                                <span>базовый (200-399)</span>
                             </FlexRow>
                         </FlexRow>
                     </Label>
@@ -899,15 +898,6 @@ function AdminResultsView() {
                     />
                 </ModalFooter>
             </GrouppingModalWindow>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

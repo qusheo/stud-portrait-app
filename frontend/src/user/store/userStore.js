@@ -7,6 +7,8 @@ const getAccountType = accountType => (Object.values(AccountType).includes(accou
 
 export const useUserStore = create((set, get) => ({
     accountType: AccountType.ADMIN,
+    userId: null,
+    isAuthenticated: false,
     permissions: getDefaultPermissions(AccountType.ADMIN),
     accessStatus: 'idle',
     loadPermissions: async () => {
@@ -18,6 +20,8 @@ export const useUserStore = create((set, get) => ({
             const accountType = getAccountType(response.account_type);
             set({
                 accountType,
+                userId: response.user_id ?? null,
+                isAuthenticated: response.is_authenticated === true,
                 permissions: {
                     ...getDefaultPermissions(accountType),
                     ...(response.permissions || {})
@@ -27,6 +31,8 @@ export const useUserStore = create((set, get) => ({
         } catch {
             set({
                 accountType: AccountType.ADMIN,
+                userId: null,
+                isAuthenticated: false,
                 permissions: getDefaultPermissions(AccountType.ADMIN),
                 accessStatus: 'ready'
             });

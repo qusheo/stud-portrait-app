@@ -134,7 +134,7 @@ function RussianFederationMap({
                       outOfRange: {
                           color: ['#ccc']
                       },
-                      text: ['Высокий', 'Низкий'],
+                      text: ['Высокий', 'Базовый'],
                       textStyle: {
                           color: '#333'
                       },

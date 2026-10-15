@@ -43,6 +43,26 @@ $modeus-color: #238bc8;
                     font-weight: 550;
                     font-size: 13px;
                 }
+                .user-name--button {
+                    padding: 0;
+                    border: 0;
+                    background: transparent;
+                    color: inherit;
+                    font: inherit;
+                    font-size: 13px;
+                    font-weight: 550;
+                    line-height: inherit;
+                    cursor: pointer;
+
+                    &:hover {
+                        text-decoration: none;
+                    }
+
+                    &:focus-visible {
+                        outline: 2px solid currentColor;
+                        outline-offset: 3px;
+                    }
+                }
             }
             .exit {
                 cursor: pointer;

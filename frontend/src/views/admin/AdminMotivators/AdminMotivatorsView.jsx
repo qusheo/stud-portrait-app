@@ -15,7 +15,7 @@ import {
     ReferenceLine
 } from 'recharts';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import MotivatorStatistics from '@components/MotivatorStatistics.jsx';
 import FilterHeader from '@components/FilterHeader';
@@ -675,15 +675,6 @@ function AdminMotivatorsView() {
                     <MotivatorStatistics filters={filters} />
                 </>
             )}
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

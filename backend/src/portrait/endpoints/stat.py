@@ -1067,7 +1067,7 @@ def get_competency_segmentation(request):
 
         # Шаг 3. Разбиваем студентов на 3 групп
         groups_def = [
-            {'name': 'low',    'label': f'Низкий уровень (< {round(q1)})',         'lo': None, 'hi': q1},
+            {'name': 'low',    'label': f'базовый уровень (< {round(q1)})',         'lo': None, 'hi': q1},
             {'name': 'middle', 'label': f'Средний уровень ({round(q1)}–{round(q3)})', 'lo': q1,   'hi': q3},
             {'name': 'high',   'label': f'Высокий уровень (> {round(q3)})',        'lo': q3,   'hi': None},
         ]

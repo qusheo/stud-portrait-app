@@ -130,7 +130,7 @@ function LineCompetencyTooltip({ name, description, position, years, values }) {
                         <div className="value-category">
                             Категория:{' '}
                             <span style={{ color: getPointColor(values[0]) }}>
-                                {values[0] < 400 ? 'низкий' : values[0] < 600 ? 'средний' : 'высокий'}
+                                {values[0] < 400 ? 'базовый' : values[0] < 600 ? 'средний' : 'высокий'}
                             </span>
                         </div>
                     </div>

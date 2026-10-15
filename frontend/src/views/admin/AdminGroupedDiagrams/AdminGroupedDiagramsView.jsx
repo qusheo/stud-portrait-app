@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
+import { toast } from 'react-toastify';
 
-import { ToastContainer, toast } from 'react-toastify';
 import { FIELD_NAMES, LINK_TREE } from '@utils/utilities.js';
 import { AdminService } from '@services';
 
@@ -230,15 +230,6 @@ function AdminGroupedDiagramsView() {
                     </div>
                 )}
             </div>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

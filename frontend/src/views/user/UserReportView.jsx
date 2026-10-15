@@ -8,10 +8,10 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 import Subtitle from '@components/Subtitle';
 import Title from '@components/Title';
 
-import './StudentReportView.scss';
+import './UserReportView.scss';
 
-function StudentReportView() {
-    const { studentId, reportType } = useParams();
+function UserReportView() {
+    const { userId: studentId, reportType } = useParams();
     const [studResults, setStudResults] = useState();
     const [linkList, setLinkList] = useState([]);
     const [tablesData, setTablesData] = useState([]);
@@ -38,14 +38,14 @@ function StudentReportView() {
             const availableProfiles = getAvailableProfiles(studResults.results);
             const profileLinks = availableProfiles.map(profile => {
                 return {
-                    to: `/student/${studResults.student.stud_id}/report/${profile.key}`,
+                    to: `/user/${studResults.student.stud_id}/report/${profile.key}`,
                     title: profile.title
                 };
             });
 
             setLinkList([
                 {
-                    to: `/student/${studResults.student.stud_id}`,
+                    to: `/user/${studResults.student.stud_id}`,
                     title: 'Главная страница'
                 },
                 ...profileLinks
@@ -85,7 +85,7 @@ function StudentReportView() {
     }, [studResults, reportType]);
 
     return (
-        <div className="StudentReportView">
+        <div className="UserReportView">
             <SidebarLayout style={LAYOUT_STYLE.NORMAL}>
                 <Header
                     title="Результаты"
@@ -120,4 +120,4 @@ function StudentReportView() {
     );
 }
 
-export default StudentReportView;
+export default UserReportView;

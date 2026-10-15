@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import { AdminService } from '@services';
 
@@ -278,15 +278,6 @@ function AdminAPView() {
                 filters={filters}
             />
             <TopCorrelationsTable filters={filters} />
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }
