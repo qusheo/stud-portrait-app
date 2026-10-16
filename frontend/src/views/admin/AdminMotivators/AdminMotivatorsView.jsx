@@ -22,7 +22,7 @@ import FilterHeader from '@components/FilterHeader';
 
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'exceljs';
 
 import './AdminMotivatorsView.scss';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
