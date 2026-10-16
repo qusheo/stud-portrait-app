@@ -21,8 +21,8 @@ import MotivatorStatistics from '@components/MotivatorStatistics.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
-import * as XLSX from 'exceljs';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
+import ExcelJS from 'exceljs';
 
 import './AdminMotivatorsView.scss';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
@@ -147,7 +147,7 @@ function MotTable({ data, currentFilters }) {
             return prev.includes(mot_demot) ? prev.filter(c => c !== mot_demot) : [...prev, mot_demot];
         });
     };
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
         console.log(currentFilters);
         const excelData = [];
         if (!data || (!selected.includes('М') && !selected.includes('Д') && !selected.includes('Н'))) {
@@ -199,13 +199,14 @@ function MotTable({ data, currentFilters }) {
         });
 
         const header = `${currentFilters.institute ? `${currentFilters.institute}, ` : ''} ${currentFilters.specialty ? `${currentFilters.specialty}, ` : ''} ${currentFilters.year ? `${currentFilters.year} учебный год ` : ''}`;
-        const worksheet = XLSX.utils.aoa_to_sheet([[header]]);
-        XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Статистика Мотиваторов');
-
-        XLSX.writeFile(workbook, `Статистика_Мотиваторов${currentFilters.year ? `_${currentFilters.year}` : ''}.xlsx`);
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Статистика Мотиваторов');
+        worksheet.addRow([header]);
+        if (excelData.length) {
+            worksheet.addRow(Object.keys(excelData[0]));
+            excelData.forEach(row => worksheet.addRow(Object.values(row)));
+        }
+        await downloadExcelWorkbook(workbook, `Статистика_Мотиваторов${currentFilters.year ? `_${currentFilters.year}` : ''}.xlsx`);
     };
 
     return (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import Api from '../../api';
-import { SUPER_LINK_TREE, xlsxWriteFile } from '@utils/utilities';
+import { SUPER_LINK_TREE, excelWriteFile } from '@utils/utilities';
 
 import FlexColumn from '@components/FlexColumn';
 import FlexRow from '@components/FlexRow';
@@ -33,7 +33,7 @@ const exportToExcel = (data, query) => {
         ...data.rows.map(row => headers.map(header => (row[header] !== null && row[header] !== undefined ? row[header] : '')))
     ];
 
-    xlsxWriteFile(excelData, headers);
+    excelWriteFile(excelData, headers);
 };
 
 // Функция для экспорта в CSV

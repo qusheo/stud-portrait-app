@@ -46,11 +46,6 @@ vi.mock('@utils/utilities.js', () => ({
     MOTIVATORS_NAMES: {},
     FIELD_NAMES: {}
 }));
-vi.mock('xlsx', () => ({
-    utils: { aoa_to_sheet: vi.fn(), sheet_add_json: vi.fn(), book_new: vi.fn(), book_append_sheet: vi.fn() },
-    writeFile: vi.fn()
-}));
-
 const trends = {
     trends: [
         {

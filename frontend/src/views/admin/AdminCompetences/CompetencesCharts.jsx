@@ -17,10 +17,10 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
 
 import { toast } from 'react-toastify';
 
@@ -139,7 +139,7 @@ export function CompetencyTable({ data, filters, range }) {
     const [tableOpen, setTableOpen] = useState(false);
     if (!data) return null;
 
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
         try {
             const excelData = [];
             data.forEach(row => {
@@ -166,12 +166,14 @@ export function CompetencyTable({ data, filters, range }) {
             });
 
             const header = `${filters.institute ? `${filters.institute}, ` : ''} ${filters.specialty ? `${filters.specialty}, ` : ''} ${prevYear} - ${year} учебные года `;
-            const worksheet = XLSX.utils.aoa_to_sheet([[header]]);
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, `Компетенции ${prevYear.split('/')[0]}-${year.split('/')[1]}`);
-            XLSX.writeFile(workbook, `Показатели_Компетенций_${prevYear.split('/')[0]}_${year.split('/')[1]}.xlsx`);
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet(`Компетенции ${prevYear.split('/')[0]}-${year.split('/')[1]}`);
+            worksheet.addRow([header]);
+            if (excelData.length) {
+                worksheet.addRow(Object.keys(excelData[0]));
+                excelData.forEach(row => worksheet.addRow(Object.values(row)));
+            }
+            await downloadExcelWorkbook(workbook, `Показатели_Компетенций_${prevYear.split('/')[0]}_${year.split('/')[1]}.xlsx`);
             toast.success('Файл сформирован');
         } catch (error) {
             console.error('Ошибка при генерации Excel файла:', error);
@@ -285,7 +287,7 @@ export function CompetencyTable_course({ data, filters }) {
         const delta = vEnd - vStart;
         return Math.round((delta * 100) / vStart);
     };
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
         try {
             const year = filters.year.split('/')[1];
             const excelData = [];
@@ -320,12 +322,14 @@ export function CompetencyTable_course({ data, filters }) {
                 excelData.push(rowObject);
             });
             const header = `${filters.institute ? `${filters.institute}, ` : ''} ${filters.specialty ? `${filters.specialty}, ` : ''} ${filters.year ? `${filters.year} учебный год ` : ''}`;
-            const worksheet = XLSX.utils.aoa_to_sheet([[header]]);
-            XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, `Компетенции ${year ? `${year - 1}/${year}` : ''}`);
-            XLSX.writeFile(workbook, `Компетенции_по_курсам_${year || ''}.xlsx`);
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet(`Компетенции ${year ? `${year - 1}/${year}` : ''}`);
+            worksheet.addRow([header]);
+            if (excelData.length) {
+                worksheet.addRow(Object.keys(excelData[0]));
+                excelData.forEach(row => worksheet.addRow(Object.values(row)));
+            }
+            await downloadExcelWorkbook(workbook, `Компетенции_по_курсам_${year || ''}.xlsx`);
             toast.success('Файл загружен');
         } catch (error) {
             console.error('Ошибка при генерации Excel файла:', error);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 
 import Api from '../../api';
-import { SUPER_LINK_TREE, xlsxReadColumns } from '@utils/utilities';
+import { SUPER_LINK_TREE, excelReadColumns } from '@utils/utilities';
 
 import FlexColumn from '@components/FlexColumn';
 import FlexRow from '@components/FlexRow';
@@ -110,21 +110,25 @@ function SuperUploadView() {
         setUploadResult(null);
 
         const reader = new FileReader();
-        reader.onload = evt => {
-            const data = new Uint8Array(evt.target.result);
-            const headers = xlsxReadColumns(data);
-            setFileHeaders(headers);
+        reader.onload = async evt => {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const headers = await excelReadColumns(data);
+                setFileHeaders(headers);
 
-            // Если шаблон уже выбран — применяем его, иначе автогенерация
-            const chosenTemplate = savedTemplates.find(
-                t => t.name === selectedTemplateName || String(t.id) === String(selectedTemplateName)
-            );
-            if (chosenTemplate) {
-                setMappingConfig(chosenTemplate.config);
-            } else {
-                autoGenerateConfig(headers, expectedFieldsRef.current);
+                const chosenTemplate = savedTemplates.find(
+                    t => t.name === selectedTemplateName || String(t.id) === String(selectedTemplateName)
+                );
+                if (chosenTemplate) {
+                    setMappingConfig(chosenTemplate.config);
+                } else {
+                    autoGenerateConfig(headers, expectedFieldsRef.current);
+                }
+                setStep('mapping');
+            } catch (readError) {
+                console.error('Ошибка чтения Excel файла:', readError);
+                setError('Не удалось прочитать Excel файл. Проверьте его формат.');
             }
-            setStep('mapping');
         };
         reader.readAsArrayBuffer(file);
     };
