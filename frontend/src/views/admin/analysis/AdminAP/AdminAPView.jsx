@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { toast } from 'react-toastify';
-
 import { AdminService } from '@services';
 
 import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
@@ -17,6 +16,7 @@ import TopCorrelationsTable from './TopCorrelationsTable';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 import { useAdminStore } from '@utils/store';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 const scores = {
     2: 'неудовл.',
@@ -129,40 +129,30 @@ function DisciplineScatterGrid({ data, discipline }) {
 }
 
 function AdminAPView() {
-    const [ScatterData, setScatterData] = useState(null);
-    const [LoadingData, setLoading] = useState(false);
     const [filters, setFilters] = useState({ institute: '', specialty: '', year: '' });
-    const [isError, setErrorStatus] = useState(false);
     const [activeTab, setActiveTab] = useState('pir');
-
-    const [correlationData, setCorrelationData] = useState(null);
-    const [loadingCorr, setLoadingCorr] = useState(false);
 
     const savedFilters = useAdminStore(state => state.savedFilters);
     const saveFilters = useAdminStore(state => state.saveFilters);
 
-    const loadScoresResult = async currentFilters => {
-        setLoading(true);
-        setErrorStatus(false);
-        AdminService.getScoresResult(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .then(data => {
-                setScatterData(data);
-                if (data?.data.length === 0 || data?.names.length < 4) {
-                    console.error('Ошибка при загрузке данных: данные пусты');
-                    toast.error('Ошибка при загрузке данных');
-                    setErrorStatus(true);
-                }
-            })
-            .catch(err => {
-                console.error('Ошибка при загрузке данных:', err);
-                toast.error('Ошибка при загрузке данных');
-                setErrorStatus(true);
-            })
-            .finally(() => setLoading(false));
-    };
-    useEffect(() => {
-        loadScoresResult(filters);
-    }, [filters]);
+    const {
+        data: scatterData,
+        isPending: loadingData,
+        error: scoresError
+    } = useQuery({
+        queryKey: ['admin', 'scores-result', filters],
+        queryFn: () => AdminService.getScoresResult(filters.institute, filters.specialty, filters.year),
+        ...defaultQueryOptions
+    });
+    const {
+        data: correlationData,
+        isPending: loadingCorr,
+        error: correlationError
+    } = useQuery({
+        queryKey: ['admin', 'grades-competency-correlation', filters],
+        queryFn: () => AdminService.getGradesCompetencyCorrelation(filters.institute, filters.specialty, filters.year),
+        ...defaultQueryOptions
+    });
 
     const updateFilter = (name, value) => {
         setFilters(prev => {
@@ -179,24 +169,11 @@ function AdminAPView() {
         }
     }, [savedFilters]);
 
-    const loadCorrelation = async currentFilters => {
-        setLoadingCorr(true);
-        AdminService.getGradesCompetencyCorrelation(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .then(data => setCorrelationData(data))
-            .catch(err => {
-                console.error('Ошибка при загрузке корреляции:', err);
-                toast.error('Ошибка при загрузке данных корреляции');
-                setErrorStatus(true);
-            })
-            .finally(() => setLoadingCorr(false));
-    };
-    useEffect(() => {
-        loadCorrelation(filters);
-    }, [filters]);
-
     const resetFilters = () => {
         setFilters({ institute: '', specialty: '', year: '' });
     };
+    const invalidScores = scatterData && (!scatterData.data?.length || (scatterData.names?.length ?? 0) < 4);
+    const isError = Boolean(scoresError || correlationError || invalidScores);
     if (isError) {
         return <div className="AdminAPView">Страница недоступна</div>;
     }
@@ -210,7 +187,7 @@ function AdminAPView() {
                 />
             </div>
             <>
-                {LoadingData ? (
+                {loadingData ? (
                     <div className="loading-content">
                         <LoadingSpinner text="Загрузка..." />
                     </div>
@@ -243,26 +220,26 @@ function AdminAPView() {
                         </FlexRow>
                         {activeTab === 'pir' && (
                             <DisciplineScatterGrid
-                                data={ScatterData?.data}
-                                discipline={ScatterData?.names[0] || ''}
+                                data={scatterData?.data}
+                                discipline={scatterData?.names?.[0] || ''}
                             />
                         )}
                         {activeTab === 'yp' && (
                             <DisciplineScatterGrid
-                                data={ScatterData?.data}
-                                discipline={ScatterData?.names[1] || ''}
+                                data={scatterData?.data}
+                                discipline={scatterData?.names?.[1] || ''}
                             />
                         )}
                         {activeTab === 'pract3' && (
                             <DisciplineScatterGrid
-                                data={ScatterData?.data}
-                                discipline={ScatterData?.names[2] || ''}
+                                data={scatterData?.data}
+                                discipline={scatterData?.names?.[2] || ''}
                             />
                         )}
                         {activeTab === 'pract4' && (
                             <DisciplineScatterGrid
-                                data={ScatterData?.data}
-                                discipline={ScatterData?.names[3] || ''}
+                                data={scatterData?.data}
+                                discipline={scatterData?.names?.[3] || ''}
                             />
                         )}
                     </>

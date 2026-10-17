@@ -1,4 +1,5 @@
-import { useState, useEffect, React, useRef, cloneElement } from 'react';
+import { useState, React, useRef, cloneElement } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Tooltip as TooltipRecharts, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import Slider from 'rc-slider';
@@ -13,6 +14,7 @@ import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { defaultQueryOptions } from '@utils/queryConfig';
 import { AdminService } from '@services';
 
 import './AdminCompetencesView.scss';
@@ -433,8 +435,6 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
 function AdminCompetencesView() {
     const savedFilters = useAdminStore(state => state.savedFilters);
     const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
-    const [dashboardData, setDashboardData] = useState(null);
-    const [loadingDash, setLoadingDash] = useState(false);
 
     const [filters_, setFilters_] = useState(() => {
         const saved = useAdminStore.getState().savedFilters?.Admin;
@@ -442,42 +442,39 @@ function AdminCompetencesView() {
         return saved && Object.keys(saved).length ? saved : { institute: '', specialty: '', year: '' };
     });
 
-    const [yearsCompetencyData, setYearsCompetencyData] = useState(null);
-    const [trendData, setTrendData] = useState(null);
-    const [loadingTrend, setLoadingTrend] = useState(false);
-
     const [activeTab, setActiveTab] = useState('dashboard');
-    const loadDashboardStats = async currentFilters => {
-        setLoadingDash(true);
-        try {
-            const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
-
-            if (!data) return;
-            setDashboardData(data);
-        } finally {
-            setLoadingDash(false);
-        }
-    };
-
-    const loadYearsCompetencyData = async currentFilters => {
-        const data = await AdminService.getCompetencyAverageByYears(currentFilters.institute, currentFilters.specialty);
-        setYearsCompetencyData(data?.data);
-    };
-
-    const [yearsOptions, setYearsOptions] = useState([]);
-    const getYearsOptions = async () => {
-        const years = await AdminService.getAvailableYears();
-        setYearsOptions(years ?? []);
-    };
-    useEffect(() => {
-        getYearsOptions();
-    }, []);
-
-    useEffect(() => {
-        if (activeTab !== 'dashboard') return;
-        loadDashboardStats(filters_);
-        loadYearsCompetencyData(filters_);
-    }, [filters_, activeTab]);
+    const {
+        data: dashboardData,
+        isPending: loadingDash,
+        error: dashboardError,
+        refetch: refetchDashboard
+    } = useQuery({
+        queryKey: ['admin', 'stats', filters_],
+        queryFn: () => AdminService.getDashboardStats(filters_),
+        enabled: activeTab === 'dashboard',
+        ...defaultQueryOptions
+    });
+    const { data: yearsCompetencyResult } = useQuery({
+        queryKey: ['admin', 'competency-average-by-years', filters_.institute, filters_.specialty],
+        queryFn: () => AdminService.getCompetencyAverageByYears(filters_.institute, filters_.specialty),
+        enabled: activeTab === 'dashboard',
+        ...defaultQueryOptions
+    });
+    const { data: yearsOptions = [] } = useQuery({
+        queryKey: ['admin', 'available-years'],
+        queryFn: () => AdminService.getAvailableYears(),
+        ...defaultQueryOptions
+    });
+    const {
+        data: trendData,
+        isPending: loadingTrend
+    } = useQuery({
+        queryKey: ['admin', 'competency-trend', filters_.institute, filters_.specialty],
+        queryFn: () => AdminService.getCompetencyTrendByYear(filters_.institute, filters_.specialty),
+        enabled: activeTab === 'graphics' || activeTab === 'segmentation',
+        ...defaultQueryOptions
+    });
+    const yearsCompetencyData = yearsCompetencyResult?.data;
 
     const updateFilter = (name, value) => {
         setFilters_(prev => {
@@ -493,22 +490,6 @@ function AdminCompetencesView() {
         setFilters_({ institute: '', specialty: '', year: '' });
         saveFilters('Admin', { institute: '', specialty: '', year: '' });
     };
-    const loadCompetencyTrend = async currentFilters => {
-        setLoadingTrend(true);
-        try {
-            const data = await AdminService.getCompetencyTrendByYear(currentFilters.institute, currentFilters.specialty);
-            setTrendData(data);
-        } catch (err) {
-            console.error('Ошибка при загрузке динамики:', err);
-        } finally {
-            setLoadingTrend(false);
-        }
-    };
-    useEffect(() => {
-        if (activeTab !== 'segmentation') return;
-        loadCompetencyTrend(filters_);
-    }, [filters_, activeTab]);
-
     const handleYearChange = selectedYear => {
         setFilters_(prev => {
             const updated = { ...prev, year: selectedYear };
@@ -553,6 +534,8 @@ function AdminCompetencesView() {
                         <div className="loading-content">
                             <LoadingSpinner text="Загрузка статистики..." />
                         </div>
+                    ) : dashboardError ? (
+                        <div className="loading-content">Не удалось загрузить статистику.</div>
                     ) : (
                         <>
                             <Dashboard

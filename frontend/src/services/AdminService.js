@@ -25,8 +25,11 @@ class AdminService extends BaseService {
     /**
      * Статистика dashboard
      */
-    getDashboardStats(institute, specialty, year) {
-        return this.request(() => Api.getDashboardStats(institute, specialty, year), 'Ошибка загрузки статистики');
+    getDashboardStats(filters) {
+        return this.request(
+            () => Api.getDashboardStats(filters.institute, filters.specialty, filters.year),
+            'Ошибка загрузки статистики'
+        );
     }
 
     getCompetencyAverageByYears(institute, specialty) {

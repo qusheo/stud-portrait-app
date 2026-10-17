@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import ReactApexChart from 'react-apexcharts';
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 export default function CorrelationScatter({ correlationData, loading, filters }) {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
     const [selectedCompetency, setSelectedCompetency] = useState('');
-    const [scatterPoints, setScatterPoints] = useState([]);
-    const [loadingScatter, setLoadingScatter] = useState(false);
 
     // При получении общего correlationData — выставляем первую пару (с авто-scatter)
     useEffect(() => {
@@ -15,25 +15,31 @@ export default function CorrelationScatter({ correlationData, loading, filters }
             const first = correlationData.scatter[0];
             setSelectedDiscipline(first.discipline);
             setSelectedCompetency(first.competency);
-            setScatterPoints(correlationData.scatter);
         }
     }, [correlationData]);
 
-    // Перезагружаем точки при изменении пары
-    useEffect(() => {
-        if (!selectedDiscipline || !selectedCompetency) return;
-        setLoadingScatter(true);
-        AdminService.getGradesCompetencyCorrelation(
+    const { data: selectedCorrelation, isPending: loadingScatter } = useQuery({
+        queryKey: [
+            'admin',
+            'grades-competency-correlation',
             filters.institute,
             filters.specialty,
             filters.year,
             selectedDiscipline,
             selectedCompetency
-        )
-            .then(data => setScatterPoints(data.scatter || []))
-            .catch(err => console.error('Ошибка при загрузке точек:', err))
-            .finally(() => setLoadingScatter(false));
-    }, [selectedDiscipline, selectedCompetency, filters]);
+        ],
+        queryFn: () =>
+            AdminService.getGradesCompetencyCorrelation(
+                filters.institute,
+                filters.specialty,
+                filters.year,
+                selectedDiscipline,
+                selectedCompetency
+            ),
+        enabled: Boolean(selectedDiscipline && selectedCompetency),
+        ...defaultQueryOptions
+    });
+    const scatterPoints = selectedCorrelation?.scatter ?? correlationData?.scatter ?? [];
 
     if (loading) return <div style={{ padding: 20 }}>Загрузка диаграммы рассеяния...</div>;
     if (!correlationData || !correlationData.disciplines || correlationData.disciplines.length === 0) {

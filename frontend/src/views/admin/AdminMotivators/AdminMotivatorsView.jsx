@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
 import {
     Cell,
@@ -28,6 +29,7 @@ import './AdminMotivatorsView.scss';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 
 import { useAdminStore } from '@utils/store.jsx';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -604,29 +606,21 @@ function MotivatorCharts({ chart_data, currentFilters }) {
 }
 
 function AdminMotivatorsView() {
-    const [MotivationData, setMotivationData] = useState(null);
-    const [loadingMotDash, setLoadingMotDash] = useState(false);
-    const [isError, setErrorStatus] = useState(false);
     const [filters, setFilters] = useState({ institute: '', specialty: '', year: '' });
     const savedY = useRef(0);
 
     const savedFilters = useAdminStore(state => state.savedFilters);
     const saveFilters = useAdminStore(state => state.saveFilters);
 
-    const loadMotivationCounts = async currentFilters => {
-        setLoadingMotDash(true);
-        setErrorStatus(false);
-        AdminService.getMotivationCounts(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .then(data => setMotivationData(data))
-            .catch(err => {
-                console.error('Ошибка при загрузке мотиваторов:', err);
-                toast.error('Ошибка при загрузке мотиваторов');
-            })
-            .finally(() => setLoadingMotDash(false));
-    };
-    useEffect(() => {
-        loadMotivationCounts(filters);
-    }, [filters]);
+    const {
+        data: motivationData,
+        isPending: loadingMotDash,
+        error
+    } = useQuery({
+        queryKey: ['admin', 'motivators', filters],
+        queryFn: () => AdminService.getMotivationCounts(filters.institute, filters.specialty, filters.year),
+        ...defaultQueryOptions
+    });
 
     const updateFilter = (name, value) => {
         setFilters(prev => {
@@ -667,10 +661,12 @@ function AdminMotivatorsView() {
                 <div className="loading-content">
                     <LoadingSpinner text="Загрузка диаграммы..." />
                 </div>
+            ) : error ? (
+                <div className="loading-content">Не удалось загрузить данные.</div>
             ) : (
                 <>
                     <MotivatorCharts
-                        chart_data={MotivationData?.data}
+                        chart_data={motivationData?.data}
                         currentFilters={filters}
                     />
                     <MotivatorStatistics filters={filters} />

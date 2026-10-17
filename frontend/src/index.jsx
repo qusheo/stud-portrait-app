@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 import App from './views/App';
 import ErrorView from './views/ErrorView';
@@ -40,6 +41,7 @@ import { SidebarLayout, Content } from '@components/SidebarLayout';
 import PermissionGuard from './user/components/PermissionGuard.jsx';
 import { Permission } from './user/entities/permissions.ts';
 import reportWebVitals from './reportWebVitals';
+import { queryClient } from './utils/queryConfig';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -121,8 +123,10 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
-        <RouterProvider router={router} />
-        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar theme="light" />
+        <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+            <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar theme="light" />
+        </QueryClientProvider>
     </React.StrictMode>
 );
 
