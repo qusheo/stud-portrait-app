@@ -431,3 +431,137 @@
         }
     }
 }
+
+// Стили для новой карточки профиля и редактирования
+.layout-grid-personal {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 24px;
+    align-items: start;
+
+    @media (max-width: 992px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.col-left, .col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.profile-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .profile-title {
+            h3 {
+                margin: 0 0 4px 0;
+                font-size: 20px;
+                color: #1e293b;
+            }
+            p {
+                margin: 0;
+                color: #64748b;
+                font-size: 14px;
+            }
+        }
+    }
+
+    .profile-info-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 24px;
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e2e8f0;
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            .info-label {
+                color: #64748b;
+                font-size: 14px;
+            }
+
+            .info-value {
+                font-weight: 500;
+                color: #1e293b;
+                text-align: right;
+            }
+        }
+    }
+
+    .editable-section {
+        padding-top: 20px;
+        border-top: 1px dashed #e2e8f0;
+
+        .edit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+
+            h4 {
+                margin: 0;
+                font-size: 16px;
+                color: #1e293b;
+            }
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+
+            &:focus {
+                outline: none;
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+        }
+
+        .read-only-text {
+            margin: 0;
+            color: #334155;
+            font-size: 14px;
+            line-height: 1.5;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #f1f5f9;
+        }
+    }
+}

@@ -1,37 +1,28 @@
 import { useState, useEffect } from 'react';
+import Chart from 'react-apexcharts';
 
-import { LINK_TREE } from '@utils/utilities';
 import { StudentService } from '@services';
-
 import { toast } from 'react-toastify';
-import FlexColumn from '@components/FlexColumn';
-import FlexRow from '@components/FlexRow';
-import LabelledBox from '@components/LabelledBox';
-import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '@components/SidebarLayout';
-
-import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
-
+import FlexRow, { WRAP } from '@components/FlexRow';
 import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
-import Label, { LABEL_PALETTE } from '@components/ui/Label';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
+import TabButton from '@components/ui/TabButton';
 
 import './AdminPortraitView.scss';
-import { MatchingService } from '@services';
 
-// Компонент поиска студента
 const StudentSearch = ({ onSelectStudent }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
-        if (searchTerm.length >= 2) {
+        if (searchTerm.length >= 2 && isDropdownOpen) {
             searchStudents();
         } else if (searchTerm.length === 0) {
             setStudents([]);
         }
-    }, [searchTerm]);
+    }, [searchTerm, isDropdownOpen]);
 
     const searchStudents = async () => {
         setLoading(true);
@@ -42,30 +33,33 @@ const StudentSearch = ({ onSelectStudent }) => {
     };
 
     const handleSelectStudent = student => {
-        setSelectedStudentId(student.id);
-        setSearchTerm(student.rsv_id);
-        onSelectStudent(student.id);
+        setIsDropdownOpen(false);
+        setSearchTerm('');
         setStudents([]);
+        onSelectStudent(student.id);
     };
 
     return (
         <div className="student-search">
-            <div>Поиск студента:</div>
+            <div className="search-label">Поиск студента:</div>
             <div className="search-container">
                 <input
                     type="text"
                     className="search-input"
                     placeholder="Введите ID студента, ФИО или название вуза..."
                     value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    onChange={e => {
+                        setSearchTerm(e.target.value);
+                        setIsDropdownOpen(true);
+                    }}
                 />
                 {loading && <LoadingSpinner small />}
-                {students.length > 0 && (
+                {isDropdownOpen && students.length > 0 && (
                     <div className="search-results">
                         {students.map(student => (
                             <div
                                 key={student.id}
-                                className={`search-result-item ${selectedStudentId === student.id ? 'selected' : ''}`}
+                                className="search-result-item"
                                 onClick={() => handleSelectStudent(student)}
                             >
                                 <div className="result-rsv">{student.rsv_id}</div>
@@ -81,13 +75,24 @@ const StudentSearch = ({ onSelectStudent }) => {
     );
 };
 
-// Компонент информации о студенте
 const StudentInfoCard = ({ student }) => {
     if (!student) return null;
 
     return (
-        <LabelledBox label="📋 Основная информация">
-            <div className="info-grid">
+        <div className="profile-card">
+            <div className="profile-header">
+                <div className="avatar">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    </svg>
+                </div>
+                <div className="profile-title">
+                    <h3>{student.stud_name || 'Имя не указано'}</h3>
+                    <p>{student.specialty || 'Направление не указано'}</p>
+                </div>
+            </div>
+            <div className="profile-info-grid">
                 <div className="info-item">
                     <span className="info-label">ID студента:</span>
                     <span className="info-value">{student.rsv_id}</span>
@@ -109,57 +114,124 @@ const StudentInfoCard = ({ student }) => {
                     <span className="info-value">{student.study_form}</span>
                 </div>
                 <div className="info-item">
-                    <span className="info-label">Направление подготовки:</span>
-                    <span className="info-value">{student.specialty}</span>
-                </div>
-                <div className="info-item">
                     <span className="info-label">Текущий курс:</span>
                     <span className="info-value">{student.current_course}</span>
                 </div>
             </div>
-        </LabelledBox>
+        </div>
     );
 };
 
-// Компонент результатов тестирования
-const TestResultsCard = ({ Results }) => {
+const TestResultsCard = ({ Results, activeTab }) => {
     const [selectedYear, setSelectedYear] = useState(null);
 
     useEffect(() => {
-        if (!selectedYear && Results && Results.length > 0 && Results[0]?.year) {
-            setSelectedYear(Results[0].year);
+        if (Results && Results.length > 0) {
+            const yearExists = Results.some(r => r.year === selectedYear);
+            if (!yearExists) {
+                setSelectedYear(Results[0].year);
+            }
         }
     }, [Results, selectedYear]);
 
     if (!Results || Results.length === 0) {
         return (
-            <LabelledBox label="📊 Результаты тестирования">
+            <div className="dashboard-card no-data-card">
                 <div className="no-data">Нет данных о тестировании</div>
-            </LabelledBox>
+            </div>
         );
     }
 
     const currentResult = Results.find(r => r.year === selectedYear);
 
-    // Определение уровня для компетенций
-    const getScoreLevel = score => {
-        if (score === null || score === undefined) return { level: 'Нет данных', color: '#ccc' };
-        if (score >= 600) return { level: 'Высокий', color: '#4caf50' };
-        if (score >= 400) return { level: 'Средний', color: '#ffc107' };
-        return { level: 'Начальный', color: '#f44336' };
+    const hasActualData = obj => {
+        if (!obj) return false;
+        return Object.values(obj).some(val => val !== null && val !== undefined);
     };
 
-    // Определение уровня для мотиваторов
-    const getMotivatorLevel = score => {
-        if (score === null || score === undefined) return { level: 'Нет данных', color: '#ccc' };
-        if (score >= 600) return { level: 'Мотиватор', color: '#4caf50' };
-        if (score >= 400) return { level: 'Не проявлено', color: '#ffc107' };
-        return { level: 'Демотиватор', color: '#f44336' };
+    const getChartData = () => {
+        if (!currentResult) return [];
+        let names = {};
+        let dataObj = {};
+
+        if (activeTab === 'competences') {
+            names = COMPETENCIES_NAMES;
+            dataObj = currentResult.competencies || {};
+        } else if (activeTab === 'motivators') {
+            names = MOTIVATORS_NAMES;
+            dataObj = currentResult.motivators || {};
+        } else if (activeTab === 'values') {
+            names = VALUES_NAMES;
+            dataObj = currentResult.values || {};
+        }
+
+        return Object.entries(names).map(([key, name]) => ({
+            name,
+            value: dataObj[key] !== undefined && dataObj[key] !== null ? dataObj[key] : 0
+        }));
+    };
+
+    const chartData = getChartData();
+    const sortedData = [...chartData].sort((a, b) => b.value - a.value);
+    const top3 = sortedData.slice(0, 3);
+    const bottom3 = sortedData.slice(-3).reverse();
+
+    let isDataEmpty = true;
+    if (currentResult) {
+        if (activeTab === 'competences') isDataEmpty = !hasActualData(currentResult.competencies);
+        else if (activeTab === 'motivators') isDataEmpty = !hasActualData(currentResult.motivators);
+        else if (activeTab === 'values') isDataEmpty = !hasActualData(currentResult.values);
+    }
+
+    const radarOptions = {
+        chart: { type: 'radar', toolbar: { show: false }, fontFamily: 'inherit' },
+        labels: chartData.map(d => d.name),
+        xaxis: {
+            labels: {
+                style: {
+                    colors: chartData.map(() => '#1e293b'), 
+                    fontSize: '12px',
+                    fontWeight: 600
+                }
+            }
+        },
+        stroke: { width: 2, colors: ['#3b82f6'] },
+        fill: { opacity: 0.2, colors: ['#3b82f6'] },
+        markers: { size: 4, colors: ['#fff'], strokeColors: '#3b82f6', strokeWidth: 2 },
+        yaxis: { show: false, min: 0, max: 800 },
+        plotOptions: { 
+            radar: { 
+                size: 270,
+                polygons: { strokeColors: '#e2e8f0', connectorColors: '#e2e8f0', fill: { colors: ['#f8fafc', '#fff'] } } 
+            } 
+        }
+    };
+
+    const barOptions = {
+        chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
+        plotOptions: { 
+            bar: { 
+                horizontal: false, 
+                borderRadius: 4, 
+                columnWidth: '90%' 
+            } 
+        },
+        dataLabels: { enabled: false }, 
+        xaxis: { 
+            categories: chartData.map(d => d.name),
+            labels: {
+                rotate: -45, 
+                rotateAlways: true,
+                style: { fontSize: '11px', colors: '#64748b' }
+            }
+        },
+        yaxis: { max: 800 },
+        colors: ['#3b82f6']
     };
 
     return (
-        <LabelledBox label="📊 Результаты тестирования">
-            <div className="test-years">
+        <div className="test-results-wrapper">
+            <div className="year-selector">
                 {Results.map(result => (
                     <button
                         key={result.year}
@@ -171,104 +243,85 @@ const TestResultsCard = ({ Results }) => {
                 ))}
             </div>
 
-            {currentResult && (
-                <>
-                    <div className="test-info">
-                        <div className="test-meta">
-                            <span>Курс: {currentResult.course_num}</span>
-                            {currentResult.center && <span>ЦК: {currentResult.center}</span>}
-                            {currentResult.high_potential && (
-                                <span className={`high-potential ${currentResult.high_potential === 'Да' ? 'yes' : 'no'}`}>
-                                    Высокий потенциал: {currentResult.high_potential}
-                                </span>
-                            )}
+            {currentResult ? (
+                <div className="dashboard-card">
+                    {isDataEmpty ? (
+                        <div className="no-data-large" style={{ marginTop: 0, boxShadow: 'none', background: '#f8fafc' }}>
+                            Нет данных о {activeTab === 'competences' ? 'компетенциях' : activeTab === 'motivators' ? 'мотиваторах' : 'ценностях'} за выбранный год
                         </div>
-                    </div>
-
-                    <h4>Компетенции</h4>
-                    <div className="scores-grid">
-                        {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => {
-                            const score = currentResult.competencies[key];
-                            const level = getScoreLevel(score);
-                            return (
-                                <div
-                                    key={key}
-                                    className="score-item"
-                                >
-                                    <div className="score-name">{name}</div>
-                                    <div
-                                        className="score-value"
-                                        style={{ color: level.color }}
-                                    >
-                                        {score !== null ? score : '—'}
+                    ) : activeTab === 'values' ? (
+                        <div className="values-list">
+                            {Object.entries(VALUES_NAMES).map(([key, name]) => {
+                                const val = currentResult?.values?.[key];
+                                if (val === null || val === undefined) return null;
+                                return (
+                                    <div key={key} className="value-item">
+                                        {name}
                                     </div>
-                                    <div
-                                        className="score-level"
-                                        style={{ backgroundColor: level.color }}
-                                    >
-                                        {level.level}
-                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="analytics-split-layout">
+                            <div className="chart-side">
+                                {activeTab === 'competences' && chartData.length > 0 && (
+                                    <Chart 
+                                        options={radarOptions} 
+                                        series={[{ name: 'Баллы', data: chartData.map(d => d.value) }]} 
+                                        type="radar" 
+                                        height={600} 
+                                        width="100%"
+                                    />
+                                )}
+                                {activeTab === 'motivators' && chartData.length > 0 && (
+                                    <Chart 
+                                        options={barOptions} 
+                                        series={[{ name: 'Баллы', data: chartData.map(d => d.value) }]} 
+                                        type="bar" 
+                                        height={600} 
+                                        width="100%"
+                                    />
+                                )}
+                            </div>
+                            
+                            <div className="analysis-side">
+                                <h4 className="analysis-title">Анализ данных</h4>
+                                <div className="analysis-block">
+                                    <h5>Преобладает (Топ-3)</h5>
+                                    <ul>
+                                        {top3.map((item, i) => (
+                                            <li key={i}><span>{item.name}</span> <strong>{item.value}</strong></li>
+                                        ))}
+                                    </ul>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    <h4>Мотиваторы</h4>
-                    <div className="scores-grid motivators">
-                        {Object.entries(MOTIVATORS_NAMES).map(([key, name]) => {
-                            const score = currentResult.motivators[key];
-                            const level = getMotivatorLevel(score);
-                            return (
-                                <div
-                                    key={key}
-                                    className="score-item"
-                                >
-                                    <div className="score-name">{name}</div>
-                                    <div
-                                        className="score-value"
-                                        style={{ color: level.color }}
-                                    >
-                                        {score !== null ? score : '—'}
-                                    </div>
-                                    <div
-                                        className="score-level"
-                                        style={{ backgroundColor: level.color }}
-                                    >
-                                        {level.level}
-                                    </div>
+                                <div className="analysis-block">
+                                    <h5>Слабые черты (Топ-3)</h5>
+                                    <ul>
+                                        {bottom3.map((item, i) => (
+                                            <li key={i}><span>{item.name}</span> <strong>{item.value}</strong></li>
+                                        ))}
+                                    </ul>
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    <h4>Ценности</h4>
-                    <div className="scores-grid values">
-                        {Object.entries(VALUES_NAMES).map(([key, name]) => {
-                            const score = currentResult.values[key];
-                            return (
-                                <div
-                                    key={key}
-                                    className="score-item"
-                                >
-                                    <div className="score-name">{name}</div>
-                                    <div className="score-value">{score !== null ? score : '—'}</div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="dashboard-card no-data-card">
+                    <div className="no-data">Загрузка данных...</div>
+                </div>
             )}
-        </LabelledBox>
+        </div>
     );
 };
 
-// Компонент оценок по дисциплинам
 const AcademicPerformanceCard = ({ grades }) => {
     if (!grades || grades.length === 0) {
         return (
-            <LabelledBox label="📚 Оценки по дисциплинам">
+            <div className="dashboard-card">
+                <h3 className="card-title">Оценки по дисциплинам</h3>
                 <div className="no-data">Нет данных об успеваемости</div>
-            </LabelledBox>
+            </div>
         );
     }
 
@@ -278,43 +331,58 @@ const AcademicPerformanceCard = ({ grades }) => {
         groupedByYear[grade.year].push(grade);
     });
 
+    const getGradeClass = (grade) => {
+        const num = parseInt(grade, 10);
+        if (num === 5) return 'grade-excellent';
+        if (num === 4) return 'grade-good';
+        if (num === 3) return 'grade-satisfactory';
+        return 'grade-poor';
+    };
+
     return (
-        <LabelledBox label="📚 Оценки по дисциплинам">
+        <div className="dashboard-card">
+            <h3 className="card-title">Оценки по дисциплинам</h3>
             {Object.entries(groupedByYear).map(([year, yearGrades]) => (
-                <div
-                    key={year}
-                    className="grades-year"
-                >
-                    <h4>{year}</h4>
-                    <Table>
-                        <TableHeader>
-                            <TableItem>Дисциплина</TableItem>
-                            <TableItem>Оценка</TableItem>
-                        </TableHeader>
-                        {yearGrades.map((grade, idx) => (
-                            <TableRow key={idx}>
-                                <TableItem>{grade.discipline}</TableItem>
-                                <TableItem>{grade.main_attestation || '—'}</TableItem>
-                            </TableRow>
-                        ))}
-                    </Table>
+                <div key={year} className="grades-year">
+                    <h4 className="year-subtitle">{year} учебный год</h4>
+                    <div className="table-wrapper">
+                        <table className="clean-table">
+                            <thead>
+                                <tr>
+                                    <th>Дисциплина</th>
+                                    <th style={{ width: '100px', textAlign: 'center' }}>Оценка</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {yearGrades.map((grade, idx) => (
+                                    <tr key={idx}>
+                                        <td>{grade.discipline}</td>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <span className={`grade-badge ${getGradeClass(grade.main_attestation)}`}>
+                                                {grade.main_attestation || '—'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             ))}
-        </LabelledBox>
+        </div>
     );
 };
 
-// Компонент пройденных курсов
 const CoursesCard = ({ courses }) => {
     if (!courses || courses.length === 0) {
         return (
-            <LabelledBox label="🎓 Пройденные образовательные курсы">
+            <div className="dashboard-card">
+                <h3 className="card-title">Пройденные образовательные курсы</h3>
                 <div className="no-data">Нет данных о пройденных курсах</div>
-            </LabelledBox>
+            </div>
         );
     }
 
-    // Курсы и их названия
     const courseFields = [
         { key: 'an_dec', name: 'Анализ и принятие решений' },
         { key: 'client_focus', name: 'Клиентоориентированность' },
@@ -341,42 +409,38 @@ const CoursesCard = ({ courses }) => {
     ];
 
     return (
-        <LabelledBox label="🎓 Пройденные образовательные курсы">
-            {courses.map((course, idx) => (
-                <div
-                    key={idx}
-                    className="course-item"
-                >
-                    <h4>Курс {idx + 1}</h4>
-                    <div className="course-scores">
-                        {courseFields.map(field => {
-                            const value = course[field.key];
-                            if (value !== null && value !== undefined) {
-                                return (
-                                    <div
-                                        key={field.key}
-                                        className="course-score"
-                                    >
-                                        <span className="course-score-label">{field.name}:</span>
-                                        <span className="course-score-value">{value}</span>
-                                    </div>
-                                );
-                            }
-                            return null;
-                        })}
+        <div className="dashboard-card">
+            <h3 className="card-title">Пройденные образовательные курсы</h3>
+            <div className="courses-grid">
+                {courses.map((course, idx) => (
+                    <div key={idx} className="course-block">
+                        <h4 className="course-subtitle">Курс {idx + 1}</h4>
+                        <div className="course-tags">
+                            {courseFields.map(field => {
+                                const value = course[field.key];
+                                if (value !== null && value !== undefined) {
+                                    return (
+                                        <div key={field.key} className="course-tag">
+                                            <span className="tag-label">{field.name}</span>
+                                            <span className="tag-value">{value}</span>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
+                        </div>
                     </div>
-                </div>
-            ))}
-        </LabelledBox>
+                ))}
+            </div>
+        </div>
     );
 };
 
-function AdminPortraitView(studentId = undefined) {
+function AdminPortraitView() {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [isMatchingStudentsLoading, setMatchingStudentsLoading] = useState(false);
-    const [isMatchingTeachersLoading, setMatchingTeachersLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState('personal');
 
     useEffect(() => {
         if (selectedStudentId) {
@@ -398,30 +462,6 @@ function AdminPortraitView(studentId = undefined) {
             setLoading(false);
         }
     };
-    // подбор преподов
-    let teachers = [];
-    const getMatchingTeachers = async studentId => {
-        try {
-            setMatchingTeachersLoading(true);
-            const data = await MatchingService.getMatchingTeachersByStudent(studentId);
-            teachers = data ?? [];
-        } catch (e) {
-        } finally {
-            setMatchingTeachersLoading(false);
-        }
-    };
-    // подбор группы
-    let studentsGroup = [];
-    const getMatchingStudents = async studentId => {
-        try {
-            setMatchingStudentsLoading(true);
-            const data = await MatchingService.getMatchingStudents(studentId);
-            studentsGroup = data ?? [];
-        } catch (e) {
-        } finally {
-            setMatchingStudentsLoading(false);
-        }
-    };
 
     return (
         <div className="AdminPortraitView">
@@ -432,12 +472,44 @@ function AdminPortraitView(studentId = undefined) {
             {loading && <LoadingSpinner text="Загрузка портрета студента..." />}
 
             {!loading && studentPortrait && (
-                <FlexColumn gap="24">
-                    <StudentInfoCard student={studentPortrait.student_info} />
-                    <TestResultsCard Results={studentPortrait.test_results} />
-                    <AcademicPerformanceCard grades={studentPortrait.academic_performance} />
-                    <CoursesCard courses={studentPortrait.courses} />
-                </FlexColumn>
+                <div className="dashboard-container">
+                    <FlexRow margin="0 0 24px 0" wrap={WRAP.DO} className="tabs-row">
+                        <TabButton text="Мои данные" onClick={() => setActiveTab('personal')} isActive={activeTab === 'personal'} />
+                        <TabButton text="Компетенции" onClick={() => setActiveTab('competences')} isActive={activeTab === 'competences'} />
+                        <TabButton text="Мотиваторы" onClick={() => setActiveTab('motivators')} isActive={activeTab === 'motivators'} />
+                        <TabButton text="Ценности" onClick={() => setActiveTab('values')} isActive={activeTab === 'values'} />
+                        <TabButton text="Образование" onClick={() => setActiveTab('education')} isActive={activeTab === 'education'} />
+                    </FlexRow>
+
+                    {activeTab === 'personal' && (
+                        <div className="layout-grid-personal">
+                            <div className="col-left">
+                                <StudentInfoCard student={studentPortrait.student_info} />
+                            </div>
+                            <div className="col-right">
+                                <div className="dashboard-card">
+                                    <h3 className="card-title">Интересы</h3>
+                                    <div className="no-data">Нет данных об интересах</div>
+                                </div>
+                                <div className="dashboard-card">
+                                    <h3 className="card-title">Навыки</h3>
+                                    <div className="no-data">Нет данных о навыках</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {(activeTab === 'competences' || activeTab === 'motivators' || activeTab === 'values') && (
+                        <TestResultsCard Results={studentPortrait.test_results} activeTab={activeTab} />
+                    )}
+
+                    {activeTab === 'education' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <AcademicPerformanceCard grades={studentPortrait.academic_performance} />
+                            <CoursesCard courses={studentPortrait.courses} />
+                        </div>
+                    )}
+                </div>
             )}
 
             {!loading && !studentPortrait && selectedStudentId && <div className="no-data-large">Не удалось загрузить данные студента</div>}
