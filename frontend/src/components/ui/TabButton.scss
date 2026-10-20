@@ -12,15 +12,15 @@ button {
     font-weight: 545 !important;
 }
 button.active {
-    color: rgb(30, 49, 81);
-    background-color: rgb(173, 194, 248);
-    border: solid 1px rgba(96, 120, 185, 0.8);
+    color: rgb(49 89 155);
+    background-color: rgb(184, 202, 249);
+    border: solid 1.5px rgba(130, 154, 218, 0.8);
     box-shadow:
         inset 0 1px #fff3,
         0 1px 2px #0000000d;
 }
 button.active:hover {
-    background-color: rgb(101, 142, 208);
+    background-color: rgb(162, 188, 234);
 }
 
 button.not-active {

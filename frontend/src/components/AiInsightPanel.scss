@@ -17,8 +17,8 @@
     gap: 7px;
     padding: 7px 16px;
     background: #0f172a;
-    color: #e2e8f0;
-    border: 1px solid #334155;
+    color: $grey-200;
+    border: 1px solid $grey-800;
     border-radius: 8px;
     font-size: 13px;
     font-weight: 500;
@@ -30,8 +30,8 @@
     letter-spacing: 0.01em;
 
     &:hover:not(:disabled) {
-        background: #1e293b;
-        border-color: #64748b;
+        background: $grey-900;
+        border-color: $grey-600;
         transform: translateY(-1px);
     }
 
@@ -50,7 +50,7 @@
     .ai-spinner {
         width: 12px;
         height: 12px;
-        border: 2px solid #334155;
+        border: 2px solid $grey-800;
         border-top-color: #818cf8;
         border-radius: 50%;
         animation: ai-spin 0.7s linear infinite;
@@ -60,7 +60,7 @@
 /* ── Результат ── */
 .ai-insight-result {
     background: #0f172a;
-    border: 1px solid #1e293b;
+    border: 1px solid $grey-900;
     border-radius: 10px;
     overflow: hidden;
     transition: opacity 0.2s;
@@ -75,8 +75,8 @@
     align-items: center;
     gap: 8px;
     padding: 9px 14px;
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+    background: $grey-900;
+    border-bottom: 1px solid $grey-800;
 
     .ai-badge {
         font-size: 11px;
@@ -90,7 +90,7 @@
 
     .ai-context-label {
         font-size: 12px;
-        color: #94a3b8;
+        color: $grey-400;
         flex: 1;
     }
 
@@ -102,7 +102,7 @@
     .ai-action-btn {
         background: none;
         border: none;
-        color: #475569;
+        color: $grey-700;
         cursor: pointer;
         padding: 2px 6px;
         border-radius: 4px;
@@ -112,7 +112,7 @@
             background 0.15s;
 
         &:hover {
-            color: #94a3b8;
+            color: $grey-400;
             background: rgba(148, 163, 184, 0.1);
         }
     }
@@ -128,7 +128,7 @@
     margin: 0;
     font-size: 13.5px;
     line-height: 1.65;
-    color: #cbd5e1;
+    color: $grey-300;
     white-space: pre-wrap;
 }
 
@@ -147,7 +147,7 @@
 
 .ai-skeleton-line {
     height: 13px;
-    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background: linear-gradient(90deg, $grey-900 25%, $grey-800 50%, $grey-900 75%);
     background-size: 200% 100%;
     border-radius: 4px;
     animation: ai-shimmer 1.4s ease-in-out infinite;

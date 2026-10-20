@@ -51,8 +51,8 @@
         padding-bottom: 1rem;
         margin-bottom: 1rem;
         border-radius: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f1f5f9;
+        box-shadow: $box-shadow-subtle;
+        border: 1px solid $grey-100;
 
         .course-filters {
             display: flex;
@@ -110,14 +110,14 @@
             width: 100%;
             padding: 12px 0;
             border: none;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid $grey-100;
             background: none;
-            color: #64748b;
+            color: $grey-600;
             font-size: 13px;
             cursor: pointer;
             transition: color 0.15s;
             &:hover {
-                color: #1e293b;
+                color: $grey-900;
             }
         }
 
@@ -154,14 +154,14 @@
                 border-collapse: collapse;
 
                 th {
-                    background: #f8fafc;
+                    background: $grey-50;
                     color: #8794a7;
                     font-weight: 500;
                     padding: 8px 12px;
                     text-align: center;
-                    border-bottom: 1px solid #e2e8f0;
-                    border-top: 1px solid #e2e8f0;
-                    border-right: 1px solid #e2e8f0;
+                    border-bottom: 1px solid $grey-200;
+                    border-top: 1px solid $grey-200;
+                    border-right: 1px solid $grey-200;
                     position: sticky;
                     top: 0;
                     &:first-child {
@@ -174,7 +174,7 @@
                     text-align: center;
                     border-bottom: 1px solid #e6eaed;
                     border-right: 1px solid #e3e8ed;
-                    color: #334155;
+                    color: $grey-800;
                 }
             }
             .mot {
@@ -200,17 +200,17 @@
 
             .ct-name {
                 text-align: left !important;
-                color: #64748b;
+                color: $grey-600;
                 font-weight: 500;
             }
             .ct-pos {
                 text-align: left !important;
-                color: #119574 !important;
+                color: $result-high !important;
                 font-weight: 500;
             }
             .ct-neg {
                 text-align: left !important;
-                color: #e24b4a !important;
+                color: $result-low !important;
                 font-weight: 500;
             }
             .ct-zero {
@@ -218,7 +218,7 @@
             }
             .ct-mid {
                 text-align: left !important;
-                color: #ebd439 !important;
+                color: $result-mid !important;
                 font-weight: 500;
             }
             .choice-row {
@@ -232,17 +232,17 @@
                 .box-mot input {
                     width: 12px;
                     height: 12px;
-                    accent-color: #119574;
+                    accent-color: $result-high;
                 }
                 .box-demot input {
                     width: 12px;
                     height: 12px;
-                    accent-color: #e24b4a;
+                    accent-color: $result-low;
                 }
                 .box-neutral input {
                     width: 12px;
                     height: 12px;
-                    accent-color: #e1e33f;
+                    accent-color: $result-mid;
                 }
             }
         }
@@ -273,15 +273,5 @@
         box-shadow:
             0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
-    .btn-excel:focus-visible {
-        outline: 2px solid #22c55e;
-        outline-offset: 2px;
-    }
-
-    .btn-excel:active {
-        background-color: #37697e;
-        transform: scale(0.98);
-        box-shadow: inline 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 }

@@ -12,7 +12,7 @@ const BASE_COLUMNS_NAMES = {
 };
 const searchableCols = ['name', 'institution', 'position', 'disciplines'];
 const numberCols = ['experience'];
-
+const numberTypeCols = ['rowId', 'experience', 'disciplines'];
 export const buildColumns = () => {
     const columnOrder = [
         'name',
@@ -34,7 +34,7 @@ export const buildColumns = () => {
     const numberCol = {
         id: 'rowId',
         title: '№',
-        width: 50,
+        width: 30,
         sortable: true,
         filterable: false,
         searchable: false,
@@ -52,6 +52,7 @@ export const buildColumns = () => {
             sortable: true,
             filterable: id !== 'name',
             filterType: numberCols.includes(id) ? 'number' : 'text',
+            contentType: numberTypeCols.includes(id) ? 'number' : 'text',
             searchable: !!searchableCols.find(id_ => id === id_),
             tooltip: true,
             clickable: id === 'name' || id === 'disciplines',
@@ -72,9 +73,8 @@ const getColumnWidth = id => {
         case 'center':
             return 200;
 
-        case 'edu_level':
         case 'disciplines':
-            return 120;
+            return 90;
 
         case 'gender':
             return 80;

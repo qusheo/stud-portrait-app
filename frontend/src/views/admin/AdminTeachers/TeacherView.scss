@@ -21,13 +21,13 @@
     &__label {
         font-size: 12px;
         font-weight: 500;
-        color: #64748b;
+        color: $grey-600;
     }
 
     &__value {
         font-size: 14px;
         font-weight: 500;
-        color: #1e293b;
+        color: $grey-900;
         overflow-wrap: anywhere;
     }
 

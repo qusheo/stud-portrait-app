@@ -22,12 +22,12 @@
             transition: all 0.3s;
 
             &:hover {
-                color: #1976d2;
+                color: $blue-700;
             }
 
             &.active {
-                color: #1976d2;
-                border-bottom: 2px solid #1976d2;
+                color: $blue-700;
+                border-bottom: 2px solid $blue-700;
             }
         }
     }
@@ -93,12 +93,12 @@
                         border-left: 3px solid transparent;
 
                         &:hover {
-                            background: #e3f2fd;
+                            background: $blue-100;
                         }
 
                         &.active {
-                            background: #e3f2fd;
-                            border-left-color: #1976d2;
+                            background: $blue-100;
+                            border-left-color: $blue-700;
                         }
 
                         .table-name {
@@ -114,7 +114,7 @@
                             color: #666;
 
                             .rows {
-                                color: #4caf50;
+                                color: $green-500;
                             }
 
                             .cols {

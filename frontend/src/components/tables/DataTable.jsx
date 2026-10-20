@@ -567,7 +567,6 @@ const DataTable = ({
 
                                 {columns.map(column => {
                                     const value = row[column.id];
-
                                     return (
                                         <td
                                             key={column.id}
@@ -581,7 +580,8 @@ const DataTable = ({
                                             style={{
                                                 width: column.width,
                                                 minWidth: column.width,
-                                                maxWidth: column.width
+                                                maxWidth: column.width,
+                                                ...(column?.contentType === 'number' && { fontsize: 12, fontFamily: 'Ebrima' }),
                                             }}
                                             onClick={() => handleCellClick(column, row)}
                                         >

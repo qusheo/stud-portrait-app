@@ -9,7 +9,7 @@
     .ds-card {
         background: #fff;
         border-radius: 16px;
-        border: 1px solid #f1f5f9;
+        border: 1px solid $grey-100;
         padding: 20px 20px 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
@@ -26,28 +26,28 @@
     .ds-title {
         font-size: 14px;
         font-weight: 600;
-        color: #334155;
+        color: $grey-800;
         margin: 0;
     }
 
     .ds-select {
         font-size: 12px;
         color: #495a74;
-        border: 1px solid #e2e8f0;
+        border: 1px solid $grey-200;
         border-radius: 8px;
         padding: 5px 10px;
-        background: #f8fafc;
+        background: $grey-50;
         cursor: pointer;
         outline: none;
 
         &:hover {
-            border-color: #cbd5e1;
+            border-color: $grey-300;
         }
     }
 
     .ds-count {
         font-size: 11px;
-        color: #94a3b8;
+        color: $grey-400;
         text-align: right;
         margin: 6px 0 0;
     }

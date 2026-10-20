@@ -156,7 +156,7 @@
                     $selected-border: 2px solid #72a5ce;
                     border-top: $selected-border;
                     border-bottom: $selected-border;
-                    background-color: #e3f2fd;
+                    background-color: $blue-100;
                 }
 
                 th,
@@ -164,8 +164,8 @@
                     &:first-child {
                         position: sticky;
                         left: 0;
-                        background-color: #e3f2fd;
-                        border-right: 2px solid #bbdefb;
+                        background-color: $blue-100;
+                        border-right: 2px solid $blue-200;
                     }
 
                     &:not(:first-child) {

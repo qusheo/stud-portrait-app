@@ -22,7 +22,7 @@ import TabButton from '@components/ui/TabButton';
 import Tooltip from '@components/ui/Tooltip.jsx';
 import DraggablePopover from '@components/ui/DraggablePopover.jsx';
 
-import { useAdminStore } from '@utils/store.jsx';
+import { useAdminStore, usePageStore } from '@utils/store.jsx';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -441,6 +441,7 @@ function AdminCompetencesView() {
 
         return saved && Object.keys(saved).length ? saved : { institute: '', specialty: '', year: '' };
     });
+    const setPageName = usePageStore(state => state.setPageName);
 
     const [activeTab, setActiveTab] = useState('dashboard');
     const {

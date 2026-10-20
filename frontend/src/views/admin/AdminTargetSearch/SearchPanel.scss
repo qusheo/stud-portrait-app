@@ -54,8 +54,8 @@
         }
 
         input:checked + .searchItem__checkmark {
-            background: #1565c0;
-            border-color: #1565c0;
+            background: $blue-800;
+            border-color: $blue-800;
 
             &::after {
                 opacity: 1;
@@ -156,7 +156,7 @@
         }
 
         &:focus {
-            border-color: #1565c0;
+            border-color: $blue-800;
             box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.08);
         }
     }

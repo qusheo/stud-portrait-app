@@ -1,6 +1,4 @@
 /* Common style */
-$modeus-color: #238bc8;
-
 .SidebarLayout {
     display: grid;
     height: 100vh;
@@ -22,6 +20,52 @@ $modeus-color: #238bc8;
         position: sticky;
         top: 0;
         z-index: 10;
+        color: #fff;
+        padding: 10px 20px;
+        background-color: $default-blue;
+        font-size: 13px;
+        line-height: 1.5384616;
+        font-family: Century Gothic;
+        //font-family: Book Antiqua;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+
+        .left-side {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            justify-content: left;
+            gap: 50px;
+
+            .logo-area {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                align-items: center;
+                justify-content: left;
+                gap: 5px;
+
+                img {
+                    height: 30px;
+                }
+
+                .logo-title {
+                    font-size: 20px; //16
+                    font-weight: 500; //500
+                    font-family: Franklin Gothic Medium;
+                }
+            }
+
+            .title {
+                font-size: 18px;
+                font-weight: 700;
+            }
+        }
+
         .right-side {
             align-items: center;
             display: inline-flex;
@@ -30,8 +74,8 @@ $modeus-color: #238bc8;
             gap: 5px;
             justify-content: space-between;
             .user {
-                border: #3e76c3 1px solid;
-                background-color: rgb(109, 166, 219);
+                border: $default-blue-active 1px solid;
+                background-color: $default-blue-light;
                 padding: 8px;
                 border-radius: 10px;
                 align-items: center;
@@ -40,7 +84,7 @@ $modeus-color: #238bc8;
                 gap: 5px;
                 justify-content: space-between;
                 span {
-                    font-weight: 550;
+                    font-weight: 450;
                     font-size: 13px;
                 }
                 .user-name--button {
@@ -85,74 +129,16 @@ $modeus-color: #238bc8;
         position: sticky;
         top: 0;
         overflow-y: auto;
-        .Sidebar-item-active {
-            border-left: 6px solid #3e76c3;
-            margin-left: 4px;
-        }
-    }
-
-    .Content {
-        grid-area: content;
-        height: 97%;
-        overflow: auto;
-        padding: 20px;
-    }
-}
-
-/* Modeus style */
-.style--modeus {
-    .Header {
-        color: #fff;
-        padding: 10px 20px;
-        background-color: #238bc8;
-        font-size: 13px;
-        line-height: 1.5384616;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-
-        .left-side {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            justify-content: left;
-            gap: 50px;
-
-            .logo-area {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: left;
-                gap: 5px;
-
-                img {
-                    height: 30px;
-                }
-
-                .logo-title {
-                    font-size: 20px; //16
-                    font-weight: 500; //500
-                }
-            }
-
-            .title {
-                font-size: 18px;
-                font-weight: 600;
-            }
-        }
-    }
-
-    .Sidebar {
         max-width: 260px;
         min-width: 200px;
         color: #fff;
         font-size: 13px;
         line-height: 1.5384616;
+
+        .Sidebar-item-active {
+            border-left: 6px solid $default-blue-active;
+            margin-left: 4px;
+        }
 
         ul {
             margin: 0;
@@ -172,17 +158,17 @@ $modeus-color: #238bc8;
                     color: #1a365d;
                 }
 
-                $link-ident--modeus: 40px;
-                $cat-ident--modeus: 20px;
+                $link-indent: 40px;
+                $category-indent: 20px;
 
                 span {
-                    padding: 12px 10px 12px $cat-ident--modeus;
+                    padding: 12px 10px 12px $category-indent;
                     font-variant: small-caps;
                     cursor: pointer;
                 }
 
                 a {
-                    padding: 12px 10px 12px $link-ident--modeus;
+                    padding: 12px 10px 12px $link-indent;
                     text-decoration: none;
                     display: block;
                     transition:
@@ -199,6 +185,15 @@ $modeus-color: #238bc8;
             }
         }
     }
+
+    .Content {
+        grid-area: content;
+        height: 97%;
+        overflow: auto;
+        padding: 20px;
+        @include font-default;
+    }
+
 }
 
 .icon {

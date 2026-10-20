@@ -21,10 +21,11 @@ import ExcelJS from 'exceljs';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
-
+import { usePageStore } from '@utils/store';
 import { toast } from 'react-toastify';
 
 import './AdminCompetencesView.scss';
+import { Button } from '../../../components';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -137,10 +138,16 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
 export function CompetencyTable({ data, filters, range }) {
     const [prevYear, year] = range;
     const [tableOpen, setTableOpen] = useState(false);
+    const [exporting, setExporting] = useState(false);
+    const setPageName = usePageStore(state => state.setPageName);
+
     if (!data) return null;
 
     const exportToExcel = async () => {
         try {
+            setPageName('Загрузка файла...');
+            setExporting(true);
+
             const excelData = [];
             data.forEach(row => {
                 if (!row) return;
@@ -178,6 +185,10 @@ export function CompetencyTable({ data, filters, range }) {
         } catch (error) {
             console.error('Ошибка при генерации Excel файла:', error);
             toast.error('Не удалось сформировать Excel файл.');
+        }
+        finally{
+            setPageName('');
+            setExporting(false);
         }
     };
 
@@ -258,6 +269,9 @@ export function CompetencyTable({ data, filters, range }) {
 
 export function CompetencyTable_course({ data, filters }) {
     const [range, setRange] = useState([1, 4]);
+    const [exporting, setExporting] = useState(false);
+    const setPageName = usePageStore(state => state.setPageName);
+
     if (!data) return null;
     const course = [
         { key: 'course_1', name: '1 Курс' },
@@ -288,7 +302,10 @@ export function CompetencyTable_course({ data, filters }) {
         return Math.round((delta * 100) / vStart);
     };
     const exportToExcel = async () => {
+        if (exporting) return;
         try {
+            setExporting(true);
+            setPageName('Загрузка файла..');
             const year = filters.year.split('/')[1];
             const excelData = [];
             data.forEach(row => {
@@ -333,21 +350,26 @@ export function CompetencyTable_course({ data, filters }) {
             toast.success('Файл загружен');
         } catch (error) {
             console.error('Ошибка при генерации Excel файла:', error);
-            toast.error('Не удалось сформировать Excel файл.');
+            toast.error('Не удалось сформировать Excel файл');
+        }
+        finally{
+            setPageName('');
+            setExporting(false);
         }
     };
 
     return (
         <div className="table-container">
             <div className="ct-top">
-                <button
+                <Button 
+                    color={'green'}
+                    title={'Скачать'}
                     className="btnExcel"
+                    loading={exporting}
                     onClick={() => exportToExcel()}
                     onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
                     onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
-                >
-                    Скачать
-                </button>
+                />
                 <p className="slider-note">*перетащите полузнки, чтобы изменить</p>
             </div>
             <table className="ct-table">

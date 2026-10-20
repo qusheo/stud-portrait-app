@@ -7,6 +7,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 
 import App from './views/App';
 import ErrorView from './views/ErrorView';
+import { usePageStore } from '@utils/store.jsx';
 
 import {
     AdminAnalysisAdvancedView,
@@ -120,10 +121,16 @@ const router = createBrowserRouter([
     }
 ]);
 
+const PageTitle = () => {
+    const pageName = usePageStore(state => state.pageName);
+    document.title = `${pageName ?? 'StudPortrait'}`;
+    return;
+}
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>
+            <PageTitle />
             <RouterProvider router={router} />
             <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar theme="light" />
         </QueryClientProvider>

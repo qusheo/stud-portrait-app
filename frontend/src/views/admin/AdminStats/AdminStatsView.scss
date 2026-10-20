@@ -1,19 +1,8 @@
 .AdminStatsView {
     .dashboard-container {
-        padding: 2rem;
-        background: #ffffff;
-        color: #1e293b;
-        border-radius: 0.75rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        @include card-style;
         margin-bottom: 1rem;
         border-radius: 6px;
-        background-color: #f5f5f559;
-        border: solid 1px #7e7e7e80;
-        text-shadow: 0 1px 1px #ffffffbf;
-        box-shadow:
-            inset 0 1px #ffffff33,
-            0 1px 2px #0000000d,
-            0 2px 10px #0000001a;
         padding-left: 3rem;
         .dashboard-title {
             font-size: 1.8rem;
@@ -38,7 +27,7 @@
         }
 
         .col-left {
-            border-right: 1px solid #f1f5f9;
+            border-right: 1px solid $grey-100;
             padding-right: 1rem;
         }
 
@@ -63,13 +52,13 @@
                 margin: 0;
                 font-size: 2.5rem;
                 font-weight: 800;
-                color: #1e293b;
+                color: $grey-900;
             }
 
             .absolute-center p {
                 margin: 0;
                 font-size: 0.7rem;
-                color: #64748b;
+                color: $grey-600;
                 letter-spacing: 0.05em;
             }
 
@@ -79,7 +68,7 @@
         }
 
         .col-right {
-            border-left: 1px solid #f1f5f9;
+            border-left: 1px solid $grey-100;
             padding-left: 2rem;
         }
 
@@ -109,31 +98,26 @@
             }
 
             .prev-year {
-                color: #94a3b8;
+                color: $grey-400;
                 font-size: 0.75rem;
             }
 
             .label {
-                color: #64748b;
+                color: $grey-600;
                 font-size: 0.875rem;
                 margin-top: 0.5rem;
             }
         }
     }
     .dashboard-chart-row {
+        @include card-style;
+        padding: 0;
         background: #ffffff;
-        border-top: 1px solid #f1f5f9;
+        border-top: 1px solid $grey-100;
         padding-top: 2rem;
         margin-top: 1rem;
         margin-bottom: 1rem;
         border-radius: 6px;
-        background-color: #f5f5f559;
-        border: solid 1px #7e7e7e80;
-        text-shadow: 0 1px 1px #ffffffbf;
-        box-shadow:
-            inset 0 1px #ffffff33,
-            0 1px 2px #0000000d,
-            0 2px 10px #0000001a;
 
         .chart-container {
             min-height: 0px;
@@ -167,7 +151,7 @@
     .slider-label {
         font-size: 13px;
         font-weight: 400;
-        color: #64748b;
+        color: $grey-600;
         margin-bottom: 12px;
         text-align: center;
     }
@@ -179,7 +163,7 @@
     }
 
     .rc-slider-rail {
-        background-color: #e2e8f0 !important;
+        background-color: $grey-200 !important;
         height: 4px !important;
     }
     .rc-slider-track {
@@ -201,12 +185,12 @@
     }
     .rc-slider-mark-text {
         font-size: 10px !important;
-        color: #94a3b8 !important;
+        color: $grey-400 !important;
         top: 8px !important;
         margin-top: -3px;
     }
     .rc-slider-mark-text-active {
-        color: #1e293b !important;
+        color: $grey-900 !important;
     }
     //табл
     .table {
@@ -218,14 +202,14 @@
             width: 100%;
             padding: 12px 0;
             border: none;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid $grey-100;
             background: none;
-            color: #64748b;
+            color: $grey-600;
             font-size: 13px;
             cursor: pointer;
             transition: color 0.15s;
             &:hover {
-                color: #1e293b;
+                color: $grey-900;
             }
         }
 
@@ -254,14 +238,14 @@
             font-size: 12px;
 
             th {
-                background: #f8fafc;
-                color: #94a3b8;
+                background: $grey-50;
+                color: $grey-400;
                 font-weight: 500;
                 padding: 8px 12px;
                 text-align: center;
-                border-bottom: 1px solid #e2e8f0;
-                border-top: 1px solid #e2e8f0;
-                border-right: 1px solid #e2e8f0;
+                border-bottom: 1px solid $grey-200;
+                border-top: 1px solid $grey-200;
+                border-right: 1px solid $grey-200;
                 position: sticky;
                 top: 0;
                 &:first-child {
@@ -272,19 +256,19 @@
             td {
                 padding: 7px 12px;
                 text-align: center;
-                border-bottom: 1px solid #f1f5f9;
-                border-right: 1px solid #f1f5f9;
-                color: #334155;
+                border-bottom: 1px solid $grey-100;
+                border-right: 1px solid $grey-100;
+                color: $grey-800;
             }
 
             tr:hover td {
-                background: #f8fafc;
+                background: $grey-50;
             }
         }
 
         .ct-name {
             text-align: left !important;
-            color: #64748b;
+            color: $grey-600;
             font-weight: 500;
         }
         .ct-pos {
@@ -294,7 +278,7 @@
             color: #e24b4a;
         }
         .ct-zero {
-            color: #94a3b8;
+            color: $grey-400;
         }
     }
     .RadarContainer {
@@ -337,7 +321,7 @@
     }
 
     .select__control--is-focused {
-        border-color: #4caf50 !important;
+        border-color: $green-500 !important;
     }
 
     ////
@@ -385,7 +369,7 @@
     }
 
     .filtered-data-notice {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        background: linear-gradient(135deg, $blue-100, $blue-200);
         border: 1px solid #007bff;
         border-radius: 6px;
         padding: 10px 15px;
@@ -476,7 +460,7 @@
             border-radius: 6px;
             padding: 12px;
             min-width: 250px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: $box-shadow-subtle;
 
             &.pending {
                 border-left: 4px solid #ffc107;

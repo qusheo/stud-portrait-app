@@ -15,11 +15,10 @@ import { ACCOUNT_TYPE_LABELS } from '../user/entities/accountType.ts';
 import { useUserStore } from '../user/store/userStore.js';
 export const LAYOUT_STYLE = {
     ADMIN: 'admin',
-    MODEUS: 'modeus',
     NORMAL: 'normal'
 };
 
-export function SidebarLayout({ style = LAYOUT_STYLE.MODEUS, sidebar = true }) {
+export function SidebarLayout({ style = LAYOUT_STYLE.NORMAL, sidebar = true }) {
     return (
         <div className={`SidebarLayout style--${style}`}>
             {sidebar && <Sidebar linkTree={LINK_TREE} />}
@@ -38,7 +37,7 @@ export function Header({ title, name, onAccountClick }) {
                             height="55"
                             alt="Тюменский государственный университет"
                         />
-                        <span className="logo-title">StudPortrait</span>
+                        <span className="logo-title">ВУЗPortrait</span>
                     </div>
                     <span className="title">{title}</span>
                 </div>
