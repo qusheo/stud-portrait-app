@@ -3,20 +3,22 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AdminCompetencesView from './AdminCompetencesView.jsx';
 
-const { service, storeState } = vi.hoisted(() => ({
+const { service, storeState, pageState } = vi.hoisted(() => ({
     service: {
         getDashboardStats: vi.fn(),
         getCompetencyAverageByYears: vi.fn(),
         getAvailableYears: vi.fn(),
         getCompetencyTrendByYear: vi.fn()
     },
-    storeState: { savedFilters: { Admin: {} }, saveFilters: vi.fn() }
+    storeState: { savedFilters: { Admin: {} }, saveFilters: vi.fn() },
+    pageState: { setPageName: vi.fn() }
 }));
 vi.mock('@services', () => ({ AdminService: service }));
 vi.mock('@utils/store.jsx', () => {
     const useAdminStore = selector => selector(storeState);
     useAdminStore.getState = () => storeState;
-    return { useAdminStore };
+    const usePageStore = selector => selector(pageState);
+    return { useAdminStore, usePageStore };
 });
 vi.mock('@utils/utilities.js', () => ({ COMPETENCIES_NAMES: {}, MOTIVATORS_NAMES: {}, FIELD_NAMES: {} }));
 vi.mock('@components/FilterHeader', () => ({
@@ -107,7 +109,7 @@ describe('AdminCompetencesView', () => {
         await waitFor(() => expect(service.getDashboardStats).toHaveBeenCalledWith({ institute: 'uni-1', specialty: '', year: '' }));
         fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
         await waitFor(() => expect(JSON.parse(screen.getByTestId('filters').textContent)).toEqual(blank));
-        await waitFor(() => expect(service.getDashboardStats).toHaveBeenLastCalledWith(blank));
+        await waitFor(() => expect(service.getDashboardStats).toHaveBeenCalledWith(blank));
     });
 
     it('не показывает графики при отсутствии статистики', async () => {

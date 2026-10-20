@@ -169,13 +169,6 @@ const DataTable = ({
     const tableColumns = useMemo(() => buildTableColumns(columns, rows), [columns, rows]);
     const getRowId = row => row[rowKey];
 
-    if (!rows.length)
-        return (
-            <div className="data-table">
-                <Empty />
-            </div>
-        );
-
     useLayoutEffect(() => {
         if (!openedFilter || !filterPopoverRef.current || !filterButtonRectRef.current) return;
 
@@ -286,10 +279,12 @@ const DataTable = ({
 
                 if (column.filter?.type === 'input') {
                     if (column.filterType === 'number') {
+                        if (value == null || value === '') return false;
+
                         const rowValue = Number(value);
                         const target = Number(filterValue.value);
 
-                        if (Number.isNaN(rowValue) || Number.isNaN(target)) {
+                        if (!Number.isFinite(rowValue) || !Number.isFinite(target)) {
                             return false;
                         }
 
@@ -368,6 +363,11 @@ const DataTable = ({
     };
 
     const allFilteredSelected = filteredRows.length > 0 && filteredRows.every(row => selectedRowIds.has(getRowId(row)));
+    
+    const externalSelectedIds = JSON.stringify(_selectedRows.map(row => row[rowKey]));
+    useEffect(() => {
+        setSelectedRowIds(new Set(JSON.parse(externalSelectedIds)));
+    }, [externalSelectedIds]);
 
     const toggleAll = () => {
         setSelectedRowIds(current => {
@@ -518,6 +518,13 @@ const DataTable = ({
             cellClickHandlers[column.id]?.(row, event);
         }
     };
+
+    if (!rows.length)
+        return (
+            <div className="data-table">
+                <Empty />
+            </div>
+        );
 
     return (
         <div
@@ -690,7 +697,7 @@ const DataTable = ({
                                                 maxWidth: column.width,
                                                 ...(column?.contentType === 'number' && { fontsize: 12, fontFamily: 'Ebrima' }),
                                             }}
-                                            onClick={() => handleCellClick(column, row)}
+                                            onClick={event => handleCellClick(column, row, event)}
                                         >
                                             {getCellValue(value, column)}
                                         </td>
