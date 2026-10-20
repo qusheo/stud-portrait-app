@@ -2,5 +2,5 @@
 .vscode/
 frontend/node_modules/
 node_modules/
-.env
+*.env
 .vite
