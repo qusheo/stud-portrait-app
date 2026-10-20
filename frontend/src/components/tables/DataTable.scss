@@ -213,10 +213,10 @@
 
     &__filter-popover {
         position: fixed;
-        z-index: 9999;
+        z-index: 1999;
         box-sizing: border-box;
         min-width: 100px;
-        max-width: 200px;
+        max-width: 210px;
         max-height: 400px;
         overflow: auto;
 
@@ -226,38 +226,69 @@
         border-radius: 6px;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     }
+}
 
-    &__filter {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        width: 100%;
-        button {
-            border: none;
-            background-color: rgb(214, 220, 233);
-            height: 30px;
-            align-items: center;
-            font-size: 12px;
-            font-weight: 900;
-            color: rgb(51, 58, 85);
-            :hover {
-                background-color: rgb(149, 163, 193);
-            }
+.data-table__filter{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    button {
+        border: none;
+        background-color: rgb(214, 220, 233);
+        height: 30px;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 900;
+        color: rgb(88, 94, 117);
+        :hover {
+            background-color: rgb(149, 163, 193);
         }
     }
+    select {
+        cursor: pointer;
+        &:hover{
+            background-color: $grey-100;
+        }
+    }
+    input,
+    select {
+        appearance: none;
+        -webkit-appearance: none;
 
-    &__filter select,
-    &__filter input {
+        outline: none !important;
+        box-shadow: none !important;
+
+        &:focus,
+        &:focus-visible,
+        &:active {
+            outline: none !important;
+            box-shadow: none !important;
+        }
         width: 100%;
         height: 32px;
         box-sizing: border-box;
+        border: solid 1px $grey-400;
         border-radius: 8px;
-        option:active {
-            background-color: rgb(214, 220, 233);
-        }
+        padding: 2px;
+        margin-top: 2px;
+        margin-bottom: 2px;
+        text-align: center;
     }
 
-    &__filter-clear {
+    .ant-select{
+        width: 100%;
+        border: solid 1px $grey-400;
+        border-radius: 8px;
+        min-width: 150px;
+        max-width: 210px;
+    }
+    .ant-select-clear{
+        top: 6px;
+        right: 8px;
+    }
+
+    &-clear {
         padding: 4px 6px;
         border: none;
         background: transparent;
@@ -266,7 +297,7 @@
         text-align: left;
     }
 
-    &__filter-input {
+    &-input {
         display: flex;
         gap: 6px;
 
@@ -280,4 +311,11 @@
             min-width: 0;
         }
     }
+}
+
+.ant-select-dropdown {
+    z-index: 2100;
+}
+.ant-select-dropdown-list-scrollbar-thumb{
+    background: #b4c5ddc2 !important;
 }

@@ -106,7 +106,7 @@ function AdminTeachersView() {
 
     const columns = buildColumns();
     let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
-    const tableRows = rows.map(r => ({ ...r, disciplines: r.disciplines.length }));
+    const tableRows = rows;
     const searchOptions = rows.map(r => ({
         label: `${r.name}, ${r.position} | ${r.institution}`,
         value: r.rowId

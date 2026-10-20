@@ -13,6 +13,11 @@ const BASE_COLUMNS_NAMES = {
 const searchableCols = ['name', 'institution', 'position', 'disciplines'];
 const numberCols = ['experience'];
 const numberTypeCols = ['rowId', 'experience', 'disciplines'];
+
+const getFilterType = (id) => {
+    return id === 'disciplines' ? 'combined' : numberCols.includes(id) ? 'number' : 'text';
+}
+
 export const buildColumns = () => {
     const columnOrder = [
         'name',
@@ -51,7 +56,7 @@ export const buildColumns = () => {
             width: getColumnWidth(id),
             sortable: true,
             filterable: id !== 'name',
-            filterType: numberCols.includes(id) ? 'number' : 'text',
+            filterType: getFilterType(id),
             contentType: numberTypeCols.includes(id) ? 'number' : 'text',
             searchable: !!searchableCols.find(id_ => id === id_),
             tooltip: true,

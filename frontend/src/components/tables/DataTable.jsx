@@ -4,6 +4,7 @@ import { Search, SearchX, FilterIcon } from 'lucide-react';
 import { buildTableColumns } from './buildTableFilters';
 import Empty from '../ui/Empty';
 import { createPortal } from 'react-dom';
+import { Select } from 'antd';
 const DEFAULT_PAGE_SIZE = 50;
 
 const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
@@ -12,6 +13,71 @@ const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
             className="data-table__filter"
             onClick={event => event.stopPropagation()}
         >
+            {column.filter.type === 'combined' && (
+                <div className="data-table__filter-combined">
+                    <select
+                        value={filters[column.id]?.mode ?? 'number'}
+                        onChange={event =>
+                            handleFilterChange(column.id, {
+                                mode: event.target.value,
+                                value: event.target.value === 'text' ? [] : '',
+                                operator: '=',
+                            })
+                        }
+                    >
+                        <option value="number">Количество</option>
+                        <option value="text">Название</option>
+                    </select>
+
+                    {(filters[column.id]?.mode ?? 'number') === 'number' ? (
+                        <div className="data-table__filter-input">
+                            <select
+                                value={filters[column.id]?.operator ?? '='}
+                                onChange={event =>
+                                    handleFilterChange(column.id, {
+                                        operator: event.target.value,
+                                    })
+                                }
+                            >
+                                {column.filter.operators?.map(operator => (
+                                    <option key={operator} value={operator}>
+                                        {operator}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <input
+                                type="number"
+                                value={filters[column.id]?.value ?? ''}
+                                placeholder="Количество"
+                                onChange={event =>
+                                    handleFilterChange(column.id, {
+                                        value: event.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                    ) : (
+                        <Select
+                            mode="multiple"
+                            showSearch
+                            allowClear
+                            maxTagCount="responsive"
+                            placeholder="Выберите дисциплины"
+                            options={column.filter.options}
+                            value={filters[column.id]?.value ?? []}
+                            optionFilterProp="label"
+                            onChange={value =>
+                                handleFilterChange(column.id, {
+                                    value,
+                                })
+                            }
+                            getPopupContainer={() => document.body}
+                            notFoundContent="Нет данных"
+                        />
+                    )}
+                </div>
+            )}
             {column.filter.type === 'select' && (
                 <select
                     value={filters[column.id]?.value ?? ''}
@@ -173,8 +239,45 @@ const DataTable = ({
 
                 const filterValue = filters[column.id];
 
-                if (!filterValue || filterValue.value === '' || filterValue.value == null) {
+                if (
+                    !filterValue ||
+                    filterValue.value == null ||
+                    filterValue.value === '' ||
+                    (Array.isArray(filterValue.value) && filterValue.value.length === 0)
+                ) {
                     return true;
+                }
+
+                if (column.filter?.type === 'combined') {
+                    if (!Array.isArray(value)) return false;
+
+                    if ((filterValue.mode ?? 'number') === 'text') {
+                        const selectedValues = Array.isArray(filterValue.value)
+                            ? filterValue.value
+                            : filterValue.value != null && filterValue.value !== ''
+                                ? [filterValue.value]
+                                : [];
+
+                        return selectedValues.some(selected =>
+                            value.some(item => String(item) === String(selected))
+                        );
+                    }
+
+                    const rowValue = value.length;
+                    const target = Number(filterValue.value);
+
+                    if (!Number.isFinite(target)) return false;
+
+                    switch (filterValue.operator ?? '=') {
+                        case '>':
+                            return rowValue > target;
+
+                        case '<':
+                            return rowValue < target;
+
+                        default:
+                            return rowValue === target;
+                    }
                 }
 
                 if (column.filter?.type === 'select') {
@@ -218,8 +321,8 @@ const DataTable = ({
         const { id, direction } = sort;
 
         return [...filteredRows].sort((a, b) => {
-            const aValue = a[id];
-            const bValue = b[id];
+            const aValue = Array.isArray(a[id]) ? a[id].length : a[id];
+            const bValue = Array.isArray(b[id]) ? b[id].length : b[id];
 
             if (aValue == null && bValue == null) return 0;
             if (aValue == null) return 1;
@@ -363,7 +466,7 @@ const DataTable = ({
         if (!openedFilter) return;
 
         const handleClickOutside = event => {
-            if (!event.target.closest('.data-table__filter-popover')) {
+            if (!event.target.closest('.data-table__filter-popover') && !event.target.closest('.ant-select-dropdown')) {
                 setOpenedFilter(false);
             }
         };
@@ -395,6 +498,10 @@ const DataTable = ({
     };
 
     const getCellValue = (value, column) => {
+        if (column.filterType === 'combined' && Array.isArray(value)) {
+            return value.length;
+        }
+
         if (column.results && (value == null || Number(value) === 0)) {
             return '-';
         }
