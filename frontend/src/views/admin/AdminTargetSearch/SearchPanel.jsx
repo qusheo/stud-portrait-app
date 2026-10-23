@@ -1,6 +1,6 @@
 import { MOTIVATORS_NAMES, COMPETENCIES_NAMES, VALUES_NAMES } from '@utils/utilities';
 import Button from '@ui/Button';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import './SearchPanel.scss';
 
@@ -25,7 +25,7 @@ const MOTIVATOR_STATE_OPTIONS = [
     { value: 'motivator', label: 'Мотиватор' }
 ];
 
-function SearchPanel({ onApply }) {
+function SearchPanel({ onApply, loading }) {
     const searchItems = [
         {
             key: 'competencies',
@@ -62,7 +62,7 @@ function SearchPanel({ onApply }) {
     ];
 
     const [checked, setChecked] = useState(() => Object.fromEntries(searchItems.map(item => [item.key, false])));
-
+	const [disabled, setDisabled] = useState(false);
     const [values, setValues] = useState(() =>
         Object.fromEntries(searchItems.map(item => [item.key, Object.fromEntries(item.items.map(option => [option.value, null]))]))
     );
@@ -97,6 +97,10 @@ function SearchPanel({ onApply }) {
 
         onApply?.(result);
     }
+	useEffect(() => {
+		if (!Object.values(checked).every(item => item === false)) return;
+		setDisabled(true);
+	},[checked])
 
     return (
         <div className="searchPanel">
@@ -165,6 +169,9 @@ function SearchPanel({ onApply }) {
                     text="Применить"
                     type="accept"
                     onClick={handleApply}
+					loading={loading}
+					disabled={disabled}
+					tooltip={disabled ? 'Выберите параметры' : undefined}
                 />
             </div>
         </div>
