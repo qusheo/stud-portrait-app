@@ -145,7 +145,7 @@ def get_parse_log(request):
     """
     logs = CurriculumParseLog.objects.all()[:10]
     return JsonResponse({
-        "status": "success",
+        "ok": True,
         "logs": [
             {
                 "id":                 lg.pk,
@@ -173,7 +173,7 @@ def get_saved_mappings(request):
     """
     mappings = DisciplineCompetencyMapping.objects.all().order_by("disc_name")
     return JsonResponse({
-        "status": "success",
+        "ok": True,
         "count": mappings.count(),
         "mappings": [
             {

@@ -12,10 +12,11 @@ from .endpoints import (
     ainterp,
     gendox,
     curriculum_end,
-    matching,
     teachers,
     access,
 )
+from .endpoints.matchingService import matching
+from .endpoints.selectionService import student_selection
 
 urlpatterns = [
     path("health/", status.health),
@@ -80,6 +81,7 @@ urlpatterns = [
     path("student-results/",                statsresult.student_results,                name="student_results"),
     path("centers-by-region/",              statsresult.centers_by_region,              name='centers_by_region'),
     path('students/list/',                  statsresult.get_students_list,              name='students_list'),
+    path('students/by-requirements/',       student_selection.get_students_by_requirememnts, name='students_by_requirements'),
     path('students/portrait/',              statsresult.get_student_portrait,           name='student_portrait'),
     path('motivator-statistics/',           statsresult.get_motivator_statistics,       name='motivator_statistics'),
 

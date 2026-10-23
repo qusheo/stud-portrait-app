@@ -22,15 +22,15 @@ def get_teachers_table():
         rows = []
         for i in fields:
              rows.append({i: 0}) #прросто заготовка пока
-        return JsonResponse({"status": "success", "data": rows})
+        return JsonResponse({"ok": True, "data": rows})
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 def get_teacher_by_id():
     try:
         
-        return JsonResponse({"status": "success", "data": {}})
+        return JsonResponse({"ok": True, "data": {}})
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)

@@ -178,7 +178,7 @@ def get_institution_directions(request):
             for d in qs
         ]
 
-    return {"status": "success", "directions": result}
+    return {"ok": True, "directions": result}
 
 
 @method('GET')

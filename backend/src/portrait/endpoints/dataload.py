@@ -397,7 +397,7 @@ def import_excel(request):
     debugPrint(f"[xls load] (i): обновлено участников: {participants_updated}")
 
     return {
-        "status": "success", 
+        "ok": True, 
         "created": created_count, 
         "updated": updated_count,
         "mapped": mapping_count,

@@ -1,5 +1,27 @@
 const HOST = import.meta.env.VITE_API_URL;
 
+/**
+ * @typedef {'medium' | 'high'} RequirementLevel
+ * @typedef {'competencies' | 'motivators' | 'values'} RequirementCategory
+ * @typedef {Object} StudentRequirementsInput
+ * @property {Partial<Record<RequirementCategory, Record<string, RequirementLevel>>>} [requirements]
+ * @property {number[]} [specialtyIds]
+ * @property {number[]} [courses]
+ * @property {number} [limit]
+ * @property {number} [offset]
+ */
+
+/**
+ * @typedef {Object} MatchingStudentsInput
+ * @property {number} studentId
+ * @property {boolean} [sameGroup]
+ * @property {number} [course]
+ * @property {boolean} [motivators]
+ * @property {boolean} [competences]
+ * @property {boolean} [values]
+ * @property {number} [amount]
+ */
+
 class Api {
     getUserPermissions() {
         return fetch(`${HOST}/portrait/user/permissions/`, { credentials: 'include' });
@@ -463,8 +485,14 @@ class Api {
         return fetch(`${HOST}/portrait/matching/get_match_groups/?${params}`);
     }
 
-    getMatchingStudents(studentId, amount = 1) {
-        const params = new URLSearchParams({ student_id: studentId, amount });
+    /** @param {MatchingStudentsInput} input */
+    getMatchingStudents({ studentId, amount = 1, sameGroup, course, motivators, competences, values }) {
+        const params = new URLSearchParams({ student_id: String(studentId), amount: String(amount) });
+        if (sameGroup !== undefined) params.set('sameGroup', String(sameGroup));
+        if (course !== undefined) params.set('course', String(course));
+        if (motivators !== undefined) params.set('motivators', String(motivators));
+        if (competences !== undefined) params.set('competences', String(competences));
+        if (values !== undefined) params.set('values', String(values));
         return fetch(`${HOST}/portrait/matching/get_matching_students/?${params}`);
     }
     getScoresResult(institute, specialty, year) {
@@ -569,6 +597,15 @@ class Api {
         const url = `${HOST}/portrait/students/list/?${params.toString()}`;
         const promise = fetch(url);
         return promise;
+    }
+
+    /** @param {StudentRequirementsInput} [input={}] */
+    getStudentByRequirements(input = {}) {
+        return fetch(`${HOST}/portrait/students/by-requirements/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input)
+        });
     }
 
     getStudentPortrait(studentId) {

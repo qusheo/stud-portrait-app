@@ -1,4 +1,6 @@
 ﻿
+import math
+from django.db.models import Subquery
 from docx.document import Document as DocumentObject
 from functools import wraps
 import hashlib
@@ -40,9 +42,6 @@ def debugPrint(*messages):
     if DEBUG:
         print(*messages)
 
-
-# ! ===================================================== ORM ====================================================== ! #
-
 IN = 'in'
 GTE = 'gte'  # greater than or equal
 LTE = 'lte'  # less than or equal
@@ -75,9 +74,6 @@ def lessEqual(field, option):
 def desc(field):
     return f'-{field}'
 
-
-# ! =================================================== GETTERS ==================================================== ! #
-
 def zeroIfNull(value: Any | None) -> float:
     """ Get float if value is not None; else zero.
     """
@@ -93,9 +89,6 @@ def attrElseNone(obj: Any, attr: str) -> Any | None:
     """
     return getattr(obj, attr) if hasattr(obj, attr) else None
 
-
-# ! ================================================== EXCEPTIONS ================================================== ! #
-
 class ResponseError(Exception):
     """ Raised inside @jsonResponse or @httpResponse decorators to break the execution to report client error.
     """
@@ -106,9 +99,6 @@ class ResponseError(Exception):
         self.status = status
         super().__init__(message)
 
-
-# ! ================================================== RESPONSES =================================================== ! #
-
 def successResponse(data: dict = dict(), status: int = 200) -> JsonResponse:
     """ Take in dict data, unpack it into returned JSON response with success status.
     """
@@ -116,7 +106,7 @@ def successResponse(data: dict = dict(), status: int = 200) -> JsonResponse:
         debugPrint(f"success {status}:", json.dumps(data, indent=4, ensure_ascii=False))  # there may be error like decimal
     except:                                                                               # not being json-serialisable
         pass
-    return JsonResponse({"status": "success", **data}, status=status)
+    return JsonResponse({"ok": True, **data}, status=status)
 
 def xlsxResponse(data: list, sheetname: str, filename: str = "file.xlsx", status: int = 200) -> HttpResponse:
     """ Return HTTP response carrying an Excel file.
@@ -146,28 +136,25 @@ def errorResponse(message: str = "", status: int = 400) -> JsonResponse:
     """ Return client error JSON response with provided message and status (400 by default).
     """
     debugPrint(f"error {status}:", message)
-    return JsonResponse({"status": "error", "message": message}, status=status)
+    return JsonResponse({"ok": False, "message": message}, status=status)
 
 def notFoundResponse(message: str = "") -> JsonResponse:
     """ Return not found JSON response (status 404).
     """
     debugPrint(f"error {404}:", message)
-    return JsonResponse({"status": "error", "message": message}, status=404)
+    return JsonResponse({"ok": False, "message": message}, status=404)
 
 def notAllowedResponse() -> JsonResponse:
     """ Return not allowed JSON response (status 405).
     """
     debugPrint(f"error {405}")
-    return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+    return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
 def exceptionResponse(message: str = "", status: int = 500) -> JsonResponse:
     """ Return server error JSON response with provided message and status (500) by default.
     """
     debugPrint(f"error {status}:", message)
     return JsonResponse({"status": "exception", "message": message}, status=status)
-
-
-# ! ================================================== DECORATORS ================================================== ! #
 
 def method(method):
     """ Automatically reject requests of wrong methods.
