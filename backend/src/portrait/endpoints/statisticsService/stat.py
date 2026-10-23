@@ -5,7 +5,7 @@ import traceback
 from django.db.models import Avg, Count, Q, F
 from django.http import JsonResponse
 
-from .common import *
+from ..common import *
 
 def get_year_metrics(year, filter):
     res_queryset = Results.objects.filter(res_year=year, **filter)

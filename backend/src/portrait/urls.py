@@ -5,18 +5,16 @@ from .endpoints import (
     audit,
     dataload,
     datasesh,
-    analysis_end, 
-    transfer_analysis,
-    statsresult, 
-    stat,
     ainterp,
     gendox,
-    curriculum_end,
-    teachers,
     access,
 )
+from .endpoints.entities import students
+from .endpoints.entities import teachers
 from .endpoints.matchingService import matching
+from .endpoints.parsers import curriculum_end
 from .endpoints.selectionService import student_selection
+from .endpoints.statisticsService import analysis_end, stat, statsresult
 
 urlpatterns = [
     path("health/", status.health),
@@ -68,8 +66,8 @@ urlpatterns = [
     path('get-boxplot-data/',              analysis_end.get_boxplot_data,                  name='get_boxplot_data'),
     path('student-comparison-stats/',      analysis_end.get_student_comparison_stats,      name='student_comparison_stats'),
 
-    path('analyze-transfers/',          transfer_analysis.analyze_transfers,          name='analyze_transfers'),
-    path('analyze-transfer-students/',  transfer_analysis.analyze_transfer_students,  name='analyze_transfer_students'),
+    path('analyze-transfers/',          students.analyze_transfers,          name='analyze_transfers'),
+    path('analyze-transfer-students/',  students.analyze_transfer_students,  name='analyze_transfer_students'),
 
     path('duplicate-accounts/', analysis_end.get_duplicate_accounts, name='duplicate_accounts'),
     path('possible-duplicate-accounts/', analysis_end.get_possible_duplicate_accounts, name='possible-duplicate-accounts/'),

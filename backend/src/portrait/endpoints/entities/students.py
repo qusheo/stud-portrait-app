@@ -1,16 +1,3 @@
-"""
-Эндпоинты для анализа студентов, сменивших направление или вуз.
-
-Логика определения перевода:
-  Студент считается "переведённым" если между двумя соседними записями Results
-  изменился res_institution_id (смена вуза) или res_edu_specialty_id (смена направления).
-  Сравниваем записи, отсортированные по res_year.
-
-Endpoints:
-  GET  /portrait/analyze-transfers/         — сводная статистика + данные для Санки
-  POST /portrait/analyze-transfer-students/ — детальный список студентов с динамикой
-"""
-
 import json
 from collections import defaultdict
 
@@ -20,8 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from .common import *
-
+from ..common import *
 
 def _year_sort_key(year_str):
     """'2023/2024' → 2023; для сортировки."""
@@ -30,7 +16,13 @@ def _year_sort_key(year_str):
     except Exception:
         return 0
 
-
+"""
+Эндпоинты для анализа студентов, сменивших направление или вуз.
+Логика определения перевода:
+  Студент считается "переведённым" если между двумя соседними записями Results
+  изменился res_institution_id (смена вуза) или res_edu_specialty_id (смена направления).
+  Сравниваем записи, отсортированные по res_year.
+"""
 def _detect_transfers(results_sorted):
     """
     Принимает список TestResult-объектов, отсортированных по году.

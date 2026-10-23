@@ -1,15 +1,7 @@
 """
-portrait/services/curriculum_parser.py
-
 Сервис парсинга учебного плана ТюмГУ и сопоставления дисциплин
 с РСВ-компетенциями через семантические эмбеддинги.
 
-Логика перенесена из ноутбука parcer_embeddings.ipynb.
-
-Зависимости (добавить в requirements.txt):
-    beautifulsoup4>=4.12
-    pdfplumber>=0.10
-    sentence-transformers>=2.7
 """
 
 from __future__ import annotations

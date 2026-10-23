@@ -3,7 +3,7 @@ from collections import defaultdict
 import traceback
 from django.db.models import Avg, Count, Q, F
 from django.http import JsonResponse
-from .common import *
+from ..common import *
 
 def get_teachers_table():
     fields = [

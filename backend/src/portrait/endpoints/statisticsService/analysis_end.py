@@ -13,15 +13,15 @@ from scipy import stats
 
 import json
 
-from .common import *
-from .datanal import (
+from ..common import *
+from ..datanal import (
     ValueAddedModel,
     LatentGrowthModel,
     DisciplineImpactAnalyzer,
     CrossSectionalAnalyzer
 )
 
-from ..mlmodel import MlModel
+from ...mlmodel import MlModel
 
 
 # ────────────────────────────────────────────────────────────

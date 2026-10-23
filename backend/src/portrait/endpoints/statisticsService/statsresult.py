@@ -4,7 +4,7 @@ from django.db.models import Count, Q
 
 from collections import defaultdict
 
-from .common import *
+from ..common import *
 
 
 # ====== ENDPOINTS ====== #
