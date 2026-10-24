@@ -1,9 +1,13 @@
 import DataTable from '@components/tables/DataTable';
 import './AdminTeachersView.scss';
+
+import { defaultQueryOptions } from '@utils/queryConfig';
+import { useQuery } from '@tanstack/react-query';
+
 import { useEffect, useState, useLayoutEffect, useRef } from 'react';
 import { buildColumns } from './buildTeachersTable.js';
 import TeacherView from './TeacherView.jsx';
-import TeacherService from '@services/TeacherService.js';
+import TeacherService from '@services/TeacherService.ts';
 import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
 import { AutocompleteInput } from '../../../components/index.js';
 // тестовое
@@ -95,7 +99,6 @@ const teachers = [
 ];
 
 function AdminTeachersView() {
-    const [isTableLoading, setTableLoading] = useState(false);
     const [shownTeacher, setShownTeacher] = useState(null);
     const [showTeacherView, setShowTeacherView] = useState(false);
 
@@ -104,24 +107,21 @@ function AdminTeachersView() {
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const modalRef = useRef(null);
 
+    const { data: rows = [], isPending: isTableLoading } = useQuery({
+        queryKey: ['admin', 'teachers-table'],
+        queryFn: () => TeacherService.getTeachersTable(),
+        enabled: true,
+        ...defaultQueryOptions
+    });
+
     const columns = buildColumns();
-    let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
+    rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
     const tableRows = rows;
     const searchOptions = rows.map(r => ({
         label: `${r.name}, ${r.position} | ${r.institution}`,
         value: r.rowId
     }));
-
-    const getTeachersTable = async () => {
-        try {
-            setTableLoading(true);
-            const data = await TeacherService.getTeachersTable();
-            rows = data ?? [];
-        } catch (e) {
-        } finally {
-            setTableLoading(false);
-        }
-    };
+    
     function cellClickHandler(row, column) {
         if (column.id === 'name') {
             const teacher = rows.find(r => r.rowId === row.rowId);
@@ -148,9 +148,7 @@ function AdminTeachersView() {
         setShowTeacherView(!showTeacherView);
         setShownTeacher(null);
     }
-    useEffect(() => {
-        getTeachersTable();
-    }, []);
+
     useEffect(() => {
         if (!openDisciplinesModal) return;
 

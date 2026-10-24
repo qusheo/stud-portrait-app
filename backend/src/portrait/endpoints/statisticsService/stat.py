@@ -57,7 +57,7 @@ def get_year_metrics(year, filter):
     }
 
 
-@cached()
+
 def filter_options(request): 
     try:
         inst = request.GET.get('institute')   
@@ -88,7 +88,7 @@ def get_available_years(request):
     except Exception as e:
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
-@cached()
+
 def overall_stats(request):
     response_data={}
     try:
@@ -115,7 +115,6 @@ def overall_stats(request):
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
-@cached()
 def get_dashboard_stats(request):
     response_data = {}
 
@@ -294,7 +293,7 @@ def get_competency_stats_courses(filter):
     return chart_data
 
 
-@cached()
+
 def get_motivation_counts(request):
     try:
         inst = request.GET.get('institute')
@@ -361,7 +360,7 @@ scores = {
     '1': 1
 }
 
-@cached()
+
 def get_scores_result(request):
     try:
         if (AcademicPerformances.objects.count() == 0):
@@ -465,7 +464,7 @@ def calc_boxplot(values, ids):
     ], outliers
 
 
-@cached()
+
 def get_data_boxplot(request):
     try:
         inst = request.GET.get('institute')
@@ -500,7 +499,7 @@ def get_data_boxplot(request):
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
-@cached()
+
 def get_grades_competency_correlation_v0(request):  # review need for this?
     try:
         # 1. Чтение фильтров из запроса
@@ -689,7 +688,7 @@ def _grade_to_number(grade_str):
     return ATTESTATION_MAP.get(g)
 
 
-@cached()
+
 def get_grades_competency_correlation(request):
     try:
         perf_qs = AcademicPerformances.objects.select_related('perf_participant').all()
@@ -799,7 +798,7 @@ def get_grades_competency_correlation(request):
         }, status=500)
 
 
-@cached()
+
 def get_competency_trend_by_year(request):
     try:
         filters = {}

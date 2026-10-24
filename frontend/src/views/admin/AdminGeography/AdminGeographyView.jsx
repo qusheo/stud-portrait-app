@@ -1,19 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-
+import { defaultQueryOptions } from '@utils/queryConfig';
+import { useQuery } from '@tanstack/react-query';
 import { AdminService } from '@services';
-import { LINK_TREE } from '@utils/utilities';
 
 import { toast } from 'react-toastify';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-import FlexRow from '@components/FlexRow';
-
 import TitledCard from '@components/cards/TitledCard';
 import ValueCard from '@components/cards/ValueCard';
 
 import RussianFederationMap from '@components/charts/RussianFederationMap';
 
 import Slider from '@components/ui/Slider';
-
 import Button from '@components/ui/Button';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 
@@ -24,29 +20,24 @@ function AdminGeographyView() {
 
     const [selectedYear, setSelectedYear] = useState('2024/2025');
     const [regionData, setRegionData] = useState([]);
-    const [loading, setLoading] = useState(false);
     const [reportLoading, setReportLoading] = useState(false);
     const [maxValue, setMaxValue] = useState(0);
     const [totalCenters, setTotalCenters] = useState(0);
     const [selectedRegion, setSelectedRegion] = useState(null);
 
     // Загрузка данных при изменении года
-    const loadCentersData = useCallback(async year => {
-        setLoading(true);
-
-        AdminService.getCentersByRegion(year)
-            .then(data => {
-                setRegionData(data.data);
-                setMaxValue(data.max_value);
-                setTotalCenters(data.total_centers);
-            })
-            .catch(error => {
-                console.error('Ошибка API:', error);
-                toast.error('Ошибка при загрузке данных');
-                setRegionData([]);
-            })
-            .finally(() => setLoading(false));
-    }, []);
+    const { data: data = null, isPending: loading } = useQuery({
+        queryKey: ['admin', 'centersByReagion', selectedYear],
+        queryFn: () => AdminService.getCentersByRegion(selectedYear),
+        enabled: true,
+        ...defaultQueryOptions
+    });
+    useEffect(() => {
+        if (!data) return;
+        setRegionData(data.data);
+        setMaxValue(data.max_value);
+        setTotalCenters(data.total_centers);
+    },[data])
 
     // Обработчик изменения года
     const handleYearChange = year => {
@@ -83,11 +74,6 @@ function AdminGeographyView() {
             })
             .finally(() => setReportLoading(false));
     };
-
-    // Загрузка начальных данных
-    useEffect(() => {
-        loadCentersData(selectedYear);
-    }, []); // Пустой массив зависимостей - загрузка только при монтировании
 
     return (
         <div className="AdminGeographyView">

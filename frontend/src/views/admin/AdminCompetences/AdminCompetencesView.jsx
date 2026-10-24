@@ -263,7 +263,7 @@ function YearsSelect({ year, yearsOptions, onChange }) {
     );
 }
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
-    if (!data) return null;
+    if (!data || !data?.col2) return null;
     const year = data.year;
     const pieData = [
         { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },

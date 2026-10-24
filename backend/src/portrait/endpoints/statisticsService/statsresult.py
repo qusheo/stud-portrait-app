@@ -10,7 +10,7 @@ from ..common import *
 # ====== ENDPOINTS ====== #
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def courses(request):
@@ -72,7 +72,7 @@ def courses(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def student_results(request):
@@ -147,7 +147,7 @@ def student_results(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def get_institution_directions(request):
@@ -182,7 +182,7 @@ def get_institution_directions(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def get_filter_options_with_counts(request):
@@ -440,7 +440,7 @@ def get_filter_options_with_counts(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def centers_by_region(request):

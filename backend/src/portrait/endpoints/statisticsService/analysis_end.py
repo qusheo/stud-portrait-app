@@ -128,7 +128,7 @@ DISCIPLINE_COMPETENCY_MAP = {
 # VAM для конкретного студента
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def analyze_student_vam(request):
@@ -194,7 +194,7 @@ def analyze_student_vam(request):
 # LGM для когорты студентов
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def analyze_cohort_lgm(request):
@@ -496,7 +496,7 @@ def get_lgm_growers(request):
 # Комплексный анализ всех дисциплин
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def analyze_all_disciplines_impact(request):
@@ -609,7 +609,7 @@ def _get_discipline_impact_for_competency(competency):
 # ENHANCED DISCIPLINE IMPACT ANALYSIS WITH FILTERS
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def analyze_discipline_impact_advanced(request):
@@ -814,7 +814,7 @@ def _convert_numpy_types(obj):
 # HEATMAP DATA - Матрица влияния дисциплин x компетенций
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_discipline_heatmap_data(request):
@@ -988,7 +988,7 @@ def get_discipline_heatmap_data(request):
 # GET DISCIPLINES - список всех дисциплин
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_disciplines(request):
@@ -1024,7 +1024,7 @@ def get_disciplines(request):
         }, status=500)
 
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def analyze_student_discipline_impact(request):
@@ -1101,7 +1101,7 @@ def analyze_student_discipline_impact(request):
 # COMPETENCY LEVEL FLOW
 # ============================================================
 
-@cached()
+
 @method(POST)
 @jsonResponse
 @csrf_exempt
@@ -1190,7 +1190,7 @@ def get_competency_level_flow(request):
     return {"nodes": nodes, "links": links}
 
 
-@cached()
+
 @method(POST)
 @jsonResponse
 @csrf_exempt
@@ -1285,7 +1285,7 @@ def get_competency_level_flow_yearly(request):
 # VAM TREND DATA
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_vam_trend_data(request):
@@ -1436,7 +1436,7 @@ def get_vam_trend_data(request):
 # GETTERS FOR FILTERS
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_institutions(request):
@@ -1451,7 +1451,7 @@ def get_institutions(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_directions(request):
@@ -1470,7 +1470,7 @@ def get_directions(request):
 # AI ANALYTICS SUMMARY
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def ai_analytics_summary(request):
@@ -1673,7 +1673,7 @@ def ai_analytics_summary(request):
 # STUDENT COMPARISON STATS
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_student_comparison_stats(request):
@@ -1857,7 +1857,7 @@ def get_student_comparison_stats(request):
 # EDUCATION PROFILES COMPARISON
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def get_education_profiles_comparison(request):
@@ -2294,7 +2294,7 @@ def get_possible_duplicate_accounts(request):
 # LGM для конкретного студента
 # ============================================================
 
-@cached()
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def analyze_student_lgm(request):
