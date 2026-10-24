@@ -166,6 +166,11 @@ class AdminService extends BaseService {
             'Ошибка загрузки фильтров'
         );
     }
+    
+    getStudentSearchOptions(){
+        return this.request(
+            () => Api.getStudentInterests());
+    }
 
     postDataseshNew() {
         return this.request(() => Api.postPortraitDataseshNew(), 'Ошибка создания сессии');

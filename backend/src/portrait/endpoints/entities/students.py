@@ -1,5 +1,6 @@
 import json
 from collections import defaultdict
+import traceback
 
 import numpy as np
 from django.db.models import Avg, Count
@@ -8,6 +9,19 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..common import *
+
+def get_interest_options(request):
+    try:
+        response_data = {
+            'ok': True,
+            'data': [],
+        }
+        # интересы потом списком
+        return JsonResponse(response_data)        
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
+
 
 def _year_sort_key(year_str):
     """'2023/2024' → 2023; для сортировки."""

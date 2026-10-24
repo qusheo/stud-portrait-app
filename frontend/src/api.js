@@ -463,6 +463,11 @@ class Api {
         return promise;
     }
 
+    getStudentInterests(){
+        const params = new URLSearchParams();
+        return fetch(`${HOST}/portrait/student-interests-options/?${params}`);
+    }
+
     getCompetencyAverageByYears(institute, specialty) {
         const params = new URLSearchParams();
         if (institute) params.append('institute', institute);
