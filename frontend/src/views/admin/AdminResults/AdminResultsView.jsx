@@ -8,8 +8,7 @@ import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
 import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
-
-import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
+import StudentModal from './StudentModal.jsx';
 
 import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
@@ -26,6 +25,8 @@ import DataTable from '@components/tables/DataTable';
 import { buildStudentColumns } from './buildStudentTable.js';
 
 function AdminResultsView() {
+    const [shownStudent, setShowStudent] = useState(null);
+
     const [sessionId, setSessionId] = useState(1);
     const [results, setResults] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -436,7 +437,6 @@ function AdminResultsView() {
         navigate('/admin/grouping', { state: groupingData });
     };
 
-    const cellClickHandlers = {};
     const rows = results.map((row, index) => ({
         rowId: index,
         ...row,
@@ -450,27 +450,14 @@ function AdminResultsView() {
         ...row.values,
         participant: row.participant?.part_rsv_id ?? null
     }));
+
+    function onCellClick(id){
+        setShowStudent(id);
+    }
+
     const columns = buildStudentColumns();
     return (
         <div className="AdminResultsView">
-            <div
-                className="table-container"
-                style={{ height: 300 }}
-            >
-                {loading || !results.length ? (
-                    <div className="loading">
-                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
-                    </div>
-                ) : (
-                    <DataTable
-                        rows={rows ?? []}
-                        columns={columns}
-                        rowKey={'rowId'}
-                        cellClickHandlers={cellClickHandlers}
-                        pageSize={20}
-                    />
-                )}
-            </div>
             <div
                 className="results-container"
                 style={{ hidden: true }}
@@ -597,73 +584,24 @@ function AdminResultsView() {
                     </div>
                 )}
 
-                {/* Таблица с прокруткой */}
-                {loading || !results.length ? (
-                    <div className="loading">
-                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
-                    </div>
-                ) : (
-                    <div className="table-scroll-container">
-                        <Table>
-                            <TableHeader>
-                                <TableItem>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRows.size === results.length && results.length > 0}
-                                        onChange={handleSelectAll}
-                                        disabled={!sessionId}
-                                    />
-                                </TableItem>
-                                {visibleColumns.map(fieldKey => (
-                                    <TableItem
-                                        onClick={() => handleSort(fieldKey)}
-                                        className={getProfileColorClass(fieldKey)}
-                                        title={FIELD_NAMES[fieldKey]}
-                                    >
-                                        {FIELD_NAMES[fieldKey]} {getSortIcon(fieldKey)}
-                                    </TableItem>
-                                ))}
-                            </TableHeader>
-                            {results.map(result => (
-                                <TableRow
-                                    key={result.res_id}
-                                    className={selectedRows.has(result.res_id) ? 'selected' : ''}
-                                >
-                                    <TableItem>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedRows.has(result.res_id)}
-                                            onChange={() => handleRowSelect(result.res_id)}
-                                            disabled={!sessionId}
-                                        />
-                                    </TableItem>
-                                    {visibleColumns.map(fieldKey => (
-                                        <TableItem
-                                            key={fieldKey}
-                                            className={getValueColorClass(getFieldValue(result, fieldKey), fieldKey)}
-                                            title={renderTableCell(result, fieldKey)}
-                                        >
-                                            {renderTableCell(result, fieldKey)}
-                                        </TableItem>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </Table>
-
-                        {results.length === 0 && !loading && sessionId && (
-                            <div className="no-data">
-                                <div className="no-data-icon">📊</div>
-                                <div className="no-data-text">
-                                    <strong>Нет данных для отображения</strong>
-                                    <br />
-                                    {filters.length > 0
-                                        ? 'Попробуйте изменить параметры фильтрации'
-                                        : 'Загрузите данные или создайте фильтры'}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <div
+                    className="table-container"
+                    style={{ height: 300 }}
+                >
+                    {loading || !results.length ? (
+                        <div className="loading">
+                            <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
+                        </div>
+                    ) : (
+                        <DataTable
+                            rows={rows ?? []}
+                            columns={columns}
+                            rowKey={'rowId'}
+                            cellClickHandlers={onCellClick}
+                            pageSize={20}
+                        />
+                    )}
+                </div>
 
                 {/* Подсказка снизу */}
                 <FlexRow>
@@ -898,6 +836,7 @@ function AdminResultsView() {
                     />
                 </ModalFooter>
             </GrouppingModalWindow>
+            <StudentModal open={!!shownStudent} studentId={shownStudent} onClose={() => setShowStudent(null)} />
         </div>
     );
 }

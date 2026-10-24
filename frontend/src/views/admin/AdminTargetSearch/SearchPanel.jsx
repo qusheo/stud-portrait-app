@@ -5,6 +5,7 @@ import { defaultQueryOptions } from '@utils/queryConfig';
 import { useQuery } from '@tanstack/react-query';
 import { Select } from 'antd';
 import './SearchPanel.scss';
+import { TabButton } from '../../../components';
 
 const COMPETENCY_LEVEL_OPTIONS = [
     { value: '', label: 'Не выбрано' },
@@ -30,6 +31,7 @@ const MOTIVATOR_STATE_OPTIONS = [
 function SearchPanel({ onApply, loading }) {
     const [institute, setInstitute ] = useState(null);
     const [specialties, setSpecialties] = useState(null);
+    const [projectSearchEnabled, setProjectSearchEnabled] = useState(false);
     const { data: data, isLoading: loadingSpecialties } = useQuery({
         queryKey: ['admin', 'filter-options', 'specialties', institute],
         queryFn: async () => (await AdminService.getFilterOptions(institute)).data,
