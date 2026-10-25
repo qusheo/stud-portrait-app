@@ -255,7 +255,7 @@ def generate_docx_resume(request):
     return docxResponse(doc, f"Резюме_{student_name}.docx")
 
 
-@cached()
+
 @method(GET)
 @jsonResponse
 @csrf_exempt

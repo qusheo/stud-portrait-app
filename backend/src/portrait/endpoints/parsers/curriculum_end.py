@@ -18,8 +18,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..models import DisciplineCompetencyMapping, CurriculumParseLog
-from ..curriculum_parser import parse_curriculum
+from ...models import DisciplineCompetencyMapping, CurriculumParseLog
+from .disciplines_parser import parse_curriculum
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ def get_parse_log(request):
     """
     logs = CurriculumParseLog.objects.all()[:10]
     return JsonResponse({
-        "status": "success",
+        "ok": True,
         "logs": [
             {
                 "id":                 lg.pk,
@@ -173,7 +173,7 @@ def get_saved_mappings(request):
     """
     mappings = DisciplineCompetencyMapping.objects.all().order_by("disc_name")
     return JsonResponse({
-        "status": "success",
+        "ok": True,
         "count": mappings.count(),
         "mappings": [
             {

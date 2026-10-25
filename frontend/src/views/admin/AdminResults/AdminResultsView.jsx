@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
+import { useAdminStore } from '@utils/store.jsx';
 
 import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
 import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
-
-import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
+import StudentModal from './StudentModal.jsx';
 
 import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
@@ -26,17 +26,20 @@ import DataTable from '@components/tables/DataTable';
 import { buildStudentColumns } from './buildStudentTable.js';
 
 function AdminResultsView() {
-    const [sessionId, setSessionId] = useState(1);
+    const [shownStudent, setShowStudent] = useState(null);
+
+    const resultsView = useAdminStore(state => state.resultsView);
+    const setResultsView = useAdminStore(state => state.setResultsView);
+    const filters = resultsView?.filters ?? [];
+    const hiddenColumns = new Set(resultsView?.hiddenColumns ?? []);
     const [results, setResults] = useState([]);
     const [totalCount, setTotalCount] = useState(0);
     const [selectedRows, setSelectedRows] = useState(new Set());
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [loading, setLoading] = useState(false);
-    const [hiddenColumns, setHiddenColumns] = useState(new Set());
     const [showColumnSelector, setShowColumnSelector] = useState(false);
-    const [filters, setFilters] = useState([]);
     const [availableValues, setAvailableValues] = useState({});
-    const [pendingFilters, setPendingFilters] = useState([]);
+    const [pendingFilters, setPendingFilters] = useState(() => filters);
     const [hasMore, setHasMore] = useState(false);
     const [exportLoading, setExportLoading] = useState(false);
     const [groupingColumn, setGroupingColumn] = useState('');
@@ -103,96 +106,40 @@ function AdminResultsView() {
         return '';
     };
 
-    // Инициализация сессии
+    // Первоначальная загрузка с сохраненными фильтрами.
     useEffect(() => {
-        initializeSession();
+        loadData(filters, 0, 1000, false);
     }, []);
 
-    // Инициализация сессии
-    const initializeSession = async () => {
+    const loadData = async (
+        activeFilters = filters,
+        start = 0,
+        end = 1000,
+        append = false
+    ) => {
         setLoading(true);
-        AdminService.postDataseshNew()
-            .then(async data => {
-                setSessionId(data.session.id);
-                await loadSessionData(data.session.id);
-            })
-            .catch(error => {
-                console.error('Failed to create session:', error);
-            })
-            .finally(() => setLoading(false));
+        try {
+            const data = await AdminService.postDataseshExtractData(
+                activeFilters,
+                start,
+                end
+            );
+            setResults(current => append ? [...current, ...(data.results || [])] : (data.results || []));
+            setTotalCount(data.filtered_count || 0);
+            setHasMore(start + (data.shown_count || 0) < (data.filtered_count || 0));
+            setAvailableValues(data.available_values || {});
+        } catch (error) {
+            console.error('Error loading results:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    // Загрузка данных сессии
-    const loadSessionData = async (sessionIdToLoad = sessionId) => {
-        if (!sessionIdToLoad) return;
-
-        setLoading(true);
-
-        AdminService.postDataseshExtractData(sessionIdToLoad)
-            .then(data => {
-                setResults(data.results || []);
-                setTotalCount(data.filtered_count || 0);
-                setHasMore(data.shown_count > 0 && data.filtered_count > data.shown_count);
-                if (data.results && data.shown_count > 0) extractAvailableValues(data.results);
-            })
-            .catch(error => console.error('Error loading session data:', error))
-            .finally(() => setLoading(false));
-    };
-
-    // Загрузка дополнительных данных
+    // Загрузка следующей страницы результатов.
     const loadMoreData = async () => {
-        if (!sessionId || !hasMore) return;
-
-        setLoading(true);
-
-        AdminService.postDataseshUpdateWindow(sessionId, 0, 1000)
-            .then(async () => {
-                await loadSessionData();
-                setSelectedRows(new Set());
-            })
-            .catch(error => console.error('Error loading more data:', error))
-            .finally(() => setLoading(false));
-    };
-
-    // Обновление фильтров сессии
-    const updateSessionFilters = async newFilters => {
-        if (!sessionId) return;
-
-        AdminService.postDataseshUpdateFilters(sessionId, newFilters)
-            .then(async () => {
-                await loadSessionData();
-                setSelectedRows(new Set());
-            })
-            .catch(error => console.error('Error updating session filters:', error));
-    };
-
-    // Обновление видимых колонок сессии
-    const updateSessionColumns = async newHiddenColumns => {
-        if (!sessionId) return;
-
-        const visibleColumns = columnOrder.filter(col => !newHiddenColumns.has(col));
-
-        AdminService.postDataseshUpdateColumns(sessionId, visibleColumns)
-            .then(() => setHiddenColumns(newHiddenColumns))
-            .catch(error => console.error('Error updating session columns:', error));
-    };
-
-    // Извлечение доступных значений для фильтрации
-    const extractAvailableValues = resultsData => {
-        const values = {};
-
-        basicFields.forEach(field => {
-            const uniqueValues = new Set();
-            resultsData.forEach(result => {
-                const value = getFieldValue(result, field);
-                if (value !== '' && value !== null && value !== undefined) {
-                    uniqueValues.add(value);
-                }
-            });
-            values[field] = Array.from(uniqueValues).sort();
-        });
-
-        setAvailableValues(values);
+        if (!hasMore || loading) return;
+        const start = results.length;
+        await loadData(filters, start, start + 1000, true);
     };
 
     // Извлечение полей из результата
@@ -255,30 +202,7 @@ function AdminResultsView() {
         setResults(sortedResults);
     };
 
-    const handleRowSelect = resultId => {
-        const newSelected = new Set(selectedRows);
-        if (newSelected.has(resultId)) {
-            newSelected.delete(resultId);
-        } else {
-            newSelected.add(resultId);
-        }
-        setSelectedRows(newSelected);
-    };
-
-    const handleSelectAll = () => {
-        if (selectedRows.size === results.length) {
-            setSelectedRows(new Set());
-        } else {
-            setSelectedRows(new Set(results.map(r => r.res_id)));
-        }
-    };
-
     const handleExportSelected = async () => {
-        if (!sessionId) {
-            alert('Сессия не инициализирована');
-            return;
-        }
-
         if (selectedRows.size === 0) {
             alert('Выберите записи для выгрузки (флажки в первом столбце)');
             return;
@@ -286,7 +210,7 @@ function AdminResultsView() {
 
         setExportLoading(true);
 
-        AdminService.postDataseshExportSelected(sessionId, Array.from(selectedRows))
+        AdminService.postDataseshExportSelected(Array.from(selectedRows))
             .then(blob => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -339,14 +263,16 @@ function AdminResultsView() {
     };
 
     const applyFilters = async () => {
-        await updateSessionFilters(pendingFilters);
-        setFilters([...pendingFilters]);
+        setResultsView({ filters: [...pendingFilters] });
+        setSelectedRows(new Set());
+        await loadData(pendingFilters, 0, 1000, false);
     };
 
     const clearAllFilters = async () => {
         setPendingFilters([]);
-        await updateSessionFilters([]);
-        setFilters([]);
+        setResultsView({ filters: [] });
+        setSelectedRows(new Set());
+        await loadData([], 0, 1000, false);
     };
 
     const toggleColumn = columnKey => {
@@ -356,7 +282,7 @@ function AdminResultsView() {
         } else {
             newHidden.add(columnKey);
         }
-        updateSessionColumns(newHidden);
+        updateVisibleColumns(newHidden);
     };
 
     const toggleColumnGroup = groupColumns => {
@@ -371,41 +297,19 @@ function AdminResultsView() {
             }
         });
 
-        updateSessionColumns(newHidden);
+        updateVisibleColumns(newHidden);
     };
 
     const showAllColumns = () => {
-        updateSessionColumns(new Set());
+        updateVisibleColumns(new Set());
     };
 
     const hideAllColumns = () => {
-        updateSessionColumns(new Set(columnOrder));
+        updateVisibleColumns(new Set(columnOrder));
     };
 
-    const getSortIcon = key => {
-        if (sortConfig.key !== key) return '↕️';
-        return sortConfig.direction === 'asc' ? '↑' : '↓';
-    };
-
-    const getColumnClass = fieldKey => {
-        if (fieldKey.startsWith('res_comp_')) return 'competence-col';
-        if (fieldKey.startsWith('res_mot_')) return 'motivator-col';
-        if (fieldKey.startsWith('res_val_')) return 'values-col';
-        return 'basic-col';
-    };
-
-    const renderTableCell = (result, fieldKey) => {
-        const value = getFieldValue(result, fieldKey);
-
-        if (value === null || value === undefined || value === '') {
-            return '-';
-        }
-
-        if (typeof value === 'number') {
-            return value;
-        }
-
-        return value;
+    const updateVisibleColumns = newHidden => {
+        setResultsView({ hiddenColumns: [...newHidden] });
     };
 
     // Функция для перехода к группировке
@@ -423,22 +327,18 @@ function AdminResultsView() {
             return;
         }
 
-        // Сохраняем данные для группировки в sessionStorage или передаем через state
         const groupingData = {
             selectedIds: Array.from(selectedRows),
             groupingColumn: groupingColumn,
-            filters: filters,
-            visibleColumns: visibleColumns,
-            sessionId: sessionId
+            filters
         };
 
         // Переходим на страницу группировки
         navigate('/admin/grouping', { state: groupingData });
     };
 
-    const cellClickHandlers = {};
-    const rows = results.map((row, index) => ({
-        rowId: index,
+    const rows = results.map(row => ({
+        rowId: row.res_id,
         ...row,
 
         // participant разворачиваем
@@ -450,27 +350,17 @@ function AdminResultsView() {
         ...row.values,
         participant: row.participant?.part_rsv_id ?? null
     }));
-    const columns = buildStudentColumns();
+
+    function onCellClick(row){
+        setShowStudent(row);
+    }
+
+    const columns = useMemo(
+        () => buildStudentColumns().filter(column => !column.id || !hiddenColumns.has(column.id)),
+        [resultsView?.hiddenColumns]
+    );
     return (
         <div className="AdminResultsView">
-            <div
-                className="table-container"
-                style={{ height: 300 }}
-            >
-                {loading || !results.length ? (
-                    <div className="loading">
-                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
-                    </div>
-                ) : (
-                    <DataTable
-                        rows={rows ?? []}
-                        columns={columns}
-                        rowKey={'rowId'}
-                        cellClickHandlers={cellClickHandlers}
-                        pageSize={20}
-                    />
-                )}
-            </div>
             <div
                 className="results-container"
                 style={{ hidden: true }}
@@ -486,38 +376,31 @@ function AdminResultsView() {
                         <Button
                             text="Колонки"
                             onClick={() => setShowColumnSelector(!showColumnSelector)}
-                            disabled={!sessionId}
                             palette={ADMIN_PALETTE.PURPLE}
                         />
                         <Button
                             text="Группировка"
                             onClick={handleGrouping}
-                            disabled={!sessionId || selectedRows.size === 0}
+                            disabled={selectedRows.size === 0}
                             palette={ADMIN_PALETTE.PURPLE}
                         />
                         <Button
                             text={exportLoading ? 'Загрузка...' : `Выгрузить выделенные (${selectedRows.size})`}
                             onClick={handleExportSelected}
-                            disabled={!sessionId || exportLoading || selectedRows.size === 0}
+                            disabled={exportLoading || selectedRows.size === 0}
                             palette={ADMIN_PALETTE.GREEN}
                         />
                         <Button
                             text={loading ? 'Загрузка...' : 'Обновить'}
-                            onClick={() => loadSessionData()}
-                            disabled={!sessionId || loading}
+                            onClick={() => loadData()}
+                            disabled={loading}
                             palette={ADMIN_PALETTE.CYAN}
                         />
                         <Label>
-                            {sessionId ? (
-                                <>
-                                    Показано: {results.length} из {totalCount} записей
-                                    {filters.length > 0 && ` • Активных фильтров: ${filters.length}`}
-                                    {hiddenColumns.size > 0 && ` • Скрыто колонок: ${hiddenColumns.size}`}
-                                    {selectedRows.size > 0 && ` • Выбрано: ${selectedRows.size}`}
-                                </>
-                            ) : (
-                                'Инициализация...'
-                            )}
+                            Показано: {results.length} из {totalCount} записей
+                            {filters.length > 0 && ` • Активных фильтров: ${filters.length}`}
+                            {hiddenColumns.size > 0 && ` • Скрыто колонок: ${hiddenColumns.size}`}
+                            {selectedRows.size > 0 && ` • Выбрано: ${selectedRows.size}`}
                         </Label>
                     </FlexRow>
                 </div>
@@ -531,13 +414,13 @@ function AdminResultsView() {
                                 <Button
                                     text="Показать все"
                                     onClick={showAllColumns}
-                                    disabled={!sessionId || loading}
+                                    disabled={loading}
                                     palette={ADMIN_PALETTE.BLUE}
                                 />
                                 <Button
                                     text="Скрыть все"
                                     onClick={hideAllColumns}
-                                    disabled={!sessionId || loading}
+                                    disabled={loading}
                                     palette={ADMIN_PALETTE.BLUE}
                                 />
                                 <Button
@@ -562,7 +445,7 @@ function AdminResultsView() {
                                                     type="checkbox"
                                                     checked={visibleCount > 0}
                                                     onChange={() => toggleColumnGroup(groupColumns)}
-                                                    disabled={!sessionId || loading}
+                                                    disabled={loading}
                                                     ref={el => {
                                                         if (el) {
                                                             el.indeterminate = visibleCount > 0 && visibleCount < totalCount;
@@ -584,7 +467,7 @@ function AdminResultsView() {
                                                         type="checkbox"
                                                         checked={!hiddenColumns.has(columnKey)}
                                                         onChange={() => toggleColumn(columnKey)}
-                                                        disabled={!sessionId || loading}
+                                                        disabled={loading}
                                                     />
                                                     <span className="column-name">{FIELD_NAMES[columnKey]}</span>
                                                 </label>
@@ -597,73 +480,26 @@ function AdminResultsView() {
                     </div>
                 )}
 
-                {/* Таблица с прокруткой */}
-                {loading || !results.length ? (
-                    <div className="loading">
-                        <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
-                    </div>
-                ) : (
-                    <div className="table-scroll-container">
-                        <Table>
-                            <TableHeader>
-                                <TableItem>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRows.size === results.length && results.length > 0}
-                                        onChange={handleSelectAll}
-                                        disabled={!sessionId}
-                                    />
-                                </TableItem>
-                                {visibleColumns.map(fieldKey => (
-                                    <TableItem
-                                        onClick={() => handleSort(fieldKey)}
-                                        className={getProfileColorClass(fieldKey)}
-                                        title={FIELD_NAMES[fieldKey]}
-                                    >
-                                        {FIELD_NAMES[fieldKey]} {getSortIcon(fieldKey)}
-                                    </TableItem>
-                                ))}
-                            </TableHeader>
-                            {results.map(result => (
-                                <TableRow
-                                    key={result.res_id}
-                                    className={selectedRows.has(result.res_id) ? 'selected' : ''}
-                                >
-                                    <TableItem>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedRows.has(result.res_id)}
-                                            onChange={() => handleRowSelect(result.res_id)}
-                                            disabled={!sessionId}
-                                        />
-                                    </TableItem>
-                                    {visibleColumns.map(fieldKey => (
-                                        <TableItem
-                                            key={fieldKey}
-                                            className={getValueColorClass(getFieldValue(result, fieldKey), fieldKey)}
-                                            title={renderTableCell(result, fieldKey)}
-                                        >
-                                            {renderTableCell(result, fieldKey)}
-                                        </TableItem>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </Table>
-
-                        {results.length === 0 && !loading && sessionId && (
-                            <div className="no-data">
-                                <div className="no-data-icon">📊</div>
-                                <div className="no-data-text">
-                                    <strong>Нет данных для отображения</strong>
-                                    <br />
-                                    {filters.length > 0
-                                        ? 'Попробуйте изменить параметры фильтрации'
-                                        : 'Загрузите данные или создайте фильтры'}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <div
+                    className="table-container"
+                    style={{ height: 700, paddingBottom: 8 }}
+                >
+                    {!results.length ? (
+                        <div className="loading">
+                            <LoadingSpinner text="Загрузка данных..." />
+                        </div>
+                    ) : (
+                        <DataTable
+                            rows={rows ?? []}
+                            columns={columns}
+                            rowKey={'rowId'}
+                            cellClickHandlers={onCellClick}
+                            onSelectionChange={selected => setSelectedRows(new Set(selected.map(row => row.res_id)))}
+                            _selectedRows={rows.filter(row => selectedRows.has(row.res_id))}
+                            pageSize={20}
+                        />
+                    )}
+                </div>
 
                 {/* Подсказка снизу */}
                 <FlexRow>
@@ -709,7 +545,6 @@ function AdminResultsView() {
                         <FlexRow wrap={WRAP.DO}>
                             <Dropdown
                                 label="+ Добавить фильтр"
-                                disabled={!sessionId}
                             >
                                 <OptionGroup label="Базовые поля">
                                     {basicFields.map(field => (
@@ -753,13 +588,13 @@ function AdminResultsView() {
                                     <Button
                                         text={loading ? 'Загрузка...' : 'Применить'}
                                         onClick={applyFilters}
-                                        disabled={pendingFilters.length === 0 || !sessionId || loading}
+                                        disabled={pendingFilters.length === 0 || loading}
                                         palette={ADMIN_PALETTE.GREEN}
                                     />
                                     <Button
                                         text="Очистить"
                                         onClick={clearAllFilters}
-                                        disabled={!sessionId || loading}
+                                        disabled={loading}
                                         palette={ADMIN_PALETTE.RED}
                                     />
                                 </>
@@ -898,6 +733,7 @@ function AdminResultsView() {
                     />
                 </ModalFooter>
             </GrouppingModalWindow>
+            <StudentModal open={!!shownStudent} student={shownStudent} onClose={() => setShowStudent(null)} />
         </div>
     );
 }

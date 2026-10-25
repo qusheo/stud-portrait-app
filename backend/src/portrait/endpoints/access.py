@@ -33,7 +33,7 @@ ACCESS_PERMISSION_KEYS = (
 
 def get_user_permissions(request):
     if request.method != "GET":
-        return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
+        return JsonResponse({"ok": False, "message": "Method not allowed"}, status=405)
 
     account = None
     if request.user.is_authenticated:
@@ -52,7 +52,7 @@ def get_user_permissions(request):
     permissions = dict.fromkeys(ACCESS_PERMISSION_KEYS, True)
 
     return JsonResponse({
-        "status": "success",
+        "ok": True,
         "account_type": account_type,
         "user_id": request.user.pk if request.user.is_authenticated else None,
         "is_authenticated": request.user.is_authenticated,

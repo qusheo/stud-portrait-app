@@ -5,7 +5,7 @@ import traceback
 from django.db.models import Avg, Count, Q, F
 from django.http import JsonResponse
 
-from .common import *
+from ..common import *
 
 def get_year_metrics(year, filter):
     res_queryset = Results.objects.filter(res_year=year, **filter)
@@ -57,7 +57,7 @@ def get_year_metrics(year, filter):
     }
 
 
-@cached()
+
 def filter_options(request): 
     try:
         inst = request.GET.get('institute')   
@@ -76,19 +76,19 @@ def filter_options(request):
             "specialties": [{"value": s, "label": str(s)} for s in specialties if s],
             "years": [{"value": y, "label": str(y)} for y in years if y],
         }
-        return JsonResponse({"status": "success", "data": data})
+        return JsonResponse({"ok": True, "data": data})
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 def get_available_years(request):
     try:
         years = Results.objects.values_list('res_year', flat=True).distinct()
         years_list = [{"value": y, "label": str(y)} for y in years if y]
-        return JsonResponse({"status": "success", "data": years_list})
+        return JsonResponse({"ok": True, "data": years_list})
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
-@cached()
+
 def overall_stats(request):
     response_data={}
     try:
@@ -103,7 +103,7 @@ def overall_stats(request):
             min_year=min(min_year, year)
             max_year=max(max_year, year+1)
         response_data = {
-            "status": "success", 
+            "ok": True, 
             'unis': unis,
             'results': results,
             'centers': centers,
@@ -112,10 +112,9 @@ def overall_stats(request):
         return JsonResponse(response_data)
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
-@cached()
 def get_dashboard_stats(request):
     response_data = {}
 
@@ -222,7 +221,7 @@ def get_dashboard_stats(request):
             demotiv['count'] = {'prev': prev_data["demotivator"]["count"], 'curr': curr_data["demotivator"]["count"]}
         
         response_data = {
-            "status": "success",
+            "ok": True,
             "col1": {
                 "courses": {"val": curr_data['course_percent'], "prev": prev_data['course_percent']},
                 "avg_lvl": {"val": curr_data['total_avg'], "prev": prev_data['total_avg']},
@@ -249,7 +248,7 @@ def get_dashboard_stats(request):
         
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
 def get_competency_average_by_years(request):
@@ -267,10 +266,10 @@ def get_competency_average_by_years(request):
             year_metrics = get_year_metrics(year, base_filter)
             for k, v in year_metrics['all_comps'].items():
                 years_data.append({"year": year, "name": k, "average": v})
-        return JsonResponse({"status": "success", "data": years_data})
+        return JsonResponse({"ok": True, "data": years_data})
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 def get_competency_stats_courses(filter):
     courses = [1, 2, 3, 4]
@@ -294,7 +293,7 @@ def get_competency_stats_courses(filter):
     return chart_data
 
 
-@cached()
+
 def get_motivation_counts(request):
     try:
         inst = request.GET.get('institute')
@@ -341,10 +340,10 @@ def get_motivation_counts(request):
             row["all_mid"] = cnt_mid_all / cnt_all_all if cnt_all_all != 0 else 0
             bar_data.append(row)
 
-        response_data = {"status": "success", "data": bar_data}
+        response_data = {"ok": True, "data": bar_data}
         return JsonResponse(response_data)
     except Exception as e:
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
 scores = {
@@ -361,11 +360,11 @@ scores = {
     '1': 1
 }
 
-@cached()
+
 def get_scores_result(request):
     try:
         if (AcademicPerformances.objects.count() == 0):
-            return JsonResponse({"status": "error", "message": 'no performance data'}, status=500)
+            return JsonResponse({"ok": False, "message": 'no performance data'}, status=500)
 
         inst = request.GET.get('institute')
         spec = request.GET.get('specialty')
@@ -378,7 +377,7 @@ def get_scores_result(request):
 
         main = Results.objects.filter(**base_filter)
         if not main.exists():
-            return JsonResponse({"status": "error", "message": "empty results queryset", "data": [], "names": []}, status=500)
+            return JsonResponse({"ok": False, "message": "empty results queryset", "data": [], "names": []}, status=500)
 
         agg = main.values('res_participant_id').annotate(
             **{f'_avg_{field}': Avg(field) for field in COMP.list}
@@ -426,11 +425,11 @@ def get_scores_result(request):
             {'discipline': disc, 'participants': parts}
             for disc, parts in by_discipline.items()
         ]
-        return JsonResponse({"status": "success", "data": result, "names": disciplines})
+        return JsonResponse({"ok": True, "data": result, "names": disciplines})
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
 
@@ -465,7 +464,7 @@ def calc_boxplot(values, ids):
     ], outliers
 
 
-@cached()
+
 def get_data_boxplot(request):
     try:
         inst = request.GET.get('institute')
@@ -492,15 +491,15 @@ def get_data_boxplot(request):
                     'box': box,  # min, q1, median, q3, max
                     'out': outliers  # выбросы
                 })
-        response_data = {"status": "success", "data": data}
+        response_data = {"ok": True, "data": data}
         return JsonResponse(response_data) 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
-@cached()
+
 def get_grades_competency_correlation_v0(request):  # review need for this?
     try:
         # 1. Чтение фильтров из запроса
@@ -518,7 +517,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
         res_qs = Results.objects.filter(**base_filter)
         if not res_qs.exists():
             return JsonResponse({
-                "status": "success",
+                "ok": True,
                 "correlations": [],
                 "scatter": [],
                 "trends": [],
@@ -638,7 +637,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
 
         # 5. Возврат JSON-ответа
         return JsonResponse({
-            "status": "success",
+            "ok": True,
             "correlations": correlations,
             "scatter": scatter,
             "trends": trends,
@@ -649,7 +648,7 @@ def get_grades_competency_correlation_v0(request):  # review need for this?
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({"status": "error", "message": str(e)}, status=500)    
+        return JsonResponse({"ok": False, "message": str(e)}, status=500)    
 
 
 COMP_KEYS = [
@@ -689,7 +688,7 @@ def _grade_to_number(grade_str):
     return ATTESTATION_MAP.get(g)
 
 
-@cached()
+
 def get_grades_competency_correlation(request):
     try:
         perf_qs = AcademicPerformances.objects.select_related('perf_participant').all()
@@ -799,7 +798,7 @@ def get_grades_competency_correlation(request):
         }, status=500)
 
 
-@cached()
+
 def get_competency_trend_by_year(request):
     try:
         filters = {}

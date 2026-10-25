@@ -4,13 +4,13 @@ from django.db.models import Count, Q
 
 from collections import defaultdict
 
-from .common import *
+from ..common import *
 
 
 # ====== ENDPOINTS ====== #
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def courses(request):
@@ -72,7 +72,7 @@ def courses(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def student_results(request):
@@ -147,7 +147,7 @@ def student_results(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def get_institution_directions(request):
@@ -178,11 +178,11 @@ def get_institution_directions(request):
             for d in qs
         ]
 
-    return {"status": "success", "directions": result}
+    return {"ok": True, "directions": result}
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def get_filter_options_with_counts(request):
@@ -440,7 +440,7 @@ def get_filter_options_with_counts(request):
 
 
 @method('GET')
-@cached()
+
 @jsonResponse
 @csrf_exempt
 def centers_by_region(request):
@@ -685,12 +685,15 @@ def get_students_list(request):
         )
 
         if search:
-            queryset = queryset.filter(
+            search_filter = (
                 Q(student_name__icontains=search) |
                 Q(part_rsv_id__icontains=search) |
                 Q(part_institution__inst_name__icontains=search) |
                 Q(part_spec__spec_name__icontains=search)
             )
+            if search.isdigit():
+                search_filter |= Q(part_id=int(search))
+            queryset = queryset.filter(search_filter)
 
         students = [
             {

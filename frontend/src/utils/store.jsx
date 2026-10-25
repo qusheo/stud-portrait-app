@@ -14,11 +14,24 @@ export const useAdminStore = create(
                 Admin: {}
             },
 
+            resultsView: {
+                filters: [],
+                hiddenColumns: []
+            },
+
             saveFilters: (page, data) =>
                 set(state => ({
                     savedFilters: {
                         ...state.savedFilters,
                         [page]: { ...data }
+                    }
+                })),
+
+            setResultsView: data =>
+                set(state => ({
+                    resultsView: {
+                        ...state.resultsView,
+                        ...data
                     }
                 }))
         }),

@@ -1,5 +1,5 @@
 import Api from '../api.js';
-import BaseService from './BaseService';
+import BaseService from './BaseService.js';
 
 class TeacherService extends BaseService {
     getTeachersTable() {

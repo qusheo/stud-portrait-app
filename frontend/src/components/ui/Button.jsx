@@ -9,8 +9,8 @@ const TYPES = {
 
 function Button({ text, onClick, type, disabled = false, loading = false, tooltip = undefined }) {
     let style = {};
-    style = loading ? { ...style, cursor: 'wait', filter: 'brightness(150%)' } : style;
-    style = disabled ? { ...style, cursor: 'not-allowed', filter: 'brightness(150%)' } : style;
+    style = disabled ? { ...style, cursor: 'not-allowed', filter: 'grayscale(70%)' } : style;
+    style = loading ? { ...style, cursor: 'wait', filter: 'brightness(120%)' } : style;
     const button = (
         <button
             className={`Button-${type ?? 'common'}`}

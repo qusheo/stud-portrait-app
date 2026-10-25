@@ -1,4 +1,4 @@
-import { useState, React, useRef, cloneElement } from 'react';
+import { useState, React, useRef, cloneElement, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Tooltip as TooltipRecharts, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
@@ -263,7 +263,7 @@ function YearsSelect({ year, yearsOptions, onChange }) {
     );
 }
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
-    if (!data) return null;
+    if (!data || !data?.col2) return null;
     const year = data.year;
     const pieData = [
         { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },
@@ -433,14 +433,18 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
 }
 
 function AdminCompetencesView() {
-    const savedFilters = useAdminStore(state => state.savedFilters);
-    const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
+    const saveFilters = useAdminStore(state => state.saveFilters);
 
     const [filters_, setFilters_] = useState(() => {
         const saved = useAdminStore.getState().savedFilters?.Admin;
 
-        return saved && Object.keys(saved).length ? saved : { institute: '', specialty: '', year: '' };
+        return {
+            institute: saved?.institute ?? '',
+            specialty: saved?.specialty ?? '',
+            year: saved?.year ?? ''
+        };
     });
+
     const setPageName = usePageStore(state => state.setPageName);
 
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -477,26 +481,32 @@ function AdminCompetencesView() {
     });
     const yearsCompetencyData = yearsCompetencyResult?.data;
 
-    const updateFilter = (name, value) => {
+    const updateFilter = useCallback((name, value) => {
         setFilters_(prev => {
-            const updated = { ...prev, [name]: value };
-            if (name === 'institute') updated.specialty = '';
+            if (prev[name] === value) return prev;
 
-            saveFilters('Admin', updated); // сохраняем фильтры в хранилище
-
-            return updated;
+            return {
+                ...prev,
+                [name]: value,
+                ...(name === 'institute' ? { specialty: '' } : {})
+            };
         });
-    };
-    const resetFilters = () => {
+    }, []);
+
+    const resetFilters = useCallback(() => {
         setFilters_({ institute: '', specialty: '', year: '' });
-        saveFilters('Admin', { institute: '', specialty: '', year: '' });
-    };
-    const handleYearChange = selectedYear => {
+    }, []);
+
+    const handleYearChange = useCallback(selectedYear => {
         setFilters_(prev => {
-            const updated = { ...prev, year: selectedYear };
-            return updated;
+            if (prev.year === selectedYear) return prev;
+            return { ...prev, year: selectedYear };
         });
-    };
+    }, []);
+
+    useEffect(() => {
+        saveFilters('Admin', filters_);
+    }, [filters_, saveFilters]);
 
     return (
         <div className="AdminCompetencesView">

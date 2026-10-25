@@ -1,8 +1,12 @@
 import { MOTIVATORS_NAMES, COMPETENCIES_NAMES, VALUES_NAMES } from '@utils/utilities';
 import Button from '@ui/Button';
-import { useState } from 'react';
-
+import { useEffect, useState } from 'react';
+import { defaultQueryOptions } from '@utils/queryConfig';
+import { useQuery } from '@tanstack/react-query';
+import { Select } from 'antd';
 import './SearchPanel.scss';
+import { AdminService } from '@services';
+import { TabButton } from '../../../components';
 
 const COMPETENCY_LEVEL_OPTIONS = [
     { value: '', label: 'Не выбрано' },
@@ -25,8 +29,37 @@ const MOTIVATOR_STATE_OPTIONS = [
     { value: 'motivator', label: 'Мотиватор' }
 ];
 
-function SearchPanel({ onApply }) {
-    const searchItems = [
+function SearchPanel({ onApply, loading }) {
+    const [institute, setInstitute ] = useState(null);
+    const [specialties, setSpecialties] = useState(null);
+    const [projectSearchEnabled, setProjectSearchEnabled] = useState(false);
+
+    const { data: baseOptions, isLoading: loadingInstitutes } = useQuery({
+		queryKey: ['admin', 'filter-options'],
+		queryFn: async () => (await AdminService.getFilterOptions()).data,
+		enabled: true,
+		...defaultQueryOptions
+	});
+	const instituteOptions = () => baseOptions?.institutes ?? [];
+
+	const { data: specialtyOptions, isLoading: loadingSpecialties } = useQuery({
+		queryKey: ['admin', 'search-options-uni', 'specialties', institute],
+		queryFn: async () => (await AdminService.getFilterOptions(institute)).data,
+		...defaultQueryOptions,
+		enabled: Boolean(institute)
+	});
+
+    useEffect(() =>{
+        setSpecialties(specialtyOptions?.specialties || []);
+    }, [specialtyOptions])
+    
+    const { data: filterOptions, isLoading: loadingOptions } = useQuery({
+        queryKey: ['admin', 'student-search'],
+        queryFn: async () => (await AdminService.getStudentSearchOptions()).data,
+        ...defaultQueryOptions,
+        enabled: true
+    });
+    const searchItems = () => [
         {
             key: 'competencies',
             name: 'Компетенции',
@@ -57,16 +90,50 @@ function SearchPanel({ onApply }) {
         {
             key: 'sphere',
             name: 'Сфера',
-            items: []
-        }
+            items: [
+                {
+                    value: 'interests',
+                    label: 'Интересы',
+                    type: 'multiple',
+                    options: filterOptions?.interests || []
+                },
+                {
+                    value: 'specialty',
+                    label: 'Специальность',
+                    type: 'multiple',
+                    options: specialties || []
+                }
+            ]
+        },
+        {
+            key: 'extra',
+            name: 'Дополнительно',
+            items: [
+                {
+                    value: 'course',
+                    label: 'Курс',
+                    type: 'multiple',
+                    options: [1, 2, 3, 4].map(c => ({value: c, label: c.toString()})),
+                }
+            ]
+        },
     ];
-
-    const [checked, setChecked] = useState(() => Object.fromEntries(searchItems.map(item => [item.key, false])));
-
+    const [checked, setChecked] = useState(() => Object.fromEntries(searchItems().map(item => [item.key, false])));
+	
+    const disabled = () => Object.values(checked).every(item => item === false);
     const [values, setValues] = useState(() =>
-        Object.fromEntries(searchItems.map(item => [item.key, Object.fromEntries(item.items.map(option => [option.value, null]))]))
+        Object.fromEntries(
+            searchItems().map(item => [
+                item.key,
+                Object.fromEntries(
+                    item.items.map(option => [
+                        option.value,
+                        option.type === 'multiple' ? [] : null
+                    ])
+                )
+            ])
+        )
     );
-
     function toggleItem(key) {
         setChecked(prev => ({
             ...prev,
@@ -79,14 +146,14 @@ function SearchPanel({ onApply }) {
             ...prev,
             [groupKey]: {
                 ...prev[groupKey],
-                [itemKey]: value || null
+                [itemKey]: value
             }
         }));
     }
 
     function handleApply() {
         const result = Object.fromEntries(
-            searchItems.map(item => [
+            searchItems().map(item => [
                 item.key,
                 {
                     enabled: checked[item.key],
@@ -101,7 +168,30 @@ function SearchPanel({ onApply }) {
     return (
         <div className="searchPanel">
             <div className="searchPanel__content">
-                {searchItems.map(item => (
+                <div className='input_institute'>
+                    <span className='input_institute_label'>ВУЗ</span>
+                    <Select 
+						showSearch
+                        placeholder="Выберите Вуз"
+                        className="itemOption__select"
+                        value={institute ?? ''}
+                        onChange={value => { 
+									setInstitute(value); 
+									setValues(prev => ({
+										...prev,
+										sphere: {
+											...prev.sphere,
+											specialty: []
+										}}));
+								}}
+                        notFoundContent="Ничего не найдено"
+                        getPopupContainer={trigger => trigger.parentElement}
+                        options={instituteOptions()}
+                        status={!institute ? "error" : undefined}
+                        prefix={!institute ? "*" : undefined}
+                    />
+                </div>
+                {searchItems().map(item => (
                     <div
                         className={`searchItem ${checked[item.key] ? 'searchItem--active' : ''}`}
                         key={item.key}
@@ -112,6 +202,7 @@ function SearchPanel({ onApply }) {
                                     type="checkbox"
                                     checked={checked[item.key]}
                                     onChange={() => toggleItem(item.key)}
+                                    disabled={!institute}
                                 />
 
                                 <span className="searchItem__checkmark" />
@@ -135,20 +226,34 @@ function SearchPanel({ onApply }) {
                                                 {option.label}
                                             </span>
 
-                                            <select
-                                                className="itemOption__select"
-                                                value={values[item.key][option.value] ?? ''}
-                                                onChange={event => onChangeItems(item.key, option.value, event.target.value)}
-                                            >
-                                                {item.options.map(level => (
-                                                    <option
-                                                        key={level.value}
-                                                        value={level.value}
-                                                    >
-                                                        {level.label}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                            {option.type === 'multiple' ? (
+                                                <Select
+                                                    mode="multiple"
+                                                    allowClear
+                                                    showSearch
+                                                    maxTagCount={4}
+                                                    placeholder="Выберите значения..."
+                                                    className="itemOption__select"
+                                                    value={values[item.key][option.value] || []}
+                                                    options={option.options}
+                                                    filterOptions='label'
+                                                    loading={option.value === 'specialty' ? loadingSpecialties : loadingOptions}
+                                                    onChange={selected => onChangeItems(item.key, option.value, selected)}
+                                                    notFoundContent="Ничего не найдено"
+                                                    getPopupContainer={trigger => trigger.parentElement}
+                                                />
+                                            ) : (
+                                                <Select
+                                                    allowClear
+                                                    placeholder="Не выбрано"
+                                                    className="itemOption__select"
+                                                    value={values[item.key][option.value] ?? ''}
+                                                    onChange={value => onChangeItems(item.key, option.value, value || null)}
+                                                    notFoundContent="Ничего не найдено"
+                                                    getPopupContainer={trigger => trigger.parentElement}
+                                                    options={item.options}
+                                                />
+                                            )}
                                         </div>
                                     ))
                                 ) : (
@@ -165,6 +270,9 @@ function SearchPanel({ onApply }) {
                     text="Применить"
                     type="accept"
                     onClick={handleApply}
+					loading={loading}
+					disabled={disabled()}
+					tooltip={disabled() ? 'Выберите параметры' : undefined}
                 />
             </div>
         </div>

@@ -1,52 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { AdminService } from '../services';
+import { defaultQueryOptions } from '@utils/queryConfig';
+import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
 import './FilterHeader.scss';
-import TabButton from '@ui/TabButton';
 import Button from '@ui/Button';
 
 export default function FilterHeader({ filters, onFilterChange, onResetFilters, showYearsSelect = true }) {
-    const [options, setOptions] = useState({ institutes: [], specialties: [], years: [] });
-    const [loading, setLoading] = useState(true);
-    const reqRef = useRef(0);
-
     const noFilters = () => {
         if (!filters) return true;
 
         return Object.values(filters).every(value => !value || value === '');
     };
-    //загрузка вариантов
-    useEffect(() => {
-        AdminService.getFilterOptions()
-            .then(data => setOptions(data.data))
-            .catch(err => console.error('Ошибка загрузки опций', err))
-            .finally(() => setLoading(false));
-    }, []);
+
+    const institute = filters?.institute || '';
+
+    const { data: baseOptions = { institutes: [], specialties: [], years: [] }, isPending: loadingBase } = useQuery({
+        queryKey: ['admin', 'filter-options'],
+        queryFn: async () => (await AdminService.getFilterOptions()).data,
+        ...defaultQueryOptions
+    });
+
+    const { data: instituteOptions, isPending: loadingSpecialties } = useQuery({
+        queryKey: ['admin', 'filter-options', 'specialties', institute],
+        queryFn: async () => (await AdminService.getFilterOptions(institute)).data,
+        ...defaultQueryOptions,
+        enabled: Boolean(institute)
+    });
+
+    const options = {
+        ...baseOptions,
+        specialties: institute ? (instituteOptions?.specialties ?? []) : baseOptions.specialties
+    };
+
+    const loading = loadingBase || (Boolean(institute) && loadingSpecialties);
 
     useEffect(() => {
-        const institute = filters?.institute;
-        if (!institute) {
-            AdminService.getFilterOptions()
-                .then(data => setOptions(data.data))
-                .catch(err => console.error('Ошибка загрузки опций', err))
-                .finally(() => setLoading(false));
-            return;
+        if (loading || !filters?.specialty) return;
+
+        if (!options.specialties.some(s => s.value === filters.specialty)) {
+            onFilterChange('specialty', '');
         }
-        const id = ++reqRef.current;
-        AdminService.getFilterOptions(institute)
-            .then(data => {
-                if (id !== reqRef.current) return;
-                const newSpecs = data.data.specialties || [];
-                if (filters?.specialty && !newSpecs.some(s => s.value === filters.specialty)) {
-                    onFilterChange('specialty', '');
-                }
-                setOptions(prev => ({ ...prev, specialties: newSpecs }));
-            })
-            .catch(err => console.error('Ошибка загрузки опций', err))
-            .finally(() => {
-                if (id === reqRef.current) setLoading(false);
-            });
-    }, [filters?.institute]);
+    }, [loading, options.specialties, filters?.specialty, onFilterChange]);
 
     const handleChange = (opt, name) => {
         onFilterChange(name, opt ? opt.value : '');

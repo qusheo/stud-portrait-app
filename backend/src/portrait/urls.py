@@ -5,17 +5,16 @@ from .endpoints import (
     audit,
     dataload,
     datasesh,
-    analysis_end, 
-    transfer_analysis,
-    statsresult, 
-    stat,
     ainterp,
     gendox,
-    curriculum_end,
-    matching,
-    teachers,
     access,
 )
+from .endpoints.entities import students
+from .endpoints.entities import teachers
+from .endpoints.matchingService import matching
+from .endpoints.parsers import curriculum_end
+from .endpoints.selectionService import student_selection
+from .endpoints.statisticsService import analysis_end, stat, statsresult
 
 urlpatterns = [
     path("health/", status.health),
@@ -36,7 +35,7 @@ urlpatterns = [
 
     # DATASESH module
     path("datasesh/new/",             datasesh.create_data_session,     name="datasesh_new"),
-    path("datasesh/extract-data/",    datasesh.extract_session_data,    name="datasesh_extract_data"),
+    path("datasesh/extract-data/",    datasesh.extract_data,           name="datasesh_extract_data"),
     path("datasesh/update-filters/",  datasesh.update_session_filters,  name="datasesh_update_filters"),
     path("datasesh/update-columns/",  datasesh.update_session_columns,  name="datasesh_update_columns"),
     path("datasesh/update-window/",   datasesh.update_session_window,   name="datasesh_update_window"),
@@ -67,9 +66,9 @@ urlpatterns = [
     path('get-boxplot-data/',              analysis_end.get_boxplot_data,                  name='get_boxplot_data'),
     path('student-comparison-stats/',      analysis_end.get_student_comparison_stats,      name='student_comparison_stats'),
 
-    path('analyze-transfers/',          transfer_analysis.analyze_transfers,          name='analyze_transfers'),
-    path('analyze-transfer-students/',  transfer_analysis.analyze_transfer_students,  name='analyze_transfer_students'),
-
+    path('analyze-transfers/',          students.analyze_transfers,          name='analyze_transfers'),
+    path('analyze-transfer-students/',  students.analyze_transfer_students,  name='analyze_transfer_students'),
+    path('student-interests-options/', students.get_interest_options, name='student_interests'),
     path('duplicate-accounts/', analysis_end.get_duplicate_accounts, name='duplicate_accounts'),
     path('possible-duplicate-accounts/', analysis_end.get_possible_duplicate_accounts, name='possible-duplicate-accounts/'),
 
@@ -80,6 +79,7 @@ urlpatterns = [
     path("student-results/",                statsresult.student_results,                name="student_results"),
     path("centers-by-region/",              statsresult.centers_by_region,              name='centers_by_region'),
     path('students/list/',                  statsresult.get_students_list,              name='students_list'),
+    path('students/by-requirements/',       student_selection.get_students_by_requirememnts, name='students_by_requirements'),
     path('students/portrait/',              statsresult.get_student_portrait,           name='student_portrait'),
     path('motivator-statistics/',           statsresult.get_motivator_statistics,       name='motivator_statistics'),
 
