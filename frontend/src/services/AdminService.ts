@@ -27,6 +27,9 @@ type CompetencySegmentationFilters = AnalyticsFilters & {
 type DataSessionFilter =
     | { id: string; type: 'categorial'; field: string; categories: Array<string | number> }
     | { id: string; type: 'numeric'; field: string; min: number; max: number };
+type ResultsViewFilter =
+    | { id: number; type: 'basic'; field: string; selectedValues: Array<string | number> }
+    | { id: number; type: 'numeric'; field: string; min: number; max: number };
 type TransferStudentsInput = {
     institution_id?: number | string | null;
     competency?: string;
@@ -176,8 +179,15 @@ class AdminService extends BaseService {
         return this.request(() => Api.postPortraitDataseshNew(), 'Ошибка создания сессии');
     }
 
-    postDataseshExtractData(sessionId: string) {
-        return this.request(() => Api.postPortraitDataseshExtractData(sessionId), 'Ошибка загрузки данных');
+    postDataseshExtractData(
+        filters: ResultsViewFilter[],
+        start: number,
+        end: number
+    ) {
+        return this.request(
+            () => Api.postPortraitDataseshExtractData(filters, start, end),
+            'Ошибка загрузки данных'
+        );
     }
 
     postDataseshUpdateFilters(sessionId: string, filters: DataSessionFilter[]) {
@@ -192,8 +202,8 @@ class AdminService extends BaseService {
         return this.request(() => Api.postPortraitDataseshUpdateWindow(sessionId, start, end), 'Ошибка загрузки данных');
     }
 
-    postDataseshExportSelected(sessionId: string, selectedIds: number | string[]) {
-        return Api.postPortraitDataseshExportSelected(sessionId, selectedIds).then(response => {
+    postDataseshExportSelected(selectedIds: Array<number | string>) {
+        return Api.postPortraitDataseshExportSelected(selectedIds).then(response => {
             if (!response.ok) throw new Error('Ошибка экспорта данных');
             return response.blob();
         });
@@ -203,9 +213,13 @@ class AdminService extends BaseService {
         return this.request(() => Api.postPortraitDataseshCountStats(sessionId), 'Ошибка загрузки статистики');
     }
 
-    postDataseshGroupSelected(sessionId: string, selectedIds: number | string[], groupingColumn: string) {
+    postDataseshGroupSelected(
+        selectedIds: Array<number | string>,
+        groupingColumn: string,
+        filters: ResultsViewFilter[]
+    ) {
         return this.request(
-            () => Api.postPortraitDataseshGroupSelected(sessionId, selectedIds, groupingColumn),
+            () => Api.postPortraitDataseshGroupSelected(selectedIds, groupingColumn, filters),
             'Ошибка группировки данных'
         );
     }

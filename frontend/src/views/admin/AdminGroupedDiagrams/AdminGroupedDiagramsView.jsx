@@ -39,7 +39,7 @@ function AdminGroupedDiagramsView() {
 
     const fetchGroupedData = async data => {
         setLoading(true);
-        AdminService.postDataseshGroupSelected(data.sessionId, data.selectedIds, data.groupingColumn)
+        AdminService.postDataseshGroupSelected(data.selectedIds, data.groupingColumn, data.filters || [])
             .then(result => setChartData(result.grouped_data))
             .catch(error => console.error('Error fetching grouped data:', error))
             .finally(() => setLoading(false));

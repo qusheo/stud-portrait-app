@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Chart from 'react-apexcharts';
-
+import { useLocation } from 'react-router-dom';
 import { StudentService } from '@services';
 import { toast } from 'react-toastify';
 import FlexRow, { WRAP } from '@components/FlexRow';
@@ -10,19 +10,24 @@ import TabButton from '@components/ui/TabButton';
 
 import './AdminPortraitView.scss';
 
-const StudentSearch = ({ onSelectStudent }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
+    const [searchTerm, setSearchTerm] = useState(
+        initialStudentId == null ? '' : String(initialStudentId)
+    );
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(initialStudentId != null);
 
     useEffect(() => {
-        if (searchTerm.length >= 2 && isDropdownOpen) {
+        if (
+            isDropdownOpen &&
+            (searchTerm.length >= 2 || searchTerm === String(initialStudentId))
+        ) {
             searchStudents();
         } else if (searchTerm.length === 0) {
             setStudents([]);
         }
-    }, [searchTerm, isDropdownOpen]);
+    }, [searchTerm, isDropdownOpen, initialStudentId]);
 
     const searchStudents = async () => {
         setLoading(true);
@@ -38,6 +43,12 @@ const StudentSearch = ({ onSelectStudent }) => {
         setStudents([]);
         onSelectStudent(student.id);
     };
+	useEffect(() => {
+		if(!value) return;
+        setIsDropdownOpen(false);
+        setSearchTerm('');
+        setStudents([]);
+	},[value]);
 
     return (
         <div className="student-search">
@@ -437,10 +448,16 @@ const CoursesCard = ({ courses }) => {
 };
 
 function AdminPortraitView() {
-    const [selectedStudentId, setSelectedStudentId] = useState(null);
+    const location = useLocation();
+    const initialStudentId = location.state?.studentId ?? null;
+    const [selectedStudentId, setSelectedStudentId] = useState(initialStudentId);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('personal');
+
+    useEffect(() => {
+        setSelectedStudentId(initialStudentId);
+    }, [initialStudentId]);
 
     useEffect(() => {
         if (selectedStudentId) {
@@ -467,7 +484,11 @@ function AdminPortraitView() {
         <div className="AdminPortraitView">
             <h2>Цифровой портрет студента</h2>
 
-            <StudentSearch onSelectStudent={setSelectedStudentId} />
+            <StudentSearch
+				value={initialStudentId}
+                onSelectStudent={setSelectedStudentId}
+                initialStudentId={initialStudentId}
+            />
 
             {loading && <LoadingSpinner text="Загрузка портрета студента..." />}
 

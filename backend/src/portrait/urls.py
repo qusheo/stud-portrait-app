@@ -35,7 +35,7 @@ urlpatterns = [
 
     # DATASESH module
     path("datasesh/new/",             datasesh.create_data_session,     name="datasesh_new"),
-    path("datasesh/extract-data/",    datasesh.extract_session_data,    name="datasesh_extract_data"),
+    path("datasesh/extract-data/",    datasesh.extract_data,           name="datasesh_extract_data"),
     path("datasesh/update-filters/",  datasesh.update_session_filters,  name="datasesh_update_filters"),
     path("datasesh/update-columns/",  datasesh.update_session_columns,  name="datasesh_update_columns"),
     path("datasesh/update-window/",   datasesh.update_session_window,   name="datasesh_update_window"),

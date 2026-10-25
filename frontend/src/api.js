@@ -122,11 +122,11 @@ class Api {
         return promise;
     }
 
-    postPortraitDataseshExtractData(sessionId) {
+    postPortraitDataseshExtractData(filters, start, end) {
         const promise = fetch(`${HOST}/portrait/datasesh/extract-data/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId })
+            body: JSON.stringify({ filters, start, end })
         });
         return promise;
     }
@@ -168,26 +168,23 @@ class Api {
         return promise;
     }
 
-    postPortraitDataseshExportSelected(sessionId, selectedIds) {
+    postPortraitDataseshExportSelected(selectedIds) {
         const promise = fetch(`${HOST}/portrait/datasesh/export-selected/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                session_id: sessionId,
-                selected_ids: selectedIds
-            })
+            body: JSON.stringify({ selected_ids: selectedIds })
         });
         return promise;
     }
 
-    postPortraitDataseshGroupSelected(sessionId, selectedIds, grouppingColumn) {
-        const promise = fetch(`${HOST}/portrait/group-data/`, {
+    postPortraitDataseshGroupSelected(selectedIds, grouppingColumn, filters) {
+        const promise = fetch(`${HOST}/portrait/datasesh/group-selected/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                session_id: sessionId,
                 selected_ids: selectedIds,
-                groupping_column: grouppingColumn
+                groupping_column: grouppingColumn,
+                filters: filters
             })
         });
         return promise;

@@ -685,12 +685,15 @@ def get_students_list(request):
         )
 
         if search:
-            queryset = queryset.filter(
+            search_filter = (
                 Q(student_name__icontains=search) |
                 Q(part_rsv_id__icontains=search) |
                 Q(part_institution__inst_name__icontains=search) |
                 Q(part_spec__spec_name__icontains=search)
             )
+            if search.isdigit():
+                search_filter |= Q(part_id=int(search))
+            queryset = queryset.filter(search_filter)
 
         students = [
             {
