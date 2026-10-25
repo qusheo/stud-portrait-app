@@ -124,12 +124,10 @@ function AdminResultsView() {
     };
 
     // Загрузка данных сессии
-    const loadSessionData = async (sessionIdToLoad = sessionId) => {
-        if (!sessionIdToLoad) return;
-
+    const loadSessionData = async () => {
         setLoading(true);
 
-        AdminService.postDataseshExtractData(sessionIdToLoad)
+        AdminService.postDataseshExtractData(null)
             .then(data => {
                 setResults(data.results || []);
                 setTotalCount(data.filtered_count || 0);
@@ -588,7 +586,7 @@ function AdminResultsView() {
                     className="table-container"
                     style={{ height: 300 }}
                 >
-                    {loading || !results.length ? (
+                    {!results.length ? (
                         <div className="loading">
                             <LoadingSpinner text={sessionId ? 'Загрузка данных...' : 'Инициализация сессии...'} />
                         </div>

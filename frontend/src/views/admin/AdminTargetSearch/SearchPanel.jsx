@@ -5,6 +5,7 @@ import { defaultQueryOptions } from '@utils/queryConfig';
 import { useQuery } from '@tanstack/react-query';
 import { Select } from 'antd';
 import './SearchPanel.scss';
+import { AdminService } from '@services';
 import { TabButton } from '../../../components';
 
 const COMPETENCY_LEVEL_OPTIONS = [
@@ -32,17 +33,25 @@ function SearchPanel({ onApply, loading }) {
     const [institute, setInstitute ] = useState(null);
     const [specialties, setSpecialties] = useState(null);
     const [projectSearchEnabled, setProjectSearchEnabled] = useState(false);
-    const { data: data, isLoading: loadingSpecialties } = useQuery({
-        queryKey: ['admin', 'filter-options', 'specialties', institute],
-        queryFn: async () => (await AdminService.getFilterOptions(institute)).data,
-        ...defaultQueryOptions,
-        enabled: !!institute
-    });
 
-    const instituteOptions = () => data?.institutions ?? [];
+    const { data: baseOptions, isLoading: loadingInstitutes } = useQuery({
+		queryKey: ['admin', 'filter-options'],
+		queryFn: async () => (await AdminService.getFilterOptions()).data,
+		enabled: true,
+		...defaultQueryOptions
+	});
+	const instituteOptions = () => baseOptions?.institutes ?? [];
+
+	const { data: specialtyOptions, isLoading: loadingSpecialties } = useQuery({
+		queryKey: ['admin', 'search-options-uni', 'specialties', institute],
+		queryFn: async () => (await AdminService.getFilterOptions(institute)).data,
+		...defaultQueryOptions,
+		enabled: Boolean(institute)
+	});
+
     useEffect(() =>{
-        setSpecialties(data?.specialties || []);
-    }, [data])
+        setSpecialties(specialtyOptions?.specialties || []);
+    }, [specialtyOptions])
     
     const { data: filterOptions, isLoading: loadingOptions } = useQuery({
         queryKey: ['admin', 'student-search'],
@@ -162,10 +171,19 @@ function SearchPanel({ onApply, loading }) {
                 <div className='input_institute'>
                     <span className='input_institute_label'>ВУЗ</span>
                     <Select 
+						showSearch
                         placeholder="Выберите Вуз"
                         className="itemOption__select"
                         value={institute ?? ''}
-                        onChange={value => setInstitute(value)}
+                        onChange={value => { 
+									setInstitute(value); 
+									setValues(prev => ({
+										...prev,
+										sphere: {
+											...prev.sphere,
+											specialty: []
+										}}));
+								}}
                         notFoundContent="Ничего не найдено"
                         getPopupContainer={trigger => trigger.parentElement}
                         options={instituteOptions()}
@@ -218,7 +236,7 @@ function SearchPanel({ onApply, loading }) {
                                                     className="itemOption__select"
                                                     value={values[item.key][option.value] || []}
                                                     options={option.options}
-                                                    filterOptions={['label']}
+                                                    filterOptions='label'
                                                     loading={option.value === 'specialty' ? loadingSpecialties : loadingOptions}
                                                     onChange={selected => onChangeItems(item.key, option.value, selected)}
                                                     notFoundContent="Ничего не найдено"

@@ -107,7 +107,7 @@ function AdminTeachersView() {
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const modalRef = useRef(null);
 
-    const { data: rows = [], isPending: isTableLoading } = useQuery({
+    const { data: dataRows = [], isPending: isTableLoading } = useQuery({
         queryKey: ['admin', 'teachers-table'],
         queryFn: () => TeacherService.getTeachersTable(),
         enabled: true,
@@ -115,7 +115,7 @@ function AdminTeachersView() {
     });
 
     const columns = buildColumns();
-    rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
+    let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
     const tableRows = rows;
     const searchOptions = rows.map(r => ({
         label: `${r.name}, ${r.position} | ${r.institution}`,
@@ -125,7 +125,6 @@ function AdminTeachersView() {
     function cellClickHandler(row, column) {
         if (column.id === 'name') {
             const teacher = rows.find(r => r.rowId === row.rowId);
-            console.log(teacher);
             setShownTeacher(teacher);
             setShowTeacherView(true);
         } else if (column.id === 'disciplines') {

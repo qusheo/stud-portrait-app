@@ -3,6 +3,7 @@ import json
 import traceback
 
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from ..helpers.helpers import (
@@ -130,6 +131,7 @@ def find_students_by_requirements(
         "students": students[offset:offset + limit],
     }
 
+@csrf_exempt
 @require_POST
 def get_students_by_requirememnts(request):
     """Подбор студентов по требованиям."""

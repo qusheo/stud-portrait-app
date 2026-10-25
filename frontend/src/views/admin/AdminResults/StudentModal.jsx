@@ -18,7 +18,7 @@ function StudentModal(open, student, onClose){
             >
                 <div className="StudentModal__body">
                     <div className="student__name">
-                        { student.name }
+                        { student?.name }
                     </div>
 
 

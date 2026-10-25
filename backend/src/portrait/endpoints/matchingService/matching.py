@@ -12,22 +12,14 @@ def get_matching_students(request):
     try:
         params = request.GET
 
-        def get_bool(name, default):
-            value = params.get(name)
-            if value is None:
-                return default
-            if value.lower() not in ("true", "false"):
-                raise ValueError(f"{name} должен быть true или false")
-            return value.lower() == "true"
-
         result = find_matching_students(
             student_id=int(params.get("student_id")),
             amount=int(params.get("amount", 1)),
-            same_group=get_bool("sameGroup", False),
+            same_group=params.get("sameGroup", False),
             course=int(params["course"]) if params.get("course") is not None else None,
-            motivators=get_bool("motivators", True),
-            competences=get_bool("competences", True),
-            values=get_bool("values", True),
+            motivators=params.get("motivators", True),
+            competences=params.get("competences", True),
+            values=params.get("values", True),
         )
 
         return JsonResponse({"ok": True, "data": result})

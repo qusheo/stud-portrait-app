@@ -608,7 +608,6 @@ class Api {
     getStudentByRequirements(input = {}) {
         return fetch(`${HOST}/portrait/students/by-requirements/`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(input)
         });
     }
