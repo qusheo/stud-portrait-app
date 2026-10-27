@@ -1,3 +1,4 @@
+from portrait.endpoints import auth
 from django.urls import path
 from . import status
 
@@ -17,8 +18,12 @@ from .endpoints.selectionService import student_selection
 from .endpoints.statisticsService import analysis_end, stat, statsresult
 
 urlpatterns = [
+    path("auth/csrf/", auth.csrf_token, name="auth_csrf"),
+    path("auth/login/", auth.login_view, name="auth_login"),
+    path("auth/me/", auth.current_user, name="auth_current_user"),
+    path("auth/logout/", auth.logout_view, name="auth_logout"),
     path("health/", status.health),
-    path("user/permissions/", access.get_user_permissions, name="user_permissions"),
+    path("user/permissions/", auth.get_user_permissions, name="user_permissions"),
 
     # AUDIT module
     path('audit/schema/',      audit.get_database_schema,   name='audit_schema'),

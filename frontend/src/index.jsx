@@ -7,6 +7,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 
 import App from './views/App';
 import ErrorView from './views/ErrorView';
+import LoginView from './views/auth/LoginView';
 import { usePageStore } from '@utils/store.jsx';
 
 import {
@@ -46,6 +47,11 @@ import { queryClient } from './utils/queryConfig';
 import './index.css';
 
 const router = createBrowserRouter([
+    {
+        path: '/login',
+        element: <LoginView />,
+        errorElement: <ErrorView />
+    },
     {
         element: <PermissionGuard />,
         children: [

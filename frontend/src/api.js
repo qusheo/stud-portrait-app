@@ -23,6 +23,69 @@ const HOST = import.meta.env.VITE_API_URL;
  */
 
 class Api {
+
+    // Получение CSRF-токена для безопасных POST-запросов
+async getCsrfToken() {
+    const response = await fetch(`${HOST}/portrait/auth/csrf/`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        throw new Error('Не удалось получить CSRF-токен');
+    }
+
+    return response.json();
+}
+
+    // Вход в аккаунт
+    async postLogin(username, password) {
+        // Сначала получаем CSRF-токен
+        const csrfData = await this.getCsrfToken();
+
+        const response = await fetch(`${HOST}/portrait/auth/login/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfData.csrfToken
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        return response;
+    }
+
+    // Получение информации о текущем пользователе
+    getCurrentUser() {
+        return fetch(`${HOST}/portrait/auth/me/`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+    }
+
+    // Выход из аккаунта
+    postLogout() {
+        const csrfToken = this.getCookie('csrftoken');
+
+        return fetch(`${HOST}/portrait/auth/logout/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+    }
+
+    // Чтение cookie
+    getCookie(name) {
+        const cookie = document.cookie
+            .split('; ')
+            .find(item => item.startsWith(`${name}=`));
+
+        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : null;
+    }
+
     getUserPermissions() {
         return fetch(`${HOST}/portrait/user/permissions/`, { credentials: 'include' });
     }

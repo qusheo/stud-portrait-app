@@ -13,6 +13,8 @@ import { LINK_TREE } from '@utils/utilities.js';
 import { filterLinkTree } from '../user/entities/permissions.ts';
 import { ACCOUNT_TYPE_LABELS } from '../user/entities/accountType.ts';
 import { useUserStore } from '../user/store/userStore.js';
+import Api from '../api.js';
+
 export const LAYOUT_STYLE = {
     ADMIN: 'admin',
     NORMAL: 'normal'
@@ -27,7 +29,7 @@ export function SidebarLayout({ style = LAYOUT_STYLE.NORMAL, sidebar = true }) {
     );
 }
 
-export function Header({ title, name, onAccountClick }) {
+export function Header({ title, name, onAccountClick, onLogout }) {
     return (
         <div className="Header">
                 <div className="left-side">
@@ -65,7 +67,7 @@ export function Header({ title, name, onAccountClick }) {
                         <LogOut
                             color="white"
                             size={17}
-                            onClick={() => null}
+                            onClick={onLogout}
                             style={{ cursor: 'pointer' }}
                         />
                     </Tooltip>
@@ -78,6 +80,23 @@ export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();
     const navigate = useNavigate();
+    const resetAuth = useUserStore(state => state.resetAuth);
+
+    async function onLogout() {
+        try {
+            const response = await Api.postLogout();
+
+            if (!response.ok) {
+                toast.error('Не удалось завершить сессию на сервере');
+                return;
+            }
+
+            resetAuth();
+            navigate('/login', { replace: true });
+        } catch {
+            toast.error('Ошибка при выходе из аккаунта');
+        }
+    }
     const [categoryOpenState, setCategoryOpenState] = React.useState({});
     const permissions = useUserStore(state => state.permissions);
     const accountType = useUserStore(state => state.accountType);
@@ -116,6 +135,7 @@ export function Sidebar({ links, linkTree }) {
                     title={`${title}`}
                     name={ACCOUNT_TYPE_LABELS[accountType]}
                     onAccountClick={onAccountClick}
+                    onLogout={onLogout}
                 />
                 <div
                     className="Sidebar-container-closed"
@@ -139,6 +159,7 @@ export function Sidebar({ links, linkTree }) {
                     title={`${title}`}
                     name={ACCOUNT_TYPE_LABELS[accountType]}
                     onAccountClick={onAccountClick}
+                    onLogout={onLogout}
                 />
                 <div className="Sidebar-scroll">
                     <div className="Sidebar-container">
@@ -196,6 +217,7 @@ export function Sidebar({ links, linkTree }) {
                 title={`${title}`}
                 name={ACCOUNT_TYPE_LABELS[accountType]}
                 onAccountClick={onAccountClick}
+                onLogout={onLogout}
             />
             <div className="Sidebar-scroll">
                 <div className="Sidebar-container">
