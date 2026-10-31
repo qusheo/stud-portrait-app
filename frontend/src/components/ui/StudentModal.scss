@@ -1,0 +1,132 @@
+.StudentModal {
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 65vh;
+        overflow-y: auto;
+        padding-right: 4px;
+
+        h3,
+        h4 {
+            margin: 0 0 12px;
+            color: #333;
+        }
+
+        h3 {
+            font-size: 17px;
+        }
+
+        h4 {
+            font-size: 15px;
+        }
+    }
+
+    &__info {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 20px;
+        margin: 0;
+    }
+
+    &__info-item {
+        min-width: 0;
+
+        dt {
+            margin-bottom: 3px;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        dd {
+            margin: 0;
+            color: #333;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    &__average {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 18px;
+        border-radius: 8px;
+        background: #f8f5ff;
+        color: #3d1a5d;
+
+        strong {
+            font-size: 24px;
+        }
+    }
+
+    &__scores {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+		width: 100%;
+    }
+ 	&__scores_mot {
+        display: flex;
+        gap: 16px;
+		width: 100%;
+    }
+
+    &__score-section {
+		width: 96%;
+        padding: 14px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+
+        ul {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        li {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        strong {
+            flex-shrink: 0;
+        }
+
+        &--competencies {
+            background: #f5faff;
+            color: #3d1a5d;
+        }
+
+        &--motivators{
+            background: #f0f8f0;
+            color: #204b22;
+        }
+		&--values {
+            background: #f4f0f8;
+            color: #204b22;
+        }
+
+        &--demotivators {
+            background: #fff8e1;
+            color: #615314;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    @media (max-width: 600px) {
+        &__info,
+        &__scores {
+            grid-template-columns: 1fr;
+        }
+    }
+}

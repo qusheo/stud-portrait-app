@@ -267,6 +267,14 @@
             margin-top: 10px;
         }
 
+        .pending-filter {
+            gap: 10px;
+
+            .MultiSelect {
+                max-width: none;
+            }
+        }
+
         .active-filters-row {
             margin-top: 10px;
         }

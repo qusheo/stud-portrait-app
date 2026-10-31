@@ -1,15 +1,17 @@
-import DataTable from '@components/tables/DataTable';
 import './AdminTeachersView.scss';
 
 import { defaultQueryOptions } from '@utils/queryConfig';
 import { useQuery } from '@tanstack/react-query';
-
 import { useEffect, useState, useLayoutEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { buildColumns } from './buildTeachersTable.js';
-import TeacherView from './TeacherView.jsx';
 import TeacherService from '@services/TeacherService.ts';
+
+import TeacherView from './TeacherView.jsx';
+import DataTable from '@components/tables/DataTable';
 import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
-import { AutocompleteInput } from '../../../components/index.js';
+import { AutocompleteInput, Button } from '../../../components/index.js';
 // тестовое
 const teachers = [
     {
@@ -107,13 +109,14 @@ function AdminTeachersView() {
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const modalRef = useRef(null);
 
+	const navigate = useNavigate();
+
     const { data: dataRows = [], isPending: isTableLoading } = useQuery({
         queryKey: ['admin', 'teachers-table'],
         queryFn: () => TeacherService.getTeachersTable(),
         enabled: true,
         ...defaultQueryOptions
     });
-
     const columns = buildColumns();
     let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
     const tableRows = rows;
@@ -147,6 +150,11 @@ function AdminTeachersView() {
         setShowTeacherView(!showTeacherView);
         setShownTeacher(null);
     }
+	function redirectToPortrait() {
+		if (shownTeacher) {
+            navigate('/admin/portrait', { state: { studentId: null } }); //shownTeacher.rowId
+        }
+	}
 
     useEffect(() => {
         if (!openDisciplinesModal) return;
@@ -186,13 +194,15 @@ function AdminTeachersView() {
                     options={searchOptions}
                 />
                 {showTeacherView && (
-                    <div
-                        className="AdminTeachersView__search-close"
-                        onClick={() => handleCloseTeacher()}
-                    >
-                        {' '}
-                        X Закрыть
-                    </div>
+					<div className="AdminTeachersView__search_actions">
+						<Button text={'Перейти к профилю'} onClick={() => redirectToPortrait()}/>
+						<Button 
+							text={'X Закрыть'}
+							type="cancel"
+							className="AdminTeachersView__search-close"
+							onClick={() => handleCloseTeacher()}
+						/>
+					</div>
                 )}
             </div>
             {showTeacherView && (

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 import { AdminService } from '@services';
 import { COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-
 import ValueCard from '@components/cards/ValueCard.jsx';
 
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
@@ -21,13 +21,18 @@ import { ADMIN_PALETTE } from '@components/ui/palette.js';
 function AdminCoursesView() {
     const [selectedRows, setSelectedRows] = useState(new Set());
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+	const [ coursesData, setCoursesData] = useState(null);
 
-    const { data: coursesData, isPending: loading } = useQuery({
+    const { data: data, isPending: loading, refetch: refetch } = useQuery({
         queryKey: ['admin', 'courses-data'],
         queryFn: () => AdminService.getCourses(),
         enabled: true,
         ...defaultQueryOptions
     });
+
+	useEffect(() => 
+		setCoursesData(data?.courses)
+	,[data]);
 
     const handleSort = key => {
         let direction = 'asc';
@@ -36,7 +41,7 @@ function AdminCoursesView() {
         }
         setSortConfig({ key, direction });
 
-        const sortedData = [...coursesData.courses].sort((a, b) => {
+        const sortedData = [...coursesData].sort((a, b) => {
             let aValue = getFieldValue(a, key);
             let bValue = getFieldValue(b, key);
 
@@ -49,7 +54,7 @@ function AdminCoursesView() {
             return 0;
         });
 
-        setcoursesData.courses(sortedData);
+        setCoursesData(sortedData);
     };
 
     const getFieldValue = (course, fieldKey) => {
@@ -70,10 +75,10 @@ function AdminCoursesView() {
     };
 
     const handleSelectAll = () => {
-        if (selectedRows.size === coursesData.courses.length) {
+        if (selectedRows.size === coursesData.length) {
             setSelectedRows(new Set());
         } else {
-            setSelectedRows(new Set(coursesData.courses.map(c => c.course_id)));
+            setSelectedRows(new Set(coursesData.map(c => c.course_id)));
         }
     };
 
@@ -109,7 +114,7 @@ function AdminCoursesView() {
     };
 
     const calculateParticipantStats = participantId => {
-        const participantCourses = coursesData.courses.filter(c => c.participant?.part_id === participantId);
+        const participantCourses = coursesData.filter(c => c.participant?.part_id === participantId);
         const completedCourses = participantCourses.filter(c => Object.keys(COURSES_NAMES).some(courseKey => c[courseKey] > 0)).length;
         const totalCourses = Object.keys(COURSES_NAMES).length;
 
@@ -137,7 +142,17 @@ function AdminCoursesView() {
             </div>
         );
     }
-
+	if (!coursesData || !coursesData.length) {
+		return (
+			<div className="AdminCoursesView">
+				<div className="courses-container">
+					<div className="courses-header">
+						<h2>Результаты образовательных курсов: нет результатов</h2>
+					</div>
+				</div>
+			</div>
+		)
+	}
     return (
         <div className="AdminCoursesView">
             <div className="courses-container">
@@ -145,12 +160,12 @@ function AdminCoursesView() {
                     <h2>Результаты образовательных курсов</h2>
                     <FlexRow>
                         <Label>
-                            Участников: {new Set(coursesData.courses.map(c => c.participant?.part_id)).size} • Всего записей: {coursesData.courses.length} •
+                            Участников: {new Set(coursesData.map(c => c.participant?.part_id)).size} • Всего записей: {coursesData.length} •
                             Выбрано: {selectedRows.size}
                         </Label>
                         <Button
                             text="Обновить"
-                            onClick={fetchcoursesData.courses}
+                            onClick={() => refetch()}
                             disabled={loading}
                             palette={ADMIN_PALETTE.CYAN}
                         />
@@ -160,7 +175,7 @@ function AdminCoursesView() {
                 {/* Общая статистика */}
                 <div className="stats-overview">
                     <ValueCard
-                        value={new Set(coursesData.courses.map(c => c.participant?.part_id)).size}
+                        value={new Set(coursesData.map(c => c.participant?.part_id)).size}
                         text="Участников"
                     />
                     <ValueCard
@@ -171,7 +186,7 @@ function AdminCoursesView() {
 
                 {/* Таблица с курсами */}
                 <div className="table-scroll-container">
-                    {!loading && coursesData.courses.length === 0 ? (
+                    {!loading && coursesData.length === 0 ? (
                         <div className="no-data">
                             <div className="no-data-icon">📚</div>
                             <div className="no-data-text">
@@ -186,7 +201,7 @@ function AdminCoursesView() {
                                 <TableItem>
                                     <input
                                         type="checkbox"
-                                        checked={selectedRows.size === coursesData.courses.length && coursesData.courses.length > 0}
+                                        checked={selectedRows.size === coursesData.length && coursesData.length > 0}
                                         onChange={handleSelectAll}
                                     />
                                 </TableItem>
@@ -200,7 +215,7 @@ function AdminCoursesView() {
                                     </TableItem>
                                 ))}
                             </TableHeader>
-                            {coursesData.courses.map(course => (
+                            {coursesData.map(course => (
                                 <TableRow
                                     key={course.course_id}
                                     className={selectedRows.has(course.course_id) ? 'selected' : ''}

@@ -3,8 +3,6 @@ import Chart from 'react-apexcharts';
 import 'rc-slider/assets/index.css';
 
 import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-
 import Card from '@components/cards/Card.jsx';
 import TitledCard from '@components/cards/TitledCard.jsx';
 import ValueCard from '@components/cards/ValueCard.jsx';

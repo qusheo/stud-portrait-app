@@ -20,6 +20,11 @@
             cursor: pointer;
             font-size: 14px;
         }
+		&_actions{
+			display: flex;
+        	flex-direction: row;
+			gap: 16px;
+		}
     }
 
     &__disciplines-modal {

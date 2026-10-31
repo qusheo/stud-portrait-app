@@ -1,16 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import ExcelJS from 'exceljs';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
+import { defaultQueryOptions } from '@utils/queryConfig';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, VALUES_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
 import { useAdminStore } from '@utils/store.jsx';
 
 import FlexColumn from '@components/FlexColumn.jsx';
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import LabelledBox from '@components/LabelledBox.jsx';
 import { ModalBody, ModalFooter, useModalWindow } from '@components/ModalWindow.jsx';
-import StudentModal from './StudentModal.jsx';
-
+import DataTable from '@components/tables/DataTable';
 import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
 import Dropdown from '@components/ui/Dropdown.jsx';
@@ -20,43 +22,15 @@ import MultiSelect from '@components/ui/MultiSelect.jsx';
 import NumberField from '@components/ui/NumberField.jsx';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import Select, { Option, OptionGroup } from '@components/ui/Select.jsx';
+import StudentModal from '@components/ui/StudentModal.jsx';
 
-import './AdminResultsView.scss';
-import DataTable from '@components/tables/DataTable';
 import { buildStudentColumns } from './buildStudentTable.js';
+import './AdminResultsView.scss';
 
-function AdminResultsView() {
-    const [shownStudent, setShowStudent] = useState(null);
+const BASIC_FIELDS = ['res_year', 'part_gender', 'center', 'institution', 'edu_level', 'res_course_num', 'study_form', 'specialty'];
 
-    const resultsView = useAdminStore(state => state.resultsView);
-    const setResultsView = useAdminStore(state => state.setResultsView);
-    const filters = resultsView?.filters ?? [];
-    const hiddenColumns = new Set(resultsView?.hiddenColumns ?? []);
-    const [results, setResults] = useState([]);
-    const [totalCount, setTotalCount] = useState(0);
-    const [selectedRows, setSelectedRows] = useState(new Set());
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-    const [loading, setLoading] = useState(false);
-    const [showColumnSelector, setShowColumnSelector] = useState(false);
-    const [availableValues, setAvailableValues] = useState({});
-    const [pendingFilters, setPendingFilters] = useState(() => filters);
-    const [hasMore, setHasMore] = useState(false);
-    const [exportLoading, setExportLoading] = useState(false);
-    const [groupingColumn, setGroupingColumn] = useState('');
-    const navigate = useNavigate();
-
-    const [FiltersModalWindow, _1, setFiltersModalWindowVisible] = useModalWindow('Фильтры');
-    const [GrouppingModalWindow, _2, setGrouppingModalVisible] = useModalWindow('Выбор группировки');
-
-    // Базовые поля для фильтрации
-    const basicFields = ['res_year', 'part_gender', 'center', 'institution', 'edu_level', 'res_course_num', 'study_form', 'specialty'];
-
-    // Числовые поля для фильтрации по диапазону
-    const numericFields = [...Object.keys(COMPETENCIES_NAMES), ...Object.keys(MOTIVATORS_NAMES), ...Object.keys(VALUES_NAMES)];
-
-    // Порядок колонок в таблице
-    const columnOrder = [
-        // Основная информация
+const COLUMN_GROUPS = {
+    'Основная информация': [
         'res_year',
         'participant',
         'part_gender',
@@ -65,215 +39,198 @@ function AdminResultsView() {
         'edu_level',
         'res_course_num',
         'study_form',
-        'specialty',
+        'specialty'
+    ],
+    Компетенции: Object.keys(COMPETENCIES_NAMES),
+    Мотиваторы: Object.keys(MOTIVATORS_NAMES),
+    Ценности: Object.keys(VALUES_NAMES)
+};
 
-        ...Object.keys(COMPETENCIES_NAMES),
-        ...Object.keys(MOTIVATORS_NAMES),
-        ...Object.keys(VALUES_NAMES)
-    ];
+const COLUMN_ORDER = Object.values(COLUMN_GROUPS).flat();
 
-    // Группы колонок для удобства управления
-    const columnGroups = {
-        'Основная информация': columnOrder.slice(0, 9),
-        'Компетенции': columnOrder.slice(9, 21),
-        'Мотиваторы': columnOrder.slice(21, 37),
-        'Ценности': columnOrder.slice(37)
-    };
+const NUMERIC_GROUPS = {
+    Компетенции: Object.keys(COMPETENCIES_NAMES),
+    Мотиваторы: Object.keys(MOTIVATORS_NAMES),
+    Ценности: Object.keys(VALUES_NAMES)
+};
 
-    // Видимые колонки
-    const visibleColumns = columnOrder.filter(col => !hiddenColumns.has(col));
+const NUMERIC_OPTIONS = Object.entries(NUMERIC_GROUPS).flatMap(([group, fields]) =>
+    fields.map(field => ({
+        id: field,
+        name: `${group}: ${FIELD_NAMES[field]}`
+    }))
+);
 
-    // Получение класса цвета в зависимости от значения
-    const getValueColorClass = (value, fieldKey) => {
-        const isNumericField = fieldKey.startsWith('res_comp_') || fieldKey.startsWith('res_mot_') || fieldKey.startsWith('res_val_');
+const getFilterFields = filter => filter.fields ?? (filter.field ? [filter.field] : []);
 
-        if (!isNumericField) return '';
+const getNumericFilterLabel = filter => {
+    const selectedFields = getFilterFields(filter);
+    const group = Object.entries(NUMERIC_GROUPS).find(
+        ([, fields]) => fields.length === selectedFields.length && fields.every(field => selectedFields.includes(field))
+    );
 
-        if (value === null || value === undefined || value === '') return 'no-value';
-        if (value >= 600) return 'high';
-        if (value >= 400) return 'medium';
-        if (value >= 200) return 'low';
+    if (group) return group[0];
+    return selectedFields.length === 1 ? FIELD_NAMES[selectedFields[0]] : `Показатели (${selectedFields.length})`;
+};
 
-        return 'no-value';
-    };
+export const expandFilters = filters =>
+    filters.flatMap(filter =>
+        filter.type === 'numeric'
+            ? getFilterFields(filter).map(field => ({
+                  id: `${filter.id}_${field}`,
+                  type: 'numeric',
+                  field,
+                  min: filter.min,
+                  max: filter.max
+              }))
+            : [filter]
+    );
 
-    // Получение класса цвета в зависимости от профиля
-    const getProfileColorClass = fieldKey => {
-        if (fieldKey.startsWith('res_comp_')) return 'competency';
-        if (fieldKey.startsWith('res_mot_')) return 'motivator';
-        if (fieldKey.startsWith('res_val_')) return 'value';
+function AdminResultsView() {
+    const resultsView = useAdminStore(state => state.resultsView);
+    const setResultsView = useAdminStore(state => state.setResultsView);
+    const filters = resultsView?.filters ?? [];
+    const hiddenColumns = new Set(resultsView?.hiddenColumns ?? []);
 
-        return '';
-    };
+    const [shownStudent, setShownStudent] = useState(null);
+    const [selectedRows, setSelectedRows] = useState(new Set());
+    const [resultLimit, setResultLimit] = useState(1000);
+    const [showColumnSelector, setShowColumnSelector] = useState(false);
+    const [pendingFilters, setPendingFilters] = useState(() => filters);
+    const [exportLoading, setExportLoading] = useState(false);
+    const [groupingColumn, setGroupingColumn] = useState('');
+    const navigate = useNavigate();
 
-    // Первоначальная загрузка с сохраненными фильтрами.
-    useEffect(() => {
-        loadData(filters, 0, 1000, false);
-    }, []);
+    const [FiltersModalWindow, , setFiltersModalWindowVisible] = useModalWindow('Фильтры');
+    const [GroupingModalWindow, , setGroupingModalVisible] = useModalWindow('Выбор группировки');
 
-    const loadData = async (
-        activeFilters = filters,
-        start = 0,
-        end = 1000,
-        append = false
-    ) => {
-        setLoading(true);
-        try {
-            const data = await AdminService.postDataseshExtractData(
-                activeFilters,
-                start,
-                end
-            );
-            setResults(current => append ? [...current, ...(data.results || [])] : (data.results || []));
-            setTotalCount(data.filtered_count || 0);
-            setHasMore(start + (data.shown_count || 0) < (data.filtered_count || 0));
-            setAvailableValues(data.available_values || {});
-        } catch (error) {
-            console.error('Error loading results:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const {
+        data: resultsData,
+        isPending: loading,
+        refetch
+    } = useQuery({
+        queryKey: ['admin', 'results', filters, resultLimit],
+        queryFn: () => AdminService.postDataseshExtractData(expandFilters(filters), 0, resultLimit),
+        ...defaultQueryOptions
+    });
 
-    // Загрузка следующей страницы результатов.
-    const loadMoreData = async () => {
+    const results = resultsData?.results ?? [];
+    const totalCount = resultsData?.filtered_count ?? 0;
+    const availableValues = resultsData?.available_values ?? {};
+    const hasMore = results.length < totalCount;
+
+    const loadMoreData = () => {
         if (!hasMore || loading) return;
-        const start = results.length;
-        await loadData(filters, start, start + 1000, true);
+        setResultLimit(current => current + 1000);
     };
 
-    // Извлечение полей из результата
-    const getFieldValue = (result, fieldKey) => {
-        // Обработка основных полей
-        if (fieldKey === 'res_year') return result.res_year;
-        if (fieldKey === 'part_gender') return result.participant?.part_gender || '';
-        if (fieldKey === 'center') return result.center || '';
-        if (fieldKey === 'institution') return result.institution || '';
-        if (fieldKey === 'edu_level') return result.edu_level || '';
-        if (fieldKey === 'res_course_num') return result.res_course_num;
-        if (fieldKey === 'study_form') return result.study_form || '';
-        if (fieldKey === 'specialty') return result.specialty || '';
-        if (fieldKey === 'participant') return result.participant?.part_name || '';
-
-        // Обработка компетенций
-        if (result.competences && result.competences[fieldKey] !== undefined) {
-            return result.competences[fieldKey];
-        }
-
-        // Обработка мотиваторов
-        if (result.motivators && result.motivators[fieldKey] !== undefined) {
-            return result.motivators[fieldKey];
-        }
-
-        // Обработка ценностей
-        if (result.values && result.values[fieldKey] !== undefined) {
-            return result.values[fieldKey];
-        }
-
-        // Прямой доступ к полям результата
-        if (result[fieldKey] !== undefined) {
-            return result[fieldKey];
-        }
-
-        return '';
-    };
-
-    const handleSort = key => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-
-        // Временная сортировка на клиенте
-        const sortedResults = [...results].sort((a, b) => {
-            let aValue = getFieldValue(a, key);
-            let bValue = getFieldValue(b, key);
-
-            if (aValue < bValue) {
-                return direction === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return direction === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
-
-        setResults(sortedResults);
+    const handleRefresh = () => {
+        setSelectedRows(new Set());
+        refetch();
     };
 
     const handleExportSelected = async () => {
-        if (selectedRows.size === 0) {
+        const selected = rows.filter(row => selectedRows.has(row.res_id));
+        if (!selected.length) {
             alert('Выберите записи для выгрузки (флажки в первом столбце)');
             return;
         }
 
         setExportLoading(true);
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Результаты тестирования');
 
-        AdminService.postDataseshExportSelected(Array.from(selectedRows))
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `selected_results_${new Date().toISOString().split('T')[0]}.xlsx`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            })
-            .catch(error => {
-                console.error('Export error:', error);
-                alert('Ошибка при выгрузке данных');
-            })
-            .finally(() => setExportLoading(false));
+            worksheet.columns = columns.map(column => ({
+                header: column.title,
+                key: column.id,
+                width: Math.min(Math.max(column.title.length + 2, 12), 40)
+            }));
+
+            selected.forEach(row => {
+                worksheet.addRow(
+                    Object.fromEntries(
+                        columns.map(column => {
+                            const value = row[column.id];
+                            const displayValue = column.results && (value == null || Number(value) === 0) ? '' : value;
+                            return [column.id, displayValue ?? ''];
+                        })
+                    )
+                );
+            });
+
+            worksheet.getRow(1).font = { bold: true };
+            worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+            await downloadExcelWorkbook(workbook, `selected_results_${new Date().toISOString().split('T')[0]}.xlsx`);
+        } catch (error) {
+            console.error('Export error:', error);
+            alert('Ошибка при выгрузке данных');
+        } finally {
+            setExportLoading(false);
+        }
     };
 
-    // Функции для работы с фильтрами
+    const openFilters = () => {
+        setPendingFilters(filters);
+        setFiltersModalWindowVisible(true);
+    };
+
     const addBasicFilter = field => {
-        const newFilter = {
-            id: Date.now(),
-            type: 'basic',
-            field: field,
-            selectedValues: []
-        };
-        setPendingFilters(prev => [...prev, newFilter]);
+        setPendingFilters(current => [
+            ...current,
+            {
+                id: Date.now(),
+                type: 'basic',
+                field,
+                selectedValues: []
+            }
+        ]);
     };
 
-    const addNumericFilter = field => {
-        const newFilter = {
-            id: Date.now(),
-            type: 'numeric',
-            field: field,
-            min: 200,
-            max: 800
-        };
-        setPendingFilters(prev => [...prev, newFilter]);
+    const addNumericFilter = groupOrField => {
+        setPendingFilters(current => [
+            ...current,
+            {
+                id: Date.now(),
+                type: 'numeric',
+                fields: NUMERIC_GROUPS[groupOrField] ?? [groupOrField],
+                min: 400,
+                max: 800
+            }
+        ]);
+    };
+
+    const updatePendingFilter = (filterId, patch) => {
+        setPendingFilters(current => current.map(filter => (filter.id === filterId ? { ...filter, ...patch } : filter)));
     };
 
     const removePendingFilter = filterId => {
-        setPendingFilters(prev => prev.filter(f => f.id !== filterId));
-    };
-
-    const updatePendingBasicFilter = (filterId, selectedValues) => {
-        setPendingFilters(prev => prev.map(f => (f.id === filterId ? { ...f, selectedValues } : f)));
-    };
-
-    const updatePendingNumericFilter = (filterId, min, max) => {
-        setPendingFilters(prev => prev.map(f => (f.id === filterId ? { ...f, min, max } : f)));
+        setPendingFilters(current => current.filter(filter => filter.id !== filterId));
     };
 
     const applyFilters = async () => {
-        setResultsView({ filters: [...pendingFilters] });
-        setSelectedRows(new Set());
-        await loadData(pendingFilters, 0, 1000, false);
+        setResultsView({ filters: pendingFilters });
+        await loadData(pendingFilters);
+        setFiltersModalWindowVisible(false);
     };
 
     const clearAllFilters = async () => {
         setPendingFilters([]);
         setResultsView({ filters: [] });
-        setSelectedRows(new Set());
-        await loadData([], 0, 1000, false);
+        await loadData([]);
     };
+
+    const canApplyFilters =
+        pendingFilters.length > 0 &&
+        pendingFilters.every(filter =>
+            filter.type === 'basic'
+                ? filter.selectedValues?.length > 0
+                : getFilterFields(filter).length > 0 &&
+                  Number.isFinite(filter.min) &&
+                  Number.isFinite(filter.max) &&
+                  filter.min <= filter.max
+        );
 
     const toggleColumn = columnKey => {
         const newHidden = new Set(hiddenColumns);
@@ -282,43 +239,30 @@ function AdminResultsView() {
         } else {
             newHidden.add(columnKey);
         }
-        updateVisibleColumns(newHidden);
-    };
-
-    const toggleColumnGroup = groupColumns => {
-        const allGroupHidden = groupColumns.every(col => hiddenColumns.has(col));
-        const newHidden = new Set(hiddenColumns);
-
-        groupColumns.forEach(col => {
-            if (allGroupHidden) {
-                newHidden.delete(col);
-            } else {
-                newHidden.add(col);
-            }
-        });
-
-        updateVisibleColumns(newHidden);
-    };
-
-    const showAllColumns = () => {
-        updateVisibleColumns(new Set());
-    };
-
-    const hideAllColumns = () => {
-        updateVisibleColumns(new Set(columnOrder));
-    };
-
-    const updateVisibleColumns = newHidden => {
         setResultsView({ hiddenColumns: [...newHidden] });
     };
 
-    // Функция для перехода к группировке
+    const toggleColumnGroup = groupColumns => {
+        const allGroupHidden = groupColumns.every(column => hiddenColumns.has(column));
+        const newHidden = new Set(hiddenColumns);
+
+        groupColumns.forEach(column => {
+            if (allGroupHidden) {
+                newHidden.delete(column);
+            } else {
+                newHidden.add(column);
+            }
+        });
+
+        setResultsView({ hiddenColumns: [...newHidden] });
+    };
+
     const handleGrouping = () => {
-        if (selectedRows.size === 0) {
+        if (!selectedRows.size) {
             alert('Выберите записи для группировки (флажки в первом столбце)');
             return;
         }
-        setGrouppingModalVisible(true);
+        setGroupingModalVisible(true);
     };
 
     const handleConfirmGrouping = () => {
@@ -327,50 +271,44 @@ function AdminResultsView() {
             return;
         }
 
-        const groupingData = {
-            selectedIds: Array.from(selectedRows),
-            groupingColumn: groupingColumn,
-            filters
-        };
-
-        // Переходим на страницу группировки
-        navigate('/admin/grouping', { state: groupingData });
+        navigate('/admin/grouping', {
+            state: {
+                selectedIds: Array.from(selectedRows),
+                groupingColumn,
+                filters: expandFilters(filters)
+            }
+        });
     };
 
-    const rows = results.map(row => ({
-        rowId: row.res_id,
-        ...row,
-
-        // participant разворачиваем
-        ...row.participant,
-
-        // результаты разворачиваем
-        ...row.competences,
-        ...row.motivators,
-        ...row.values,
-        participant: row.participant?.part_rsv_id ?? null
-    }));
-
-    function onCellClick(row){
-        setShowStudent(row);
-    }
-
-    const columns = useMemo(
-        () => buildStudentColumns().filter(column => !column.id || !hiddenColumns.has(column.id)),
-        [resultsView?.hiddenColumns]
+    const rows = useMemo(
+        () =>
+            results.map(row => ({
+                rowId: row.res_id,
+                ...row,
+                ...row.participant,
+                ...row.competences,
+                ...row.motivators,
+                ...row.values,
+                participant: row.participant?.part_rsv_id ?? null
+            })),
+        [results]
     );
+
+    const allColumns = useMemo(() => buildStudentColumns(), []);
+    const columns = useMemo(
+        () => allColumns.filter(column => !column.id || !hiddenColumns.has(column.id)),
+        [allColumns, resultsView?.hiddenColumns]
+    );
+
     return (
         <div className="AdminResultsView">
-            <div
-                className="results-container"
-                style={{ hidden: true }}
-            >
+            <div className="results-container">
                 <div className="results-header">
                     <h2>Результаты тестирования</h2>
                     <FlexRow wrap={WRAP.DO}>
                         <Button
                             text="Фильтры..."
-                            onClick={() => setFiltersModalWindowVisible(filters)}
+                            onClick={openFilters}
                             palette={ADMIN_PALETTE.YELLOW}
                         />
                         <Button
@@ -405,7 +343,6 @@ function AdminResultsView() {
                     </FlexRow>
                 </div>
 
-                {/* Селектор колонок */}
                 {showColumnSelector && (
                     <div className="column-selector">
                         <div className="column-selector-header">
@@ -413,13 +350,13 @@ function AdminResultsView() {
                             <div className="column-selector-controls">
                                 <Button
                                     text="Показать все"
-                                    onClick={showAllColumns}
+                                    onClick={() => setResultsView({ hiddenColumns: [] })}
                                     disabled={loading}
                                     palette={ADMIN_PALETTE.BLUE}
                                 />
                                 <Button
                                     text="Скрыть все"
-                                    onClick={hideAllColumns}
+                                    onClick={() => setResultsView({ hiddenColumns: COLUMN_ORDER })}
                                     disabled={loading}
                                     palette={ADMIN_PALETTE.BLUE}
                                 />
@@ -431,9 +368,8 @@ function AdminResultsView() {
                             </div>
                         </div>
                         <div className="column-groups">
-                            {Object.entries(columnGroups).map(([groupName, groupColumns]) => {
-                                const visibleCount = groupColumns.filter(col => !hiddenColumns.has(col)).length;
-                                const totalCount = groupColumns.length;
+                            {Object.entries(COLUMN_GROUPS).map(([groupName, groupColumns]) => {
+                                const visibleCount = groupColumns.filter(column => !hiddenColumns.has(column)).length;
                                 return (
                                     <div
                                         key={groupName}
@@ -446,14 +382,14 @@ function AdminResultsView() {
                                                     checked={visibleCount > 0}
                                                     onChange={() => toggleColumnGroup(groupColumns)}
                                                     disabled={loading}
-                                                    ref={el => {
-                                                        if (el) {
-                                                            el.indeterminate = visibleCount > 0 && visibleCount < totalCount;
+                                                    ref={element => {
+                                                        if (element) {
+                                                            element.indeterminate = visibleCount > 0 && visibleCount < groupColumns.length;
                                                         }
                                                     }}
                                                 />
                                                 <span className="group-name">
-                                                    {groupName} ({visibleCount}/{totalCount})
+                                                    {groupName} ({visibleCount}/{groupColumns.length})
                                                 </span>
                                             </label>
                                         </div>
@@ -484,16 +420,16 @@ function AdminResultsView() {
                     className="table-container"
                     style={{ height: 700, paddingBottom: 8 }}
                 >
-                    {!results.length ? (
+                    {loading && !results.length ? (
                         <div className="loading">
                             <LoadingSpinner text="Загрузка данных..." />
                         </div>
                     ) : (
                         <DataTable
-                            rows={rows ?? []}
+                            rows={rows}
                             columns={columns}
-                            rowKey={'rowId'}
-                            cellClickHandlers={onCellClick}
+                            rowKey="rowId"
+                            cellClickHandlers={setShownStudent}
                             onSelectionChange={selected => setSelectedRows(new Set(selected.map(row => row.res_id)))}
                             _selectedRows={rows.filter(row => selectedRows.has(row.res_id))}
                             pageSize={20}
@@ -501,7 +437,6 @@ function AdminResultsView() {
                     )}
                 </div>
 
-                {/* Подсказка снизу */}
                 <FlexRow>
                     <Label>
                         <FlexRow gap="20">
@@ -516,17 +451,16 @@ function AdminResultsView() {
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.YELLOW} />
-                                <span>базовый (200-399)</span>
+                                <span>Базовый (200-399)</span>
                             </FlexRow>
                         </FlexRow>
                     </Label>
 
                     <Label>
-                        Колонок: {visibleColumns.length}/{columnOrder.length} • Записей: {results.length}
+                        Колонок: {columns.length - 1}/{COLUMN_ORDER.length} • Записей: {results.length}
                         {hasMore && '+'} • Выбрано: {selectedRows.size}
                     </Label>
 
-                    {/* Кнопка загрузки дополнительных данных */}
                     {hasMore && (
                         <Button
                             text={loading ? 'Загрузка...' : 'Загрузить ещё'}
@@ -538,130 +472,123 @@ function AdminResultsView() {
                 </FlexRow>
             </div>
 
-            {/* Модальное окно системы фильтров */}
             <FiltersModalWindow>
                 <ModalBody>
                     <div className="filters-modal-body">
                         <FlexRow wrap={WRAP.DO}>
-                            <Dropdown
-                                label="+ Добавить фильтр"
-                            >
+                            <Dropdown label="+ Добавить фильтр">
                                 <OptionGroup label="Базовые поля">
-                                    {basicFields.map(field => (
+                                    {BASIC_FIELDS.map(field => (
                                         <Option
+                                            key={field}
                                             value={field}
                                             label={FIELD_NAMES[field]}
                                             onClick={addBasicFilter}
                                         />
                                     ))}
                                 </OptionGroup>
-                                <OptionGroup label="Компетенции">
-                                    {Object.keys(COMPETENCIES_NAMES).map(field => (
+                                {Object.entries(NUMERIC_GROUPS).map(([group, fields]) => (
+                                    <OptionGroup
+                                        key={group}
+                                        label={group}
+                                    >
                                         <Option
-                                            value={field}
-                                            label={FIELD_NAMES[field]}
+                                            value={group}
+                                            label={`Все: ${group.toLowerCase()}`}
                                             onClick={addNumericFilter}
                                         />
-                                    ))}
-                                </OptionGroup>
-                                <OptionGroup label="Мотиваторы">
-                                    {Object.keys(MOTIVATORS_NAMES).map(field => (
-                                        <Option
-                                            value={field}
-                                            label={FIELD_NAMES[field]}
-                                            onClick={addNumericFilter}
-                                        />
-                                    ))}
-                                </OptionGroup>
-                                <OptionGroup label="Ценности">
-                                    {Object.keys(VALUES_NAMES).map(field => (
-                                        <Option
-                                            value={field}
-                                            label={FIELD_NAMES[field]}
-                                            onClick={addNumericFilter}
-                                        />
-                                    ))}
-                                </OptionGroup>
+                                        {fields.map(field => (
+                                            <Option
+                                                key={field}
+                                                value={field}
+                                                label={FIELD_NAMES[field]}
+                                                onClick={addNumericFilter}
+                                            />
+                                        ))}
+                                    </OptionGroup>
+                                ))}
                             </Dropdown>
+                            <Button
+                                text={loading ? 'Загрузка...' : 'Применить'}
+                                onClick={applyFilters}
+                                disabled={!canApplyFilters || loading}
+                                palette={ADMIN_PALETTE.GREEN}
+                            />
                             {(pendingFilters.length > 0 || filters.length > 0) && (
-                                <>
-                                    <Button
-                                        text={loading ? 'Загрузка...' : 'Применить'}
-                                        onClick={applyFilters}
-                                        disabled={pendingFilters.length === 0 || loading}
-                                        palette={ADMIN_PALETTE.GREEN}
-                                    />
-                                    <Button
-                                        text="Очистить"
-                                        onClick={clearAllFilters}
-                                        disabled={loading}
-                                        palette={ADMIN_PALETTE.RED}
-                                    />
-                                </>
+                                <Button
+                                    text="Очистить"
+                                    onClick={clearAllFilters}
+                                    disabled={loading}
+                                    palette={ADMIN_PALETTE.RED}
+                                />
                             )}
                         </FlexRow>
 
-                        {/* Ожидающие применения фильтры */}
                         {pendingFilters.length > 0 && (
                             <>
                                 <h6>Выбранные фильтры:</h6>
-                                <FlexColumn
-                                    className="pending-filters-column"
-                                    wrap={WRAP.DO}
-                                >
+                                <FlexColumn className="pending-filters-column">
                                     {pendingFilters.map(filter => (
                                         <LabelledBox
-                                            label={FIELD_NAMES[filter.field]}
+                                            key={filter.id}
+                                            label={filter.type === 'basic' ? FIELD_NAMES[filter.field] : getNumericFilterLabel(filter)}
                                             bordered
                                         >
-                                            <FlexRow>
-                                                {filter.type === 'basic' ? (
-                                                    <MultiSelect
-                                                        options={availableValues[filter.field]}
-                                                        value={filter.selectedValues}
-                                                        onChange={selected => updatePendingBasicFilter(filter.id, selected)}
-                                                    />
-                                                ) : (
-                                                    <>
-                                                        <LabelledBox
-                                                            label="От:"
-                                                            nopad
-                                                            inrow
-                                                        >
-                                                            <NumberField
-                                                                value={filter.min}
-                                                                min="200"
-                                                                max="800"
-                                                                onChange={value => updatePendingNumericFilter(filter.id, value, filter.max)}
-                                                            />
-                                                        </LabelledBox>
-                                                        <LabelledBox
-                                                            label="До:"
-                                                            nopad
-                                                            inrow
-                                                        >
-                                                            <NumberField
-                                                                value={filter.max}
-                                                                min="200"
-                                                                max="800"
-                                                                onChange={value => updatePendingNumericFilter(filter.id, filter.min, value)}
-                                                            />
-                                                        </LabelledBox>
-                                                    </>
-                                                )}
-                                                <Button
-                                                    text="✕"
-                                                    onClick={() => removePendingFilter(filter.id)}
-                                                    palette={ADMIN_PALETTE.RED}
+                                            <FlexColumn className="pending-filter">
+                                                <MultiSelect
+                                                    options={filter.type === 'basic' ? availableValues[filter.field] : NUMERIC_OPTIONS}
+                                                    value={filter.type === 'basic' ? filter.selectedValues : getFilterFields(filter)}
+                                                    onChange={values =>
+                                                        updatePendingFilter(
+                                                            filter.id,
+                                                            filter.type === 'basic' ? { selectedValues: values } : { fields: values }
+                                                        )
+                                                    }
+                                                    placeholder={filter.type === 'basic' ? 'Выберите значения' : 'Выберите показатели'}
+                                                    withSearch
                                                 />
-                                            </FlexRow>
+                                                <FlexRow>
+                                                    {filter.type === 'numeric' && (
+                                                        <>
+                                                            <LabelledBox
+                                                                label="От:"
+                                                                nopad
+                                                                inrow
+                                                            >
+                                                                <NumberField
+                                                                    value={filter.min}
+                                                                    min="200"
+                                                                    max="800"
+                                                                    onChange={min => updatePendingFilter(filter.id, { min })}
+                                                                />
+                                                            </LabelledBox>
+                                                            <LabelledBox
+                                                                label="До:"
+                                                                nopad
+                                                                inrow
+                                                            >
+                                                                <NumberField
+                                                                    value={filter.max}
+                                                                    min="200"
+                                                                    max="800"
+                                                                    onChange={max => updatePendingFilter(filter.id, { max })}
+                                                                />
+                                                            </LabelledBox>
+                                                        </>
+                                                    )}
+                                                    <Button
+                                                        text="✕"
+                                                        onClick={() => removePendingFilter(filter.id)}
+                                                        palette={ADMIN_PALETTE.RED}
+                                                    />
+                                                </FlexRow>
+                                            </FlexColumn>
                                         </LabelledBox>
                                     ))}
                                 </FlexColumn>
                             </>
                         )}
 
-                        {/* Активные фильтры */}
                         {filters.length > 0 && (
                             <>
                                 <h6>Активные фильтры:</h6>
@@ -669,18 +596,16 @@ function AdminResultsView() {
                                     className="active-filters-row"
                                     wrap={WRAP.DO}
                                 >
-                                    {filters.map(filter => {
-                                        let text = `${FIELD_NAMES[filter.field]}: `;
-                                        switch (filter.type) {
-                                            case 'basic':
-                                                text += `Выбрано значений: ${filter.selectedValues.length}`;
-                                                break;
-                                            case 'numeric':
-                                                text += `Диапазон: ${filter.min} - ${filter.max}`;
-                                                break;
-                                        }
-                                        return <Label text={text} />;
-                                    })}
+                                    {filters.map(filter => (
+                                        <Label
+                                            key={filter.id}
+                                            text={
+                                                filter.type === 'basic'
+                                                    ? `${FIELD_NAMES[filter.field]}: ${filter.selectedValues.join(', ')}`
+                                                    : `${getNumericFilterLabel(filter)}: ${filter.min}–${filter.max}`
+                                            }
+                                        />
+                                    ))}
                                 </FlexRow>
                             </>
                         )}
@@ -695,8 +620,7 @@ function AdminResultsView() {
                 </ModalFooter>
             </FiltersModalWindow>
 
-            {/* Модальное окно выбора столбца для группировки */}
-            <GrouppingModalWindow>
+            <GroupingModalWindow>
                 <ModalBody>
                     <div className="groupping-modal-body">
                         <label>Столбец для группировки:</label>
@@ -705,8 +629,9 @@ function AdminResultsView() {
                             onChange={setGroupingColumn}
                         >
                             <OptionGroup label="Базовые поля">
-                                {basicFields.map(field => (
+                                {BASIC_FIELDS.map(field => (
                                     <Option
+                                        key={field}
                                         value={field}
                                         label={FIELD_NAMES[field]}
                                     />
@@ -722,7 +647,7 @@ function AdminResultsView() {
                 <ModalFooter>
                     <Button
                         text="Отмена"
-                        onClick={() => setGrouppingModalVisible(false)}
+                        onClick={() => setGroupingModalVisible(false)}
                         palette={ADMIN_PALETTE.GRAY}
                     />
                     <Button
@@ -732,8 +657,13 @@ function AdminResultsView() {
                         palette={ADMIN_PALETTE.BLUE}
                     />
                 </ModalFooter>
-            </GrouppingModalWindow>
-            <StudentModal open={!!shownStudent} student={shownStudent} onClose={() => setShowStudent(null)} />
+            </GroupingModalWindow>
+
+            <StudentModal
+                open={!!shownStudent}
+                student={shownStudent}
+                onClose={() => setShownStudent(null)}
+            />
         </div>
     );
 }

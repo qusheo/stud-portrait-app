@@ -29,7 +29,7 @@ type DataSessionFilter =
     | { id: string; type: 'numeric'; field: string; min: number; max: number };
 type ResultsViewFilter =
     | { id: number; type: 'basic'; field: string; selectedValues: Array<string | number> }
-    | { id: number; type: 'numeric'; field: string; min: number; max: number };
+    | { id: number | string; type: 'numeric'; field: string; min: number; max: number };
 type TransferStudentsInput = {
     institution_id?: number | string | null;
     competency?: string;
@@ -70,10 +70,7 @@ class AdminService extends BaseService {
      * Статистика dashboard
      */
     getDashboardStats(filters: AnalyticsFilters) {
-        return this.request(
-            () => Api.getDashboardStats(filters.institute, filters.specialty, filters.year),
-            'Ошибка загрузки статистики'
-        );
+        return this.request(() => Api.getDashboardStats(filters.institute, filters.specialty, filters.year), 'Ошибка загрузки статистики');
     }
 
     getCompetencyAverageByYears(institute?: number | string, specialty?: number | string) {
@@ -169,25 +166,17 @@ class AdminService extends BaseService {
             'Ошибка загрузки фильтров'
         );
     }
-    
-    getStudentSearchOptions(){
-        return this.request(
-            () => Api.getStudentInterests());
+
+    getStudentSearchOptions() {
+        return this.request(() => Api.getStudentInterests());
     }
 
     postDataseshNew() {
         return this.request(() => Api.postPortraitDataseshNew(), 'Ошибка создания сессии');
     }
 
-    postDataseshExtractData(
-        filters: ResultsViewFilter[],
-        start: number,
-        end: number
-    ) {
-        return this.request(
-            () => Api.postPortraitDataseshExtractData(filters, start, end),
-            'Ошибка загрузки данных'
-        );
+    postDataseshExtractData(filters: ResultsViewFilter[], start: number, end: number) {
+        return this.request(() => Api.postPortraitDataseshExtractData(filters, start, end), 'Ошибка загрузки данных');
     }
 
     postDataseshUpdateFilters(sessionId: string, filters: DataSessionFilter[]) {
@@ -213,15 +202,8 @@ class AdminService extends BaseService {
         return this.request(() => Api.postPortraitDataseshCountStats(sessionId), 'Ошибка загрузки статистики');
     }
 
-    postDataseshGroupSelected(
-        selectedIds: Array<number | string>,
-        groupingColumn: string,
-        filters: ResultsViewFilter[]
-    ) {
-        return this.request(
-            () => Api.postPortraitDataseshGroupSelected(selectedIds, groupingColumn, filters),
-            'Ошибка группировки данных'
-        );
+    postDataseshGroupSelected(selectedIds: Array<number | string>, groupingColumn: string, filters: ResultsViewFilter[]) {
+        return this.request(() => Api.postPortraitDataseshGroupSelected(selectedIds, groupingColumn, filters), 'Ошибка группировки данных');
     }
 
     postAiAnalyticsSummary(contextType: string, filters: Record<string, unknown>) {
@@ -307,12 +289,7 @@ class AdminService extends BaseService {
         return this.request(() => Api.postGetVamTrendData(body), 'Ошибка загрузки динамики VAM');
     }
 
-    postGetBoxplotData(
-        competency: string,
-        institutionIds: number | string[],
-        directionIds: number | string[],
-        groupBy: BoxplotGroupBy
-    ) {
+    postGetBoxplotData(competency: string, institutionIds: number | string[], directionIds: number | string[], groupBy: BoxplotGroupBy) {
         return this.request(() => Api.postGetBoxplotData(competency, institutionIds, directionIds, groupBy), 'Ошибка загрузки boxplot');
     }
 
