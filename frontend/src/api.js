@@ -721,13 +721,15 @@ async getCsrfToken() {
 		});
 	}
 
-	updateStudentInterests(studentId, changes) {
+	async updateStudentInterests(studentId, changes) {
+		const { csrfToken } = await this.getCsrfToken();
+
 		return fetch(`${HOST}/portrait/interests/update_student_interests/`, {
 			method: 'PATCH',
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-CSRFToken': getCsrfToken(),
+				'X-CSRFToken': csrfToken,
 			},
 			body: JSON.stringify({ student_id: studentId, changes }),
 		});

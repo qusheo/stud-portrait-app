@@ -353,9 +353,7 @@ function UserView() {
                                             <h4>Интересы</h4>
                                         </div>
 										
-										<Button onClick={() => setInterestsModalOpen(true)}>
-											Изменить интересы
-										</Button>
+										<Button onClick={() => setInterestsModalOpen(true)} text={'Изменить интересы'}/>
 
                                         <p className="read-only-text">{interests || 'Нет данных об интересах'}</p>
 

@@ -203,6 +203,10 @@ def get_user_permissions(request):
         ACCESS_PERMISSION_KEYS,
         account_type == PortraitUser.AccountType.ADMIN,
     )
+    permissions.update({
+        "canViewOwnPortrait": True,
+        "canViewOwnReport": True,
+    })
 
     return JsonResponse({
         "ok": True,
