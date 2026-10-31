@@ -21,7 +21,7 @@ def get_teachers_table():
     try:
         rows = []
         for i in fields:
-             rows.append({i: 0}) #прросто заготовка пока
+            rows.append({i: 0}) #прросто заготовка пока
         return JsonResponse({"ok": True, "data": rows})
     except Exception as e:
         print(traceback.format_exc())

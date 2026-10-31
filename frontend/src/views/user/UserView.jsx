@@ -15,8 +15,7 @@ import {
 
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import StudentComparisonStats from '@components/StudentComparisonStats';
-import Title from '@components/Title';
-
+import StudentInterestsModal from './components/InterestsModal';
 import Button from '@components/ui/Button';
 import { STUDENT_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
@@ -58,6 +57,8 @@ function UserView() {
     const [interests, setInterests] = useState('');
     const [skills, setSkills] = useState('');
     const [saving, setSaving] = useState(false);
+
+	const [interestsModalOpen, setInterestsModalOpen] = useState(false);
 
     useEffect(() => {
         if (showAnalytics && selectedYear) {
@@ -351,16 +352,12 @@ function UserView() {
                                         <div className="edit-header">
                                             <h4>Интересы</h4>
                                         </div>
-                                        {isEditing ? (
-                                            <textarea 
-                                                className="edit-textarea" 
-                                                value={interests} 
-                                                onChange={(e) => setInterests(e.target.value)}
-                                                placeholder="Введите ваши интересы..."
-                                            />
-                                        ) : (
-                                            <p className="read-only-text">{interests || 'Нет данных об интересах'}</p>
-                                        )}
+										
+										<Button onClick={() => setInterestsModalOpen(true)}>
+											Изменить интересы
+										</Button>
+
+                                        <p className="read-only-text">{interests || 'Нет данных об интересах'}</p>
 
                                         <div className="edit-header" style={{ marginTop: '15px' }}>
                                             <h4>Навыки</h4>
@@ -629,6 +626,11 @@ function UserView() {
                     </div>
                 )}
             </div>
+			<StudentInterestsModal
+				open={interestsModalOpen}
+				studentId={studentId}
+				onClose={() => setInterestsModalOpen(false)}
+			/>
         </div>
     );
 }

@@ -106,7 +106,7 @@ function AdminResultsView() {
 
     const {
         data: resultsData,
-        isPending: loading,
+        isFetching: loading,
         refetch
     } = useQuery({
         queryKey: ['admin', 'results', filters, resultLimit],
@@ -209,16 +209,18 @@ function AdminResultsView() {
         setPendingFilters(current => current.filter(filter => filter.id !== filterId));
     };
 
-    const applyFilters = async () => {
+    const applyFilters = () => {
+        setResultLimit(1000);
+        setSelectedRows(new Set());
         setResultsView({ filters: pendingFilters });
-        await loadData(pendingFilters);
         setFiltersModalWindowVisible(false);
     };
 
-    const clearAllFilters = async () => {
+    const clearAllFilters = () => {
         setPendingFilters([]);
+        setResultLimit(1000);
+        setSelectedRows(new Set());
         setResultsView({ filters: [] });
-        await loadData([]);
     };
 
     const canApplyFilters =
@@ -330,7 +332,7 @@ function AdminResultsView() {
                         />
                         <Button
                             text={loading ? 'Загрузка...' : 'Обновить'}
-                            onClick={() => loadData()}
+                            onClick={handleRefresh}
                             disabled={loading}
                             palette={ADMIN_PALETTE.CYAN}
                         />

@@ -89,6 +89,21 @@ class StudentService extends BaseService {
             'Ошибка поиска студентов'
         );
     }
+
+	getStudentInterests(studentId: number | string) {
+		return this.request(
+			() => Api.getStudentInterests(studentId),
+			'Ошибка загрузки интересов'
+		);
+	}
+
+	updateStudentInterests(studentId: number | string, changes: any) {
+		return this.request(
+			() => Api.updateStudentInterests(studentId, changes),
+			'Ошибка сохранения интересов'
+		);
+	}
+
 }
 
 export default new StudentService();

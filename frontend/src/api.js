@@ -713,5 +713,25 @@ async getCsrfToken() {
         const promise = fetch(`${HOST}/portrait/possible-duplicate-accounts/`);
         return promise;
     }
+	
+	getStudentInterests(studentId) {
+		const params = new URLSearchParams({ student_id: String(studentId) });
+		return fetch(`${HOST}/portrait/interests/get_student_interests/?${params}`, {
+			credentials: 'include',
+		});
+	}
+
+	updateStudentInterests(studentId, changes) {
+		return fetch(`${HOST}/portrait/interests/update_student_interests/`, {
+			method: 'PATCH',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': getCsrfToken(),
+			},
+			body: JSON.stringify({ student_id: studentId, changes }),
+		});
+	}
+
 }
 export default new Api();

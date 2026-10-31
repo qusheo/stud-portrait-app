@@ -11,6 +11,7 @@ from .endpoints import (
     access,
 )
 from .endpoints.entities import students
+from .endpoints import student_interests
 from .endpoints.entities import teachers
 from .endpoints.matchingService import matching
 from .endpoints.parsers import curriculum_end
@@ -74,6 +75,8 @@ urlpatterns = [
     path('analyze-transfers/',          students.analyze_transfers,          name='analyze_transfers'),
     path('analyze-transfer-students/',  students.analyze_transfer_students,  name='analyze_transfer_students'),
     path('student-interests-options/', students.get_interest_options, name='student_interests'),
+    path('interests/get_student_interests/', student_interests.get_student_interests, name='get_student_interests'),
+    path('interests/update_student_interests/', student_interests.update_student_interests, name='update_student_interests'),
     path('duplicate-accounts/', analysis_end.get_duplicate_accounts, name='duplicate_accounts'),
     path('possible-duplicate-accounts/', analysis_end.get_possible_duplicate_accounts, name='possible-duplicate-accounts/'),
 
