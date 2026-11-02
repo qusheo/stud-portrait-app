@@ -779,7 +779,7 @@ def get_grades_competency_correlation(request):
             ]
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'correlations': correlations,
             'scatter': scatter_data,
             'disciplines': sorted(list(disciplines_set)),
@@ -789,7 +789,7 @@ def get_grades_competency_correlation(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e),
             'correlations': [],
             'scatter': [],
@@ -843,7 +843,7 @@ def get_competency_trend_by_year(request):
                 })
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'trends': trends,
             'competencies': COMP_KEYS,
         })
@@ -851,7 +851,7 @@ def get_competency_trend_by_year(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e),
             'trends': [],
             'competencies': COMP_KEYS,
@@ -905,7 +905,7 @@ def get_top_correlations(request):
 
         if not results_map:
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'top': [],
                 'params': {
                     'top_n': top_n, 'sort_by': sort_by, 'min_n': min_n,
@@ -980,7 +980,7 @@ def get_top_correlations(request):
             item['rank'] = i
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'top': top,
             'params': {
                 'top_n': top_n,
@@ -997,7 +997,7 @@ def get_top_correlations(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e),
             'top': [],
             'total_pairs': 0,
@@ -1010,7 +1010,7 @@ def get_competency_segmentation(request):
         competency = request.GET.get('competency')
         if not competency or competency not in COMP.list:
             return JsonResponse({
-                'status': 'error',
+                'ok': False,
                 'message': f'Параметр competency обязателен и должен быть одним из: {COMP.list}',
             }, status=400)
 
@@ -1048,7 +1048,7 @@ def get_competency_segmentation(request):
 
         if not results_map:
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'competency': competency,
                 'competency_name': COMP.names.get(competency, competency),
                 'total_n': 0,
@@ -1183,7 +1183,7 @@ def get_competency_segmentation(request):
             })
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'competency': competency,
             'competency_name': COMP.names.get(competency, competency),
             'q1': round(q1, 1),
@@ -1201,7 +1201,7 @@ def get_competency_segmentation(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e),
             'groups': [],
         }, status=500)

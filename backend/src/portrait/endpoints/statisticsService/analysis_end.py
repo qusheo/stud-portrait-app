@@ -1,4 +1,4 @@
-﻿# ═══════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 # portrait/analysis_end.py
 # API endpoints для статистического анализа
 # ═══════════════════════════════════════════════════════════
@@ -136,12 +136,12 @@ def analyze_student_vam(request):
         student_id = request.GET.get('student_id')
         competency = request.GET.get('competency', COMP.LEADERSHIP)
         if not student_id:
-            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
 
         # Получаем все результаты студента, сортируем по году/курсу
         results = Results.objects.filter(res_participant_id=student_id).order_by('res_year', 'res_course')
         if not results:
-            return JsonResponse({'status': 'error', 'message': 'Нет данных для студента'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Нет данных для студента'}, status=404)
 
         data = []
         for r in results:
@@ -155,7 +155,7 @@ def analyze_student_vam(request):
 
         if len(data) < 2:
             return JsonResponse({
-                'status': 'insufficient_data',
+                'ok': False,
                 'message': 'Недостаточно данных для VAM (нужно минимум 2 замера)'
             }, status=400)
 
@@ -163,9 +163,9 @@ def analyze_student_vam(request):
         vam = ValueAddedModel()
         analysis = vam.fit_for_student(df)
 
-        if analysis['status'] != 'success':
+        if not analysis.get('ok'):
             return JsonResponse({
-                'status': 'error',
+                'ok': False,
                 'message': analysis.get('message', 'Ошибка расчёта VAM')
             })
 
@@ -187,7 +187,7 @@ def analyze_student_vam(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -299,7 +299,7 @@ def analyze_cohort_lgm(request):
             lgm = LatentGrowthModel()
             analysis = lgm.fit(df)
 
-            if analysis['status'] == 'success':
+            if analysis.get('ok'):
                 if group_by == 'institution':
                     inst = Institutions.objects.filter(inst_id=gid).first()
                     group_name = inst.inst_name if inst else f"ВУЗ {gid}"
@@ -335,12 +335,12 @@ def analyze_cohort_lgm(request):
 
         if not results:
             return JsonResponse({
-                'status': 'error',
+                'ok': False,
                 'message': 'Нет данных для анализа LGM'
             }, status=404)
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'competency': competency,
             'group_by': group_by,
             'total_qualified_students': total_qualified_students,
@@ -351,7 +351,7 @@ def analyze_cohort_lgm(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -385,7 +385,7 @@ def get_lgm_growers(request):
         direction_ids = body.get('direction_ids', [])
 
         if group_id is None:
-            return JsonResponse({'status': 'error', 'message': 'group_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'group_id required'}, status=400)
 
         group_id = int(group_id)
 
@@ -419,14 +419,14 @@ def get_lgm_growers(request):
                 })
 
         if not data:
-            return JsonResponse({'status': 'error', 'message': 'Нет данных'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Нет данных'}, status=404)
 
         df = pd.DataFrame(data)
         lgm = LatentGrowthModel()
         analysis = lgm.fit(df)
 
-        if analysis['status'] != 'success':
-            return JsonResponse({'status': 'error', 'message': analysis.get('message', 'Ошибка LGM')}, status=500)
+        if not analysis.get('ok'):
+            return JsonResponse({'ok': False, 'message': analysis.get('message', 'Ошибка LGM')}, status=500)
 
         trajectories = analysis.get('trajectories', [])
         mean_slope = analysis.get('mean_slope', 0)
@@ -477,7 +477,7 @@ def get_lgm_growers(request):
         slow_enriched.sort(key=lambda x: x['slope'])
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'group_id': group_id,
             'mean_slope': round(mean_slope, 4),
             'fast_growers': fast_enriched,
@@ -489,7 +489,7 @@ def get_lgm_growers(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -537,7 +537,7 @@ def analyze_all_disciplines_impact(request):
                     })
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'impact_matrix': impact_matrix,
             'competencies_analyzed': len(competencies)
         })
@@ -546,7 +546,7 @@ def analyze_all_disciplines_impact(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -747,7 +747,7 @@ def analyze_discipline_impact_advanced(request):
             analyzer = DisciplineImpactAnalyzer()
             analysis = analyzer.analyze_discipline_impact(df_filtered, competency)
             
-            if analysis['status'] == 'success':
+            if analysis.get('ok'):
                 analysis['competency'] = competency
                 analysis['competency_label'] = COMP.names[competency]
                 
@@ -756,7 +756,7 @@ def analyze_discipline_impact_advanced(request):
                 results.append(analysis)
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'competencies_analyzed': len(results),
             'results': results
         })
@@ -765,7 +765,7 @@ def analyze_discipline_impact_advanced(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -969,7 +969,7 @@ def get_discipline_heatmap_data(request):
 
         # Используем full_heatmap в ответе
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': full_heatmap,
             'disciplines': list(DISCIPLINE_COMPETENCY_MAP.keys()),
             'competencies': competencies
@@ -979,7 +979,7 @@ def get_discipline_heatmap_data(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -1010,7 +1010,7 @@ def get_disciplines(request):
             })
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'disciplines': disciplines_with_counts,
             'total_count': len(disciplines_with_counts)
         })
@@ -1019,7 +1019,7 @@ def get_disciplines(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -1036,13 +1036,13 @@ def analyze_student_discipline_impact(request):
     try:
         student_id = request.GET.get('student_id')
         if not student_id:
-            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
 
         # Получаем участника
         try:
             participant = Participants.objects.get(part_id=student_id)
         except Participants.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Студент не найден'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Студент не найден'}, status=404)
 
         disciplines = AcademicPerformances.objects.filter(
             perf_participant=participant
@@ -1087,14 +1087,14 @@ def analyze_student_discipline_impact(request):
             })
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': results
         }, json_dumps_params={'ensure_ascii': False})
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -1355,7 +1355,7 @@ def get_vam_trend_data(request):
             })
 
         if not data:
-            return JsonResponse({'status': 'error', 'message': 'Нет данных'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Нет данных'}, status=404)
 
         df = pd.DataFrame(data)
         vam_model = ValueAddedModel()
@@ -1379,7 +1379,7 @@ def get_vam_trend_data(request):
                 ).copy()
 
                 analysis = vam_model.fit_for_student(student_input, expected_growth=global_baseline)
-                if analysis['status'] != 'success':
+                if not analysis.get('ok'):
                     continue
 
                 # Разносим VA по курсам (берём course из growth_by_period)
@@ -1415,12 +1415,12 @@ def get_vam_trend_data(request):
 
         if not result_data:
             return JsonResponse({
-                'status': 'error',
+                'ok': False,
                 'message': 'Недостаточно лонгитюдных данных для VAM'
             }, status=404)
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'group_by': group_by,
             'competency': competency,
             'data': _convert_numpy_types(result_data),
@@ -1429,7 +1429,7 @@ def get_vam_trend_data(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -1444,11 +1444,11 @@ def get_institutions(request):
     try:
         institutions = Institutions.objects.all().values('inst_id', 'inst_name')
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'institutions': list(institutions)
         })
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 
@@ -1459,11 +1459,11 @@ def get_directions(request):
     try:
         directions = EducationSpecialties.objects.all().values('edu_spec_id', 'edu_spec_name')
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'directions': list(directions)
         })
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -1633,7 +1633,7 @@ def ai_analytics_summary(request):
             }).encode()
             response = get_vam_trend_data(mock_request)
             content = json.loads(response.content)
-            if content.get('status') == 'success':
+            if content.get('ok'):
                 data_points = []
                 for group in content.get('data', []):
                     for course in group.get('courses', []):
@@ -1658,7 +1658,7 @@ def ai_analytics_summary(request):
         result = "⚠️ Модель временно недоступна. Попробуйте позже."
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'summary': result,
             'context_type': context_type
         }, json_dumps_params={'ensure_ascii': False})
@@ -1666,7 +1666,7 @@ def ai_analytics_summary(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -1688,7 +1688,7 @@ def get_student_comparison_stats(request):
         year = request.GET.get('year')
         
         if not student_id:
-            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
         
         student_results = Results.objects.filter(res_participant_id=student_id)
         
@@ -1696,7 +1696,7 @@ def get_student_comparison_stats(request):
             student_results = student_results.filter(res_year=year)
         
         if not student_results.exists():
-            return JsonResponse({'status': 'error', 'message': 'Student results not found'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Student results not found'}, status=404)
         
         student = student_results.first()
         
@@ -1840,7 +1840,7 @@ def get_student_comparison_stats(request):
             })
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': result
         })
         
@@ -1848,7 +1848,7 @@ def get_student_comparison_stats(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -1967,7 +1967,7 @@ def get_education_profiles_comparison(request):
                             }
         
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': {
                 'specialties': results,
                 'deltas': deltas,
@@ -1982,7 +1982,7 @@ def get_education_profiles_comparison(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
 
@@ -2030,7 +2030,7 @@ def get_boxplot_data(request):
         group_by = body.get('group_by', 'auto')  # 'auto', 'institution', 'direction', None
 
         if not competency:
-            return JsonResponse({'status': 'error', 'message': 'competency required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'competency required'}, status=400)
 
         qs = Results.objects.select_related('res_participant', 'res_institution', 'res_edu_specialty')
         if institution_ids:
@@ -2076,7 +2076,7 @@ def get_boxplot_data(request):
 
             if len(scores) < 5:
                 return JsonResponse({
-                    'status': 'error',
+                    'ok': False,
                     'message': 'Недостаточно данных (нужно минимум 5 студентов)'
                 }, status=400)
 
@@ -2090,7 +2090,7 @@ def get_boxplot_data(request):
             outliers = [s for s in students_data if s['score'] < lower_fence or s['score'] > upper_fence]
 
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'competency': competency,
                 'grouped': False,
                 'statistics': {
@@ -2185,7 +2185,7 @@ def get_boxplot_data(request):
             })
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'competency': competency,
             'grouped': True,
             'group_by': effective_group_by,
@@ -2195,7 +2195,7 @@ def get_boxplot_data(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -2207,7 +2207,7 @@ def get_boxplot_data(request):
 def get_duplicate_accounts(request):
     """                   :                  mapping_email."""
     return JsonResponse({
-        'status': 'success',
+        'ok': True,
         'message': '                           :                  mapping_email',
         'students': []
     })
@@ -2281,13 +2281,13 @@ def get_possible_duplicate_accounts(request):
             })
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'students': result_students
         })
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ============================================================
@@ -2308,7 +2308,7 @@ def analyze_student_lgm(request):
         student_id = request.GET.get('student_id')
         competency = request.GET.get('competency', COMP.LEADERSHIP)
         if not student_id:
-            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
 
         results = Results.objects.filter(
             res_participant_id=student_id
@@ -2328,7 +2328,7 @@ def analyze_student_lgm(request):
 
         if len(data) < 2:
             return JsonResponse({
-                'status': 'insufficient_data',
+                'ok': False,
                 'message': 'Недостаточно данных для LGM (нужно минимум 2 замера)'
             }, status=400)
 
@@ -2338,8 +2338,8 @@ def analyze_student_lgm(request):
         # fit() требует student_id, time_point, competency_score
         analysis = lgm.fit(df)
 
-        if analysis['status'] != 'success':
-            return JsonResponse({'status': 'error', 'message': analysis.get('message')})
+        if not analysis.get('ok'):
+            return JsonResponse({'ok': False, 'message': analysis.get('message')})
 
         # У студента ровно одна траектория
         traj = analysis['trajectories'][0] if analysis['trajectories'] else {}
@@ -2361,7 +2361,7 @@ def analyze_student_lgm(request):
         ]
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'competency': competency,
             'intercept': round(float(intercept), 2),
             'slope': round(float(slope), 4),
@@ -2377,4 +2377,4 @@ def analyze_student_lgm(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)

@@ -230,7 +230,7 @@ function SuperUploadView() {
         Api.postDataloadImportExcel(selectedFile, mappingConfig)
             .onSuccess(r => r.json().catch(() => null))
             .onSuccess(data => {
-                if (data?.status === 'success') {
+                if (data?.ok) {
                     setUploadResult(data);
                     setStep('upload');
                     setSelectedFile(null);

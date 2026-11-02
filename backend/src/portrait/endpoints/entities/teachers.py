@@ -32,10 +32,10 @@ def get_teacher_by_id(request):
     try:
         teacher_id = int(request.GET.get('teacher_id', ''))
     except ValueError:
-        return JsonResponse({'status': 'error', 'message': 'teacher_id must be an integer'}, status=400)
+        return JsonResponse({'ok': False, 'message': 'teacher_id must be an integer'}, status=400)
 
     return JsonResponse({
-        'status': 'success',
+        'ok': True,
         'data': {
             'teacher_id': teacher_id,
             'transfer': [],

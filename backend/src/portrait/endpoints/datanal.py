@@ -62,7 +62,7 @@ class ValueAddedModel:
             dict: Результаты анализа
         """
         if len(student_data) < 2:
-            return {'status': 'insufficient_data',
+            return {'ok': False,
                     'message': 'Недостаточно данных (нужно минимум 2 замера)'}
 
         student_data = student_data.sort_values(['year', 'course'])
@@ -72,7 +72,7 @@ class ValueAddedModel:
 
         growth_data = student_data[student_data['prev_score'].notna()].copy()
         if len(growth_data) == 0:
-            return {'status': 'insufficient_data',
+            return {'ok': False,
                     'message': 'Недостаточно данных для расчёта прироста'}
 
         # Определяем baseline: приоритет — аргумент → global → fallback
@@ -98,7 +98,7 @@ class ValueAddedModel:
             performance, label = 'as_expected', 'Соответствует ожиданиям'
 
         return {
-            'status': 'success',
+            'ok': True,
             'measurements': len(growth_data),
             'average_value_added': float(avg_va),
             'total_growth': float(growth_data['actual_growth'].sum()),
@@ -131,16 +131,16 @@ class ValueAddedModel:
             sdf = sdf.rename(columns={'time_point': 'course'}) \
                 if 'time_point' in sdf.columns else sdf
             r = self.fit_for_student(sdf)
-            if r['status'] == 'success':
+            if r.get('ok'):
                 r['student_id'] = student_id
                 results.append(r)
 
         if not results:
-            return {'status': 'error', 'message': 'Нет студентов с достаточными данными'}
+            return {'ok': False, 'message': 'Нет студентов с достаточными данными'}
 
         avg_values = [r['average_value_added'] for r in results]
         return {
-            'status': 'success',
+            'ok': True,
             'global_expected_growth': self.global_expected_growth,
             'total_students': len(results),
             'avg_value_added': float(np.mean(avg_values)),
@@ -217,7 +217,7 @@ class LatentGrowthModel:
         
         if not student_trajectories:
             return {
-                'status': 'error',
+                'ok': False,
                 'message': 'Недостаточно данных для LGM'
             }
         
@@ -228,7 +228,7 @@ class LatentGrowthModel:
         self.fitted = True
         
         return {
-            'status': 'success',
+            'ok': True,
             'n_students': len(trajectories_df),
             'mean_intercept': float(trajectories_df['intercept'].mean()),
             'std_intercept': float(trajectories_df['intercept'].std()),
@@ -402,7 +402,7 @@ class DisciplineImpactAnalyzer:
                 })
         
         return {
-            'status': 'success',
+            'ok': True,
             'results': results
         }
     
@@ -435,7 +435,7 @@ class DisciplineImpactAnalyzer:
         impact_matrix = self._create_impact_matrix(all_results)
         
         return {
-            'status': 'success',
+            'ok': True,
             'detailed_results': all_results,
             'impact_matrix': impact_matrix,
             'top_effective_disciplines': self._rank_disciplines(impact_matrix)
@@ -474,7 +474,7 @@ class DisciplineImpactAnalyzer:
         matrix = []
         
         for comp, comp_data in all_results.items():
-            if comp_data['status'] == 'success':
+            if comp_data.get('ok'):
                 for disc_result in comp_data['results']:
                     matrix.append({
                         'discipline': disc_result['discipline'],
@@ -576,7 +576,7 @@ class CrossSectionalAnalyzer:
             anova_result = None
         
         return {
-            'status': 'success',
+            'ok': True,
             'dimension': dimension,
             'competency': competency_field,
             'groups': results,

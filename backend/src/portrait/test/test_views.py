@@ -25,7 +25,7 @@ class TestStudentsView(BaseTestCase):
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertEqual(len(data['data']), 2)
         student_names = [student['name'] for student in data['data']]
         self.assertIn('Иван Иванов', student_names)

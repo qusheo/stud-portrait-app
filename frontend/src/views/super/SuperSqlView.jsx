@@ -92,7 +92,7 @@ function SuperSqlView() {
         Api.postAuditExecuteSQL(query)
             .onSuccess(async response => {
                 const data = await response.json().catch(() => null);
-                if (data?.status === 'success') {
+                if (data?.ok) {
                     setResult(data.data);
                 } else {
                     setError(data.message);

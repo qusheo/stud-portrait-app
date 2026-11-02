@@ -115,7 +115,7 @@ function AdminAnomalousStudentView() {
                     selectedDirections.map(id => Number(id)),
                     groupByMode
                 );
-                if (data.status === 'success') {
+                if (data.ok) {
                     if (data.grouped) {
                         // Группированный режим
                         setGroupedData(data.groups);

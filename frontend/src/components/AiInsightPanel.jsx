@@ -36,7 +36,7 @@ function AiInsightPanel({ contextType, filters = {}, label = '', autoRun = false
         const generateSummary = async () => {
             try {
                 const data = await AdminService.postAiAnalyticsSummary(contextType, filters);
-                if (data.status === 'success') setSummary(data.summary || 'Нет данных.');
+                if (data.ok) setSummary(data.summary || 'Нет данных.');
                 else setError(data.message || 'Неизвестная ошибка.');
             } catch (err) {
                 setError('Ошибка соединения с сервером.');

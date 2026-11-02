@@ -188,7 +188,7 @@ function AdminAnalysisAdvancedView() {
         setLgmGrowersMap({});
         try {
             const data = await AdminService.postAnalyzeCohortLgm(lgmCompetency, instIds, dirIds, lgmGroupBy);
-            if (data.status === 'success') {
+            if (data.ok) {
                 setLgmCohortData(data);
             } else {
                 alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
@@ -218,7 +218,7 @@ function AdminAnalysisAdvancedView() {
         const load = async () => {
             try {
                 const data = await AdminService.postGetLgmGrowers(lgmCompetency, lgmGroupBy, groupId, instIds, dirIds);
-                if (data.status === 'success') {
+                if (data.ok) {
                     setLgmGrowersMap(prev => ({
                         ...prev,
                         [groupId]: {
@@ -258,7 +258,7 @@ function AdminAnalysisAdvancedView() {
                 const data = await (
                     resolvedType === 'year' ? AdminService.postGetCompetencyLevelFlowYearly : AdminService.postGetCompetencyLevelFlow
                 )(flowCompetency, selectedInstitutions, directionIds);
-                if (data.status === 'success') {
+                if (data.ok) {
                     if (!data.nodes || data.nodes.length === 0) {
                         alert('Нет данных для построения диаграммы Санки по выбранным фильтрам');
                         return;
@@ -298,7 +298,7 @@ function AdminAnalysisAdvancedView() {
                 filter_courses: selectedCourses,
                 filter_test_attempts: selectedTestAttempts
             });
-            if (data.status === 'success' && data.data) {
+            if (data.ok && data.data) {
                 const points = [];
                 data.data.forEach(group => {
                     group.courses.forEach(course => {

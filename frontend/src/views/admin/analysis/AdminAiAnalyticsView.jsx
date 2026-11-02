@@ -75,7 +75,7 @@ function AdminAiAnalyticsView() {
                 courses: selectedCourses,
                 competency: selectedCompetency
             });
-            if (data.status === 'success') {
+            if (data.ok) {
                 setSummary(data.summary);
             } else {
                 setSummary('❌ Ошибка: ' + (data.message || 'Неизвестная ошибка'));

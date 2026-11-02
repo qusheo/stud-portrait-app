@@ -116,13 +116,13 @@ def get_students_list(request):
         ]
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': students,
             'total': queryset.count()
         })
 
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 @method("GET")
@@ -132,12 +132,12 @@ def get_student_portrait(request):
     try:
         student_id = request.GET.get('student_id')
         if not student_id:
-            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+            return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
 
         try:
             student = Participants.objects.get(part_id=student_id)
         except Participants.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Student not found'}, status=404)
+            return JsonResponse({'ok': False, 'message': 'Student not found'}, status=404)
 
         try:
             mapping = StudentMapping.objects.get(mapping_rsv=student.part_rsv_id)
@@ -268,7 +268,7 @@ def get_student_portrait(request):
             courses_data.append(course_info)
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': {
                 'student_info': student_info,
                 'test_results': test_results,
@@ -278,7 +278,7 @@ def get_student_portrait(request):
         })
 
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 @csrf_exempt
@@ -287,12 +287,12 @@ def get_student_by_id(request):
     try:
         student_id = int(request.GET.get('student_id', ''))
     except ValueError:
-        return JsonResponse({'status': 'error', 'message': 'student_id must be an integer'}, status=400)
+        return JsonResponse({'ok': False, 'message': 'student_id must be an integer'}, status=400)
 
     try:
         student = Participants.objects.get(part_id=student_id)
     except Participants.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Student not found'}, status=404)
+        return JsonResponse({'ok': False, 'message': 'Student not found'}, status=404)
 
     try:
         results_sorted = sorted(
@@ -346,7 +346,7 @@ def get_student_by_id(request):
                 education_by_institution[key]['years'].append(result.res_year)
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'data': {
                 'student_id': student.part_id,
                 'transfer': _detect_transfers(results_sorted),
@@ -359,7 +359,7 @@ def get_student_by_id(request):
         })
     except Exception as e:
         print(traceback.format_exc())
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 def get_interest_options(request):
@@ -561,7 +561,7 @@ def analyze_transfers(request):
         avg_after  = round(float(np.mean(after_scores)),  1) if after_scores  else None
 
         return JsonResponse({
-            'status': 'success',
+            'ok': True,
             'summary': {
                 'total_transfer_students': total_transfers,
                 'avg_comp_before_transfer': avg_before,
@@ -578,7 +578,7 @@ def analyze_transfers(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -659,7 +659,7 @@ def analyze_transfer_students(request):
                 break
 
         return JsonResponse({
-            'status':   'success',
+            'ok': True,
             'students': students_out,
             'total':    len(students_out),
             'competency': competency,
@@ -669,4 +669,4 @@ def analyze_transfer_students(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)

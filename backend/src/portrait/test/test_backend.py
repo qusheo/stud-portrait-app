@@ -128,7 +128,7 @@ class TestValueAddedModel(BaseTestCase):
         })
 
         result = self.vam.fit_for_student(data)
-        self.assertEqual(result['status'], 'insufficient_data')
+        self.assertFalse(result['ok'])
 
     def test_fit_for_student_success(self):
         import pandas as pd
@@ -140,7 +140,7 @@ class TestValueAddedModel(BaseTestCase):
         })
 
         result = self.vam.fit_for_student(data, expected_growth=20)
-        self.assertEqual(result['status'], 'success')
+        self.assertTrue(result['ok'])
         self.assertIn('average_value_added', result)
         self.assertIn('performance', result)
 
@@ -165,7 +165,7 @@ class TestLatentGrowthModel(BaseTestCase):
         })
 
         result = self.lgm.fit(data)
-        self.assertEqual(result['status'], 'error')
+        self.assertFalse(result['ok'])
 
     def test_fit_success(self):
         import pandas as pd
@@ -177,7 +177,7 @@ class TestLatentGrowthModel(BaseTestCase):
         })
 
         result = self.lgm.fit(data)
-        self.assertEqual(result['status'], 'success')
+        self.assertTrue(result['ok'])
         self.assertIn('n_students', result)
         self.assertIn('mean_intercept', result)
         self.assertIn('mean_slope', result)
@@ -211,7 +211,7 @@ class TestDisciplineImpactAnalyzer(BaseTestCase):
         result = self.analyzer.analyze_discipline_impact(
             data, 'res_comp_leadership', grade_format='text'
         )
-        self.assertEqual(result['status'], 'success')
+        self.assertTrue(result['ok'])
 
     def test_analyze_discipline_impact_success(self):
         import pandas as pd
@@ -232,7 +232,7 @@ class TestDisciplineImpactAnalyzer(BaseTestCase):
         result = self.analyzer.analyze_discipline_impact(
             df, 'res_comp_leadership', grade_format='text'
         )
-        self.assertEqual(result['status'], 'success')
+        self.assertTrue(result['ok'])
 
 
 # ============================================================
@@ -391,7 +391,7 @@ class TestDuplicateAccounts(BaseTestCase):
         response = self.client.get(reverse('duplicate_accounts'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
 
 
 # ============================================================
@@ -488,13 +488,13 @@ class TestInstitutionsDirections(BaseTestCase):
         response = self.client.get(reverse('get_institutions'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
 
     def test_get_directions(self):
         response = self.client.get(reverse('get_directions'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
 
 
 # ============================================================

@@ -43,7 +43,7 @@ function SuperAuditView() {
         Api.getAuditStats()
             .onSuccess(async response => {
                 const data = await response.json().catch(() => null);
-                if (data?.status === 'success') {
+                if (data?.ok) {
                     setStats(data.info);
                 }
             })
@@ -55,7 +55,7 @@ function SuperAuditView() {
         Api.getAuditSchema()
             .onSuccess(async response => {
                 const data = await response.json().catch(() => null);
-                if (data?.status === 'success') {
+                if (data?.ok) {
                     setSchema(data.schema);
                 }
             })
@@ -67,7 +67,7 @@ function SuperAuditView() {
         Api.getAuditTableData(tableName, 20)
             .onSuccess(async response => {
                 const data = await response.json().catch(() => null);
-                if (data?.status === 'success') {
+                if (data?.ok) {
                     setTableData(data.sample);
                 }
             })

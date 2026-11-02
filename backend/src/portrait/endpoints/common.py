@@ -1,4 +1,4 @@
-﻿
+
 import math
 from django.db.models import Subquery
 from docx.document import Document as DocumentObject
@@ -154,7 +154,7 @@ def exceptionResponse(message: str = "", status: int = 500) -> JsonResponse:
     """ Return server error JSON response with provided message and status (500) by default.
     """
     debugPrint(f"error {status}:", message)
-    return JsonResponse({"status": "exception", "message": message}, status=status)
+    return JsonResponse({"ok": False, "message": message}, status=status)
 
 def method(method):
     """ Automatically reject requests of wrong methods.

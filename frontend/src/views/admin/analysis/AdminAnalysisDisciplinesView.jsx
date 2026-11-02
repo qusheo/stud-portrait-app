@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
@@ -151,7 +151,7 @@ function AdminAnalysisDisciplinesView() {
 
         try {
             const data = await AdminService.getAllDisciplinesImpact();
-            if (data.status === 'success') {
+            if (data.ok) {
                 setAllDisciplinesData(data);
             } else {
                 alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
@@ -178,7 +178,7 @@ function AdminAnalysisDisciplinesView() {
                 selectedDirections,
                 5
             );
-            if (data.status === 'success') {
+            if (data.ok) {
                 setDisciplineData(data.results);
             } else {
                 alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
@@ -197,7 +197,7 @@ function AdminAnalysisDisciplinesView() {
 
         try {
             const data = await AdminService.getDisciplineHeatmapData(selectedInstitutions, selectedDirections);
-            if (data.status === 'success') {
+            if (data.ok) {
                 setHeatmapData(data.data);
                 setHeatmapByDirection(data.data_by_direction || {});
                 setHeatmapDirections(data.directions || []);

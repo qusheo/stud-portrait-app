@@ -481,7 +481,7 @@ def get_motivator_statistics(request):
                 })
             
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'group_by': 'specialty',
                 'data': results
             })
@@ -520,7 +520,7 @@ def get_motivator_statistics(request):
                 })
             
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'group_by': 'course',
                 'data': results
             })
@@ -574,19 +574,19 @@ def get_motivator_statistics(request):
                     results.append(specialty_data)
             
             return JsonResponse({
-                'status': 'success',
+                'ok': True,
                 'group_by': 'specialty_course',
                 'data': results
             })
             
         else:
             return JsonResponse({
-                'status': 'error',
+                'ok': False,
                 'message': 'Неверный параметр group_by'
             }, status=400)
             
     except Exception as e:
         return JsonResponse({
-            'status': 'error',
+            'ok': False,
             'message': str(e)
         }, status=500)
