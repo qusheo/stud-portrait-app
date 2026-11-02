@@ -1,8 +1,8 @@
-from django.http import JsonResponse
-from collections import defaultdict
 import traceback
-from django.db.models import Avg, Count, Q, F
+
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+
 from ..common import *
 
 def get_teachers_table():
@@ -27,10 +27,22 @@ def get_teachers_table():
         print(traceback.format_exc())
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
-def get_teacher_by_id():
+@require_http_methods(["GET"])
+def get_teacher_by_id(request):
     try:
-        
-        return JsonResponse({"ok": True, "data": {}})
-    except Exception as e:
-        print(traceback.format_exc())
-        return JsonResponse({"ok": False, "message": str(e)}, status=500)
+        teacher_id = int(request.GET.get('teacher_id', ''))
+    except ValueError:
+        return JsonResponse({'status': 'error', 'message': 'teacher_id must be an integer'}, status=400)
+
+    return JsonResponse({
+        'status': 'success',
+        'data': {
+            'teacher_id': teacher_id,
+            'transfer': [],
+            'duplicate_account': [],
+            'repeated_year': None,
+            'expelled': None,
+            'education': [],
+            'interests': [],
+        }
+    })

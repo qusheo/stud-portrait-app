@@ -83,6 +83,9 @@ function UserView() {
         };
         if (studentId) {
             fetchData();
+            StudentService.getStudentById(studentId).catch(error =>
+                console.error('Ошибка загрузки дополнительных данных студента:', error)
+            );
         }
     }, [studentId]);
 

@@ -1,6 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import FilterHeader from '@components/FilterHeader.jsx';
+
+const renderWithQueryClient = ui => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const withProvider = children => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    const result = render(withProvider(ui));
+
+    return {
+        ...result,
+        rerender: nextUi => result.rerender(withProvider(nextUi))
+    };
+};
 
 const { getFilterOptions } = vi.hoisted(() => ({ getFilterOptions: vi.fn() }));
 vi.mock('@services', () => ({ AdminService: { getFilterOptions } }));
@@ -53,7 +65,7 @@ beforeEach(() => {
 
 describe('FilterHeader', () => {
     it('загружает и отображает варианты фильтров', async () => {
-        render(
+        renderWithQueryClient(
             <FilterHeader
                 filters={emptyFilters}
                 onFilterChange={vi.fn()}
@@ -72,7 +84,7 @@ describe('FilterHeader', () => {
 
     it('передаёт изменение и очистку фильтра родителю', async () => {
         const onFilterChange = vi.fn();
-        render(
+        renderWithQueryClient(
             <FilterHeader
                 filters={emptyFilters}
                 onFilterChange={onFilterChange}
@@ -90,7 +102,7 @@ describe('FilterHeader', () => {
         getFilterOptions.mockImplementation(async institute => ({
             data: institute ? { specialties: [{ value: 'spec-2', label: 'Направление 2' }] } : allOptions
         }));
-        render(
+        renderWithQueryClient(
             <FilterHeader
                 filters={{ ...emptyFilters, institute: 'uni-1' }}
                 onFilterChange={vi.fn()}
@@ -104,7 +116,7 @@ describe('FilterHeader', () => {
     it('сбрасывает недоступное направление при смене ВУЗа', async () => {
         getFilterOptions.mockImplementation(async institute => ({ data: institute ? { specialties: [] } : allOptions }));
         const onFilterChange = vi.fn();
-        render(
+        renderWithQueryClient(
             <FilterHeader
                 filters={{ institute: 'uni-2', specialty: 'spec-1', year: '' }}
                 onFilterChange={onFilterChange}
@@ -116,7 +128,7 @@ describe('FilterHeader', () => {
 
     it('вызывает сброс и блокирует кнопку при пустых фильтрах', async () => {
         const onResetFilters = vi.fn();
-        const { rerender } = render(
+        const { rerender } = renderWithQueryClient(
             <FilterHeader
                 filters={{ ...emptyFilters, institute: 'uni-1' }}
                 onFilterChange={vi.fn()}
@@ -136,21 +148,19 @@ describe('FilterHeader', () => {
     });
 
     it('не падает при ошибке API и при пустом списке вариантов', async () => {
-        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
         getFilterOptions.mockRejectedValue(new Error('Network error'));
-        const { unmount } = render(
+        const { unmount } = renderWithQueryClient(
             <FilterHeader
                 filters={emptyFilters}
                 onFilterChange={vi.fn()}
                 onResetFilters={vi.fn()}
             />
         );
-        await waitFor(() => expect(errorSpy).toHaveBeenCalled());
-        expect(screen.getByRole('combobox', { name: 'institute' })).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByRole('combobox', { name: 'institute' })).not.toBeDisabled());
+        expect(screen.getByRole('combobox', { name: 'institute' }).options).toHaveLength(1);
         unmount();
-        errorSpy.mockRestore();
         getFilterOptions.mockResolvedValue({ data: { institutes: [], specialties: [], years: [] } });
-        render(
+        renderWithQueryClient(
             <FilterHeader
                 filters={emptyFilters}
                 onFilterChange={vi.fn()}

@@ -462,6 +462,9 @@ function AdminPortraitView() {
     useEffect(() => {
         if (selectedStudentId) {
             loadStudentPortrait(selectedStudentId);
+            StudentService.getStudentById(selectedStudentId).catch(error =>
+                console.error('Ошибка загрузки дополнительных данных студента:', error)
+            );
         } else {
             setStudentPortrait(null);
         }

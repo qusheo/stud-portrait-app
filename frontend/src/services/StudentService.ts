@@ -20,6 +20,10 @@ class StudentService extends BaseService {
         return this.request(() => Api.getStudentPortrait(studentId), 'Ошибка загрузки портрета студента');
     }
 
+    getStudentById(studentId: number) {
+        return this.request(() => Api.getStudentById(studentId), 'Ошибка загрузки данных студента');
+    }
+
     /**
      * Результаты студента
      */

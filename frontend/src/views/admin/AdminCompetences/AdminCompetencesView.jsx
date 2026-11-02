@@ -1,4 +1,4 @@
-import { useState, React, useRef, cloneElement, useCallback } from 'react';
+import { useState, React, useRef, cloneElement, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Tooltip as TooltipRecharts, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';

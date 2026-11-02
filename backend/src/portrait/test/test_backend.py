@@ -2,13 +2,13 @@
 
 import json
 import pytest
-from datetime import datetime
 from unittest.mock import patch, MagicMock
 from io import BytesIO
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.core.cache import cache
 from django.db import connection
+from django.utils import timezone
 
 # Импорты моделей
 from ..models import *
@@ -17,246 +17,38 @@ from ..endpoints.common import COMP, MOT, VAL, zeroIfNull, attrIfObj, join, isIn
 from ..endpoints.datanal import ValueAddedModel, LatentGrowthModel, DisciplineImpactAnalyzer
 
 
-# ============================================================
-# ПОЛНЫЙ SQL ДЛЯ СОЗДАНИЯ ТАБЛИЦ
-# ============================================================
-
-CREATE_TABLES_SQL = """
-DROP TABLE IF EXISTS DataUploadTemplate   CASCADE;
-DROP TABLE IF EXISTS AcademicPerformances CASCADE;
-DROP TABLE IF EXISTS Courseresults        CASCADE;
-DROP TABLE IF EXISTS Results          CASCADE;
-DROP TABLE IF EXISTS Participants         CASCADE;
-DROP TABLE IF EXISTS StudentMapping       CASCADE;
-DROP TABLE IF EXISTS EducationDisciplines CASCADE;
-DROP TABLE IF EXISTS EducationSpecialties CASCADE;
-DROP TABLE IF EXISTS EducationForms       CASCADE;
-DROP TABLE IF EXISTS EducationLevels      CASCADE;
-DROP TABLE IF EXISTS Institutions         CASCADE;
-DROP TABLE IF EXISTS CompetenceCenters    CASCADE;
-
--- Центр компетенций
-CREATE TABLE CompetenceCenters
-(
-    center_id    INTEGER  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    center_name  TEXT     NOT NULL
-);
-
-CREATE INDEX competence_centers_name ON CompetenceCenters(center_name);
-
--- Учебное заведение
-CREATE TABLE Institutions
-(
-    inst_id    INTEGER  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    inst_name  TEXT     NOT NULL
-);
-
-CREATE INDEX institutions_name ON Institutions(inst_name);
-
--- Уровень образования
-CREATE TABLE EducationLevels
-(
-    edu_level_id    INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    edu_level_name  VARCHAR(512)  NOT NULL
-);
-
-CREATE INDEX education_levels_name ON EducationLevels(edu_level_name);
-
-INSERT INTO EducationLevels (edu_level_name) VALUES
-    ('Высшее образование - бакалавриат'),
-    ('Высшее образование - магистратура'),
-    ('Высшее образование - подготовка кадров высшей квалификации'),
-    ('Высшее образование - специалитет'),
-    ('Дополнительное профессиональное образование'),
-    ('Зарубежное образование'),
-    ('Основное общее образование'),
-    ('Пенсионер'),
-    ('Профессиональное обучение'),
-    ('Среднее общее образование'),
-    ('Среднее профессиональное образование');
-
--- Форма обучения
-CREATE TABLE EducationForms
-(
-    edu_form_id    INTEGER      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    edu_form_name  VARCHAR(64)  NOT NULL
-);
-
-INSERT INTO EducationForms (edu_form_name) VALUES
-    ('Заочная'),
-    ('Очная'),
-    ('Очно-заочная');
-
--- Специальность
-CREATE TABLE EducationSpecialties
-(
-    edu_spec_id    INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    edu_spec_name  VARCHAR(1024)  NOT NULL
-);
-
-CREATE INDEX education_specialties_name ON EducationSpecialties(edu_spec_name);
-
--- Учебная дисциплина
-CREATE TABLE EducationDisciplines
-(
-    edu_disc_id    INTEGER        PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    edu_disc_name  VARCHAR(1024)  NOT NULL
-);
-
--- Соотнесение студентов с тестированием РСВ
-CREATE TABLE StudentMapping (
-    mapping_id          INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    mapping_rsv         VARCHAR(512)  UNIQUE NOT NULL,
-    mapping_stud_name   VARCHAR(512)  NOT NULL,
-    mapping_stud_gender INT,
-    mapping_email       VARCHAR(256),
-    mapping_created_at  TIMESTAMP
-);
-
--- Участник тестирования
-CREATE TABLE Participants
-(
-    part_id          INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    part_rsv_id         VARCHAR(512)  UNIQUE NOT NULL,
-    part_course_num  INTEGER,
-    part_gender      INT
-);
-
--- Результат прохождения тестирования РСВ
-CREATE TABLE Results
-(
-    res_id             INTEGER      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    res_participant    INT          NOT NULL REFERENCES Participants(part_id)         ON DELETE CASCADE  ON UPDATE CASCADE,
-    res_center         INT          NOT NULL REFERENCES CompetenceCenters(center_id)  ON DELETE RESTRICT ON UPDATE CASCADE,
-    res_institution    INT          REFERENCES Institutions(inst_id)                  ON DELETE RESTRICT ON UPDATE CASCADE,
-    res_edu_level      INT          REFERENCES EducationLevels(edu_level_id)          ON DELETE RESTRICT ON UPDATE CASCADE,
-    res_edu_form       INT          REFERENCES EducationForms(edu_form_id)            ON DELETE RESTRICT ON UPDATE CASCADE,
-    res_edu_specialty  INT          REFERENCES EducationSpecialties(edu_spec_id)      ON DELETE RESTRICT ON UPDATE CASCADE,
-    res_course         INT,
-    res_year           VARCHAR(16)  NOT NULL,
-    res_potential      INT,
-    res_report         VARCHAR(1024),
-    UNIQUE(res_participant, res_year),
-    -- компетенции
-    res_comp_info_analysis       INT  CHECK (res_comp_info_analysis      BETWEEN 200 AND 800),
-    res_comp_planning            INT  CHECK (res_comp_planning           BETWEEN 200 AND 800),
-    res_comp_result_orientation  INT  CHECK (res_comp_result_orientation BETWEEN 200 AND 800),
-    res_comp_stress_resistance   INT  CHECK (res_comp_stress_resistance  BETWEEN 200 AND 800),
-    res_comp_partnership         INT  CHECK (res_comp_partnership        BETWEEN 200 AND 800),
-    res_comp_rules_compliance    INT  CHECK (res_comp_rules_compliance   BETWEEN 200 AND 800),
-    res_comp_self_development    INT  CHECK (res_comp_self_development   BETWEEN 200 AND 800),
-    res_comp_leadership          INT  CHECK (res_comp_leadership         BETWEEN 200 AND 800),
-    res_comp_emotional_intel     INT  CHECK (res_comp_emotional_intel    BETWEEN 200 AND 800),
-    res_comp_client_focus        INT  CHECK (res_comp_client_focus       BETWEEN 200 AND 800),
-    res_comp_communication       INT  CHECK (res_comp_communication      BETWEEN 200 AND 800),
-    res_comp_passive_vocab       INT  CHECK (res_comp_passive_vocab      BETWEEN 200 AND 800),
-    -- мотиваторы
-    res_mot_autonomy          DECIMAL(5,2)  CHECK (res_mot_autonomy         BETWEEN 200 AND 800),
-    res_mot_altruism          DECIMAL(5,2)  CHECK (res_mot_altruism         BETWEEN 200 AND 800),
-    res_mot_challenge         DECIMAL(5,2)  CHECK (res_mot_challenge        BETWEEN 200 AND 800),
-    res_mot_salary            DECIMAL(5,2)  CHECK (res_mot_salary           BETWEEN 200 AND 800),
-    res_mot_career            DECIMAL(5,2)  CHECK (res_mot_career           BETWEEN 200 AND 800),
-    res_mot_creativity        DECIMAL(5,2)  CHECK (res_mot_creativity       BETWEEN 200 AND 800),
-    res_mot_relationships     DECIMAL(5,2)  CHECK (res_mot_relationships    BETWEEN 200 AND 800),
-    res_mot_recognition       DECIMAL(5,2)  CHECK (res_mot_recognition      BETWEEN 200 AND 800),
-    res_mot_affiliation       DECIMAL(5,2)  CHECK (res_mot_affiliation      BETWEEN 200 AND 800),
-    res_mot_self_development  DECIMAL(5,2)  CHECK (res_mot_self_development BETWEEN 200 AND 800),
-    res_mot_purpose           DECIMAL(5,2)  CHECK (res_mot_purpose          BETWEEN 200 AND 800),
-    res_mot_cooperation       DECIMAL(5,2)  CHECK (res_mot_cooperation      BETWEEN 200 AND 800),
-    res_mot_stability         DECIMAL(5,2)  CHECK (res_mot_stability        BETWEEN 200 AND 800),
-    res_mot_tradition         DECIMAL(5,2)  CHECK (res_mot_tradition        BETWEEN 200 AND 800),
-    res_mot_management        DECIMAL(5,2)  CHECK (res_mot_management       BETWEEN 200 AND 800),
-    res_mot_work_conditions   DECIMAL(5,2)  CHECK (res_mot_work_conditions  BETWEEN 200 AND 800),
-    -- ценности
-    res_val_honesty_justice  INT  CHECK (res_val_honesty_justice BETWEEN 200 AND 800),
-    res_val_humanism         INT  CHECK (res_val_humanism        BETWEEN 200 AND 800),
-    res_val_patriotism       INT  CHECK (res_val_patriotism      BETWEEN 200 AND 800),
-    res_val_family           INT  CHECK (res_val_family          BETWEEN 200 AND 800),
-    res_val_health           INT  CHECK (res_val_health          BETWEEN 200 AND 800),
-    res_val_environment      INT  CHECK (res_val_environment     BETWEEN 200 AND 800)
-);
-
-CREATE INDEX idx_test_results_participant ON Results(res_participant);
-
--- Результат прохождения курсов РСВ
-CREATE TABLE Courseresults
-(
-    course_id           INTEGER  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    course_participant  INT      NOT NULL REFERENCES Participants(part_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    course_an_dec                  DECIMAL(5,2)  CHECK (course_an_dec                 BETWEEN 0 AND 1),
-    course_client_focus            DECIMAL(5,2)  CHECK (course_client_focus           BETWEEN 0 AND 1),
-    course_communication           DECIMAL(5,2)  CHECK (course_communication          BETWEEN 0 AND 1),
-    course_leadership              DECIMAL(5,2)  CHECK (course_leadership             BETWEEN 0 AND 1),
-    course_result_orientation      DECIMAL(5,2)  CHECK (course_result_orientation     BETWEEN 0 AND 1),
-    course_planning_org            DECIMAL(5,2)  CHECK (course_planning_org           BETWEEN 0 AND 1),
-    course_rules_culture           DECIMAL(5,2)  CHECK (course_rules_culture          BETWEEN 0 AND 1),
-    course_self_dev                DECIMAL(5,2)  CHECK (course_self_dev               BETWEEN 0 AND 1),
-    course_collaboration           DECIMAL(5,2)  CHECK (course_collaboration          BETWEEN 0 AND 1),
-    course_stress_resistance       DECIMAL(5,2)  CHECK (course_stress_resistance      BETWEEN 0 AND 1),
-    course_emotions_communication  DECIMAL(5,2)  CHECK (course_emotions_communication BETWEEN 0 AND 1),
-    course_negotiations            DECIMAL(5,2)  CHECK (course_negotiations           BETWEEN 0 AND 1),
-    course_digital_comm            DECIMAL(5,2)  CHECK (course_digital_comm           BETWEEN 0 AND 1),
-    course_effective_learning      DECIMAL(5,2)  CHECK (course_effective_learning     BETWEEN 0 AND 1),
-    course_entrepreneurship        DECIMAL(5,2)  CHECK (course_entrepreneurship       BETWEEN 0 AND 1),
-    course_creativity_tech         DECIMAL(5,2)  CHECK (course_creativity_tech        BETWEEN 0 AND 1),
-    course_trendwatching           DECIMAL(5,2)  CHECK (course_trendwatching          BETWEEN 0 AND 1),
-    course_conflict_management     DECIMAL(5,2)  CHECK (course_conflict_management    BETWEEN 0 AND 1),
-    course_career_management       DECIMAL(5,2)  CHECK (course_career_management      BETWEEN 0 AND 1),
-    course_burnout                 DECIMAL(5,2)  CHECK (course_burnout                BETWEEN 0 AND 1),
-    course_cross_cultural_comm     DECIMAL(5,2)  CHECK (course_cross_cultural_comm    BETWEEN 0 AND 1),
-    course_mentoring               DECIMAL(5,2)  CHECK (course_mentoring              BETWEEN 0 AND 1) 
-);
-
-CREATE INDEX idx_course_results_participant ON Courseresults(course_participant);
-
--- Академическая успеваемость
-CREATE TABLE AcademicPerformances
-(
-    perf_id              INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    perf_participant     INT           NOT NULL REFERENCES Participants(part_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    perf_edu_discipline  INT           NOT NULL REFERENCES EducationDisciplines(edu_disc_id)  ON DELETE RESTRICT ON UPDATE CASCADE,
-    perf_year            VARCHAR(16)   NOT NULL,
-    perf_current         DECIMAL(5,2),
-    perf_digital         DECIMAL(5,2),
-    perf_main            INT           CHECK (perf_main          BETWEEN 1 AND 5),
-    perf_first_retake    INT           CHECK (perf_first_retake  BETWEEN 1 AND 5),
-    perf_second_retake   INT           CHECK (perf_second_retake BETWEEN 1 AND 5),
-    perf_grade_retake    INT           CHECK (perf_grade_retake  BETWEEN 1 AND 5),
-    perf_final           INT           CHECK (perf_final         BETWEEN 1 AND 5),
-    UNIQUE(perf_participant, perf_year, perf_edu_discipline)
-);
-
-CREATE INDEX idx_academic_performances_participant ON AcademicPerformances(perf_participant);
-
--- Шаблон загрузки данных администратором
-CREATE TABLE DataUploadTemplate (
-    template_id          INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    template_name        VARCHAR(256)  UNIQUE NOT NULL,
-    template_description TEXT,
-    template_config      JSON NOT NULL,
-    template_created_at  TIMESTAMP,
-    template_updated_at  TIMESTAMP
-);
-"""
-
 
 # ============================================================
 # ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ СОЗДАНИЯ ТАБЛИЦ
 # ============================================================
 
 def create_test_tables():
-    """Создаёт таблицы в тестовой БД."""
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_name = 'participants'
-            );
-        """)
-        exists = cursor.fetchone()[0]
+    existing_tables = set(connection.introspection.table_names())
+    test_models = (
+        Competencecenters,
+        Institutions,
+        Educationlevels,
+        Educationforms,
+        Educationspecialties,
+        Specialties,
+        Studyforms,
+        Educationdisciplines,
+        Participants,
+        Studentmapping,
+        ParticipantsWithNames,
+        Results,
+        Courseresults,
+        Academicperformances,
+        Datauploadtemplate,
+        StudentsAmount,
+        DisciplineCompetencyMapping,
+        CurriculumParseLog,
+    )
 
-        if not exists:
-            cursor.execute(CREATE_TABLES_SQL)
+    with connection.schema_editor() as schema_editor:
+        for model in test_models:
+            if model._meta.db_table not in existing_tables:
+                schema_editor.create_model(model)
 
 
 # ============================================================
@@ -457,8 +249,8 @@ class TestDashboardStatistics(BaseTestCase):
         response = self.client.get(reverse('overall_stats'))
         self.assertEqual(response.status_code, 200)
 
-    def test_filter_dash(self):
-        response = self.client.get(reverse('filter_dash'))
+    def test_filter_options(self):
+        response = self.client.get(reverse('filter_options'))
         self.assertEqual(response.status_code, 200)
 
     def test_dashboard_stats(self):
@@ -484,7 +276,7 @@ class TestFilterOptions(BaseTestCase):
         response = self.client.get(reverse('get_filter_options_with_counts'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertIn('data', data)
 
     def test_students_list(self):
@@ -505,6 +297,37 @@ class TestFilterOptions(BaseTestCase):
             'student_id': participant.part_id
         })
         self.assertEqual(response.status_code, 200)
+
+    @patch('portrait.endpoints.entities.students.fetch_student_interests', return_value=['science'])
+    def test_student_by_id(self, fetch_interests):
+        participant = Participants.objects.create(
+            part_rsv_id="TEST001",
+            part_course_num=3,
+            part_gender=1
+        )
+        response = self.client.get(reverse('student_by_id'), {
+            'student_id': participant.part_id
+        })
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()['data']
+        self.assertEqual(data['student_id'], participant.part_id)
+        self.assertEqual(data['transfer'], [])
+        self.assertEqual(data['duplicate_account'], [])
+        self.assertFalse(data['repeated_year'])
+        self.assertIsNone(data['expelled'])
+        self.assertEqual(data['education'], [])
+        self.assertEqual(data['interests'], ['science'])
+        fetch_interests.assert_called_once_with(participant.part_id)
+
+    def test_teacher_by_id(self):
+        response = self.client.get(reverse('teacher_by_id'), {'teacher_id': 1})
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()['data']
+        self.assertEqual(data['teacher_id'], 1)
+        self.assertEqual(data['education'], [])
+        self.assertEqual(data['interests'], [])
 
 
 # ============================================================
@@ -555,15 +378,13 @@ class TestDuplicateAccounts(BaseTestCase):
             mapping_rsv="TEST001",
             mapping_stud_name="Ivan Testov",
             mapping_stud_gender=1,
-            mapping_email="ivan@test.ru",
-            mapping_created_at=datetime.now()
+            mapping_created_at=timezone.now()
         )
         Studentmapping.objects.create(
             mapping_rsv="TEST002",
             mapping_stud_name="Ivan Testov",
             mapping_stud_gender=1,
-            mapping_email="ivan@test.ru",
-            mapping_created_at=datetime.now()
+            mapping_created_at=timezone.now()
         )
 
     def test_duplicate_accounts(self):
@@ -587,7 +408,7 @@ class TestTemplateManagement(BaseTestCase):
         response = self.client.get(reverse('dataload_templates'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertIn('templates', data)
 
     def test_save_template(self):
@@ -598,7 +419,7 @@ class TestTemplateManagement(BaseTestCase):
         }, content_type='application/json')
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertEqual(data['name'], 'New Template')
 
 
@@ -616,7 +437,7 @@ class TestAudit(BaseTestCase):
         response = self.client.get(reverse('audit_schema'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertIn('schema', data)
 
     def test_audit_table_data(self):
@@ -626,13 +447,14 @@ class TestAudit(BaseTestCase):
         })
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
+        self.assertIn('sample', data)
 
     def test_audit_stats(self):
         response = self.client.get(reverse('audit_stats'))
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data['status'], 'success')
+        self.assertTrue(data['ok'])
         self.assertIn('info', data)
 
 

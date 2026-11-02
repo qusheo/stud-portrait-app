@@ -3,12 +3,364 @@ from collections import defaultdict
 import traceback
 
 import numpy as np
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from ..common import *
+from ..student_interests import fetch_student_interests
+
+
+@method('GET')
+@jsonResponse
+@csrf_exempt
+def student_results(request):
+    """Get specific participant's results."""
+    stud_id = request.GET.get('stud_id')
+
+    if not stud_id:
+        raise ResponseError("stud_id parameter is required")
+
+    try:
+        stud_id = int(stud_id)
+    except ValueError:
+        raise ResponseError("stud_id must be an integer")
+
+    try:
+        participant = Participants.objects.get(part_id=stud_id)
+    except Participants.DoesNotExist:
+        raise ResponseError("Student not found", status=404)
+
+    results_list = [
+        {
+            "res_id": result.res_id,
+            "res_year": result.res_year,
+            "res_course": result.res_course,
+            "res_potential": result.res_potential,
+            "res_report": result.res_report,
+            "center": attrIfObj(result.res_center, 'center_name'),
+            "institution": attrIfObj(result.res_institution, 'inst_name'),
+            "edu_level": attrIfObj(result.res_edu_level, 'edu_level_name'),
+            "study_form": attrIfObj(result.res_edu_form, 'form_name'),
+            "specialty": attrIfObj(result.res_edu_specialty, 'spec_name'),
+            **{c: getattr(result, c) for c in COMP.list},
+            **{m: zeroIfNull(getattr(result, m)) for m in MOT.list},
+            **{v: getattr(result, v) for v in VAL.list},
+        }
+        for result in Results.objects
+        .filter(res_participant=stud_id)
+        .select_related(
+            'res_center', 'res_institution', 'res_edu_level', 'res_edu_form', 'res_edu_specialty'
+        )
+    ]
+
+    try:
+        mapping = StudentMapping.objects.get(mapping_rsv=participant.part_rsv_id)
+        student_name = mapping.mapping_stud_name
+    except StudentMapping.DoesNotExist:
+        student_name = participant.part_rsv_id
+
+    latest_result = Results.objects.filter(res_participant=stud_id).order_by('-res_year', '-res_course').first()
+
+    return {
+        "student": {
+            "stud_id": participant.part_id,
+            "stud_rsv": participant.part_rsv_id,
+            "stud_name": student_name,
+            "stud_gender": participant.part_gender,
+            "institution": attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else None,
+            "specialty": attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else None,
+            "edu_level": attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else None,
+            "study_form": attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else None,
+            "course_num": participant.part_course_num
+        },
+        "results": results_list
+    }
+
+
+@csrf_exempt
+@method("GET")
+def get_students_list(request):
+    """Get a list of students for search."""
+    try:
+        search = request.GET.get('search', '').strip()
+        limit = int(request.GET.get('limit', 50))
+
+        queryset = ParticipantsWithNames.objects.select_related(
+            'part_institution', 'part_spec'
+        )
+
+        if search:
+            search_filter = (
+                Q(student_name__icontains=search) |
+                Q(part_rsv_id__icontains=search) |
+                Q(part_institution__inst_name__icontains=search) |
+                Q(part_spec__spec_name__icontains=search)
+            )
+            if search.isdigit():
+                search_filter |= Q(part_id=int(search))
+            queryset = queryset.filter(search_filter)
+
+        students = [
+            {
+                'id': s.part_id,
+                'rsv_id': s.part_rsv_id,
+                'name': s.student_name,
+                'institution': s.part_institution.inst_name if s.part_institution else 'Не указан',
+                'specialty': s.part_spec.spec_name if s.part_spec else 'Не указана',
+                'course': s.part_course_num,
+                'gender': s.part_gender,
+            }
+            for s in queryset[:limit]
+        ]
+
+        return JsonResponse({
+            'status': 'success',
+            'data': students,
+            'total': queryset.count()
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@method("GET")
+@csrf_exempt
+def get_student_portrait(request):
+    """Get a student's full digital portrait."""
+    try:
+        student_id = request.GET.get('student_id')
+        if not student_id:
+            return JsonResponse({'status': 'error', 'message': 'student_id required'}, status=400)
+
+        try:
+            student = Participants.objects.get(part_id=student_id)
+        except Participants.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Student not found'}, status=404)
+
+        try:
+            mapping = StudentMapping.objects.get(mapping_rsv=student.part_rsv_id)
+            student_name = mapping.mapping_stud_name
+        except StudentMapping.DoesNotExist:
+            student_name = student.part_rsv_id
+
+        latest_result = Results.objects.filter(res_participant=student).order_by('-res_year', '-res_course').first()
+
+        student_info = {
+            'id': student.part_id,
+            'rsv_id': student.part_rsv_id,
+            'name': student_name,
+            'gender': student.part_gender or 'Не указан',
+            'institution': attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else 'Не указано',
+            'institution_id': latest_result.res_institution.inst_id if latest_result and latest_result.res_institution else None,
+            'specialty': attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else 'Не указана',
+            'specialty_id': latest_result.res_edu_specialty.spec_id if latest_result and latest_result.res_edu_specialty else None,
+            'edu_level': attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else 'Не указан',
+            'study_form': attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else 'Не указана',
+            'current_course': student.part_course_num
+        }
+
+        results = Results.objects.filter(res_participant=student).order_by('-res_year')
+
+        test_results = []
+        for result in results:
+            competencies = {
+                'res_comp_info_analysis': result.res_comp_info_analysis,
+                'res_comp_planning': result.res_comp_planning,
+                'res_comp_result_orientation': result.res_comp_result_orientation,
+                'res_comp_stress_resistance': result.res_comp_stress_resistance,
+                'res_comp_partnership': result.res_comp_partnership,
+                'res_comp_rules_compliance': result.res_comp_rules_compliance,
+                'res_comp_self_development': result.res_comp_self_development,
+                'res_comp_leadership': result.res_comp_leadership,
+                'res_comp_emotional_intel': result.res_comp_emotional_intel,
+                'res_comp_client_focus': result.res_comp_client_focus,
+                'res_comp_communication': result.res_comp_communication,
+                'res_comp_passive_vocab': result.res_comp_passive_vocab,
+            }
+
+            motivators = {
+                'res_mot_autonomy': float(result.res_mot_autonomy) if result.res_mot_autonomy else None,
+                'res_mot_altruism': float(result.res_mot_altruism) if result.res_mot_altruism else None,
+                'res_mot_challenge': float(result.res_mot_challenge) if result.res_mot_challenge else None,
+                'res_mot_salary': float(result.res_mot_salary) if result.res_mot_salary else None,
+                'res_mot_career': float(result.res_mot_career) if result.res_mot_career else None,
+                'res_mot_creativity': float(result.res_mot_creativity) if result.res_mot_creativity else None,
+                'res_mot_relationships': float(result.res_mot_relationships) if result.res_mot_relationships else None,
+                'res_mot_recognition': float(result.res_mot_recognition) if result.res_mot_recognition else None,
+                'res_mot_affiliation': float(result.res_mot_affiliation) if result.res_mot_affiliation else None,
+                'res_mot_self_development': float(result.res_mot_self_development) if result.res_mot_self_development else None,
+                'res_mot_purpose': float(result.res_mot_purpose) if result.res_mot_purpose else None,
+                'res_mot_cooperation': float(result.res_mot_cooperation) if result.res_mot_cooperation else None,
+                'res_mot_stability': float(result.res_mot_stability) if result.res_mot_stability else None,
+                'res_mot_tradition': float(result.res_mot_tradition) if result.res_mot_tradition else None,
+                'res_mot_management': float(result.res_mot_management) if result.res_mot_management else None,
+                'res_mot_work_conditions': float(result.res_mot_work_conditions) if result.res_mot_work_conditions else None,
+            }
+
+            values = {
+                'res_val_honesty_justice': result.res_val_honesty_justice,
+                'res_val_humanism': result.res_val_humanism,
+                'res_val_patriotism': result.res_val_patriotism,
+                'res_val_family': result.res_val_family,
+                'res_val_health': result.res_val_health,
+                'res_val_environment': result.res_val_environment,
+            }
+
+            test_results.append({
+                'year': result.res_year,
+                'course': result.res_course,
+                'center': result.res_center.center_name if result.res_center else None,
+                'potential': result.res_potential,
+                'competencies': competencies,
+                'motivators': motivators,
+                'values': values
+            })
+
+        academic_performance = AcademicPerformances.objects.filter(
+            perf_participant=student
+        ).order_by('perf_year', 'perf_discipline')
+
+        grades = []
+        for grade in academic_performance:
+            grades.append({
+                'year': grade.perf_year,
+                'discipline': grade.perf_discipline,
+                'main': grade.perf_main,
+                'current': grade.perf_current,
+                'digital': grade.perf_digital,
+                'first_retake': grade.perf_first_retake,
+                'second_retake': grade.perf_second_retake,
+                'grade_retake': grade.perf_grade_retake,
+                'final': grade.perf_final,
+            })
+
+        courses = Courseresults.objects.filter(course_participant=student)
+
+        courses_data = []
+        for course in courses:
+            course_info = {
+                'id': course.course_id,
+                'an_dec': float(course.course_an_dec) if course.course_an_dec else None,
+                'client_focus': float(course.course_client_focus) if course.course_client_focus else None,
+                'communication': float(course.course_communication) if course.course_communication else None,
+                'leadership': float(course.course_leadership) if course.course_leadership else None,
+                'result_orientation': float(course.course_result_orientation) if course.course_result_orientation else None,
+                'planning_org': float(course.course_planning_org) if course.course_planning_org else None,
+                'rules_culture': float(course.course_rules_culture) if course.course_rules_culture else None,
+                'self_dev': float(course.course_self_dev) if course.course_self_dev else None,
+                'collaboration': float(course.course_collaboration) if course.course_collaboration else None,
+                'stress_resistance': float(course.course_stress_resistance) if course.course_stress_resistance else None,
+                'emotions_communication': float(course.course_emotions_communication) if course.course_emotions_communication else None,
+                'negotiations': float(course.course_negotiations) if course.course_negotiations else None,
+                'digital_comm': float(course.course_digital_comm) if course.course_digital_comm else None,
+                'effective_learning': float(course.course_effective_learning) if course.course_effective_learning else None,
+                'entrepreneurship': float(course.course_entrepreneurship) if course.course_entrepreneurship else None,
+                'creativity_tech': float(course.course_creativity_tech) if course.course_creativity_tech else None,
+                'trendwatching': float(course.course_trendwatching) if course.course_trendwatching else None,
+                'conflict_management': float(course.course_conflict_management) if course.course_conflict_management else None,
+                'career_management': float(course.course_career_management) if course.course_career_management else None,
+                'burnout': float(course.course_burnout) if course.course_burnout else None,
+                'cross_cultural_comm': float(course.course_cross_cultural_comm) if course.course_cross_cultural_comm else None,
+                'mentoring': float(course.course_mentoring) if course.course_mentoring else None,
+            }
+            courses_data.append(course_info)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'student_info': student_info,
+                'test_results': test_results,
+                'academic_performance': grades,
+                'courses': courses_data
+            }
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_student_by_id(request):
+    try:
+        student_id = int(request.GET.get('student_id', ''))
+    except ValueError:
+        return JsonResponse({'status': 'error', 'message': 'student_id must be an integer'}, status=400)
+
+    try:
+        student = Participants.objects.get(part_id=student_id)
+    except Participants.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Student not found'}, status=404)
+
+    try:
+        results_sorted = sorted(
+            Results.objects.filter(res_participant=student).select_related(
+                'res_institution', 'res_edu_specialty'
+            ),
+            key=lambda result: (_year_sort_key(result.res_year), result.res_course or 0)
+        )
+
+        mapping = StudentMapping.objects.filter(mapping_rsv=student.part_rsv_id).first()
+        duplicate_mappings = StudentMapping.objects.none()
+        if mapping:
+            duplicate_mappings = StudentMapping.objects.filter(
+                mapping_stud_name=mapping.mapping_stud_name,
+                mapping_stud_gender=mapping.mapping_stud_gender,
+            ).exclude(mapping_rsv=student.part_rsv_id)
+
+        participants_by_rsv = {
+            participant.part_rsv_id: participant
+            for participant in Participants.objects.filter(
+                part_rsv_id__in=duplicate_mappings.values_list('mapping_rsv', flat=True)
+            )
+        }
+        duplicate_accounts = [
+            {
+                'participant_id': participants_by_rsv.get(duplicate.mapping_rsv).part_id
+                if participants_by_rsv.get(duplicate.mapping_rsv) else None,
+                'rsv_id': duplicate.mapping_rsv,
+                'name': duplicate.mapping_stud_name,
+            }
+            for duplicate in duplicate_mappings
+        ]
+
+        repeated_year = any(
+            previous.res_course is not None
+            and previous.res_course == current.res_course
+            and previous.res_year != current.res_year
+            for previous, current in zip(results_sorted, results_sorted[1:])
+        )
+
+        education_by_institution = {}
+        for result in results_sorted:
+            institution = attrIfObj(result.res_institution, 'inst_name')
+            key = result.res_institution_id or institution
+            if key not in education_by_institution:
+                education_by_institution[key] = {
+                    'institution': institution,
+                    'years': [],
+                }
+            if result.res_year not in education_by_institution[key]['years']:
+                education_by_institution[key]['years'].append(result.res_year)
+
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'student_id': student.part_id,
+                'transfer': _detect_transfers(results_sorted),
+                'duplicate_account': duplicate_accounts,
+                'repeated_year': repeated_year,
+                'expelled': None,
+                'education': list(education_by_institution.values()),
+                'interests': fetch_student_interests(student.part_id),
+            }
+        })
+    except Exception as e:
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 
 def get_interest_options(request):
     try:
@@ -67,8 +419,8 @@ def _detect_transfers(results_sorted):
                 'year':      curr.res_year,
                 'from_inst': prev.res_institution.inst_name if prev.res_institution else '—',
                 'to_inst':   curr.res_institution.inst_name if curr.res_institution else '—',
-                'from_dir':  prev.res_edu_specialty.edu_spec_name if prev.res_edu_specialty else '—',
-                'to_dir':    curr.res_edu_specialty.edu_spec_name if curr.res_edu_specialty else '—',
+                'from_dir':  prev.res_edu_specialty.spec_name if prev.res_edu_specialty else '—',
+                'to_dir':    curr.res_edu_specialty.spec_name if curr.res_edu_specialty else '—',
                 'type':      transfer_type,
             })
     return events

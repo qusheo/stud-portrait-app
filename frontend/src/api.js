@@ -540,6 +540,11 @@ async getCsrfToken() {
         return fetch(`${HOST}/portrait/teachers/get_teachers_table/`);
     }
 
+    getTeacherById(teacherId) {
+        const params = new URLSearchParams({ teacher_id: String(teacherId) });
+        return fetch(`${HOST}/portrait/teachers/byId/?${params}`);
+    }
+
     getMatchingTeachersByStudent(studentId) {
         const params = new URLSearchParams({ student_id: studentId });
         return fetch(`${HOST}/portrait/matching/get_matching_teachers_by_student/?${params}`);
@@ -676,6 +681,11 @@ async getCsrfToken() {
         const url = `${HOST}/portrait/students/portrait/?student_id=${studentId}`;
         const promise = fetch(url);
         return promise;
+    }
+
+    getStudentById(studentId) {
+        const params = new URLSearchParams({ student_id: String(studentId) });
+        return fetch(`${HOST}/portrait/students/byId/?${params}`);
     }
 
     /* *** GENDOX *** */
