@@ -84,7 +84,7 @@ const router = createBrowserRouter([
                         path: '/admin/analysis/edu-profiles',
                         element: <AdminAnalysisEduProfilesView />,
                         handle: { permission: Permission.EDU_PROFILES }
-                    },
+                    },/* 
                     {
                         path: '/admin/analysis/transfered-students',
                         element: <AdminTransferAnalysisView />,
@@ -99,7 +99,7 @@ const router = createBrowserRouter([
                         path: '/admin/analysis/anomalous-students',
                         element: <AdminAnomalousStudentView />,
                         handle: { permission: Permission.ANOMALOUS_STUDENTS }
-                    },
+                    }, */
                     { path: '/admin/courses', element: <AdminCoursesView />, handle: { permission: Permission.COURSES } },
                     { path: '/admin/grouping', element: <AdminGroupedDiagramsView />, handle: { permission: Permission.GROUPING } },
                     { path: '/admin/competences', element: <AdminCompetencesView />, handle: { permission: Permission.COMPETENCES } },

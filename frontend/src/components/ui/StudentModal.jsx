@@ -66,6 +66,16 @@ function StudentModal({ open, student, onClose }) {
         ? Math.round((competencies.reduce((sum, item) => sum + item.score, 0) / competencies.length) * 10) / 10
         : null;
 
+	const { data: extraData = [], isPending: isLoading } = useQuery({
+		queryKey: ['student', student?.part_id, 'extraData'],
+		queryFn: async () => {
+			if (!student?.part_id) return [];
+			const response = await StudentService.getStudentById(student.part_id);
+			return response.data;
+		},
+		enabled: Boolean(student?.part_id)
+	});
+
     const studentName =
         student?.name || student?.part_name || (student?.participant != null ? `Студент № ${student.participant}` : 'Студент');
 
@@ -110,6 +120,7 @@ function StudentModal({ open, student, onClose }) {
                                 <dd>{formatValue(value)}</dd>
                             </div>
                         ))}
+						{}
                     </dl>
                 </section>
 

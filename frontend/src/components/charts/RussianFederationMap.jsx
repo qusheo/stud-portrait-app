@@ -226,7 +226,7 @@ function RussianFederationMap({
     };
 
     if (loading || !ready) {
-        return <Loading type="charts" title="Загрузка карты" />;
+        return <Loading type="default" title="Загрузка карты" />;
     }
 
     return (

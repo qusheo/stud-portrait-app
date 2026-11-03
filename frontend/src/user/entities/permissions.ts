@@ -9,7 +9,7 @@ export interface UserPermissions {
     canViewCourses: boolean;
     canViewMotivators: boolean;
     canViewCompetences: boolean;
-    canViewStudentPortrait: boolean;
+    canViewPortrait: boolean;
     canViewTeachers: boolean;
     canViewAnalysisDisciplines: boolean;
     canViewAP: boolean;
@@ -39,7 +39,7 @@ export const Permission = {
     MOTIVATORS: 'canViewMotivators',
     COMPETENCES: 'canViewCompetences',
     PORTRAIT: 'canViewPortrait',
-    PORTRAIT_DETAILED: 'canViewDetailedPortrait',
+    //PORTRAIT_DETAILED: 'canViewDetailedPortrait',
     TEACHERS: 'canViewTeachers',
     ANALYSIS_DISCIPLINES: 'canViewAnalysisDisciplines',
     AP: 'canViewAP',

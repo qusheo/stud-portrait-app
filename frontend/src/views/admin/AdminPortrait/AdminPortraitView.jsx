@@ -9,7 +9,8 @@ import LoadingSpinner from '@components/ui/LoadingSpinner';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';
 import TabButton from '@components/ui/TabButton';
-
+import { useQuery } from '@tanstack/react-query';
+import { defaultQueryOptions } from '@utils/queryConfig';
 import './AdminPortraitView.scss';
 
 const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
@@ -461,13 +462,21 @@ function AdminPortraitView() {
     useEffect(() => {
         setSelectedStudentId(initialStudentId);
     }, [initialStudentId]);
-
+	
+	const { data: extraData = [], isPending: isLoading } = useQuery({
+		queryKey: ['student', selectedStudentId, 'extraData'],
+		queryFn: async () => {
+			if (!selectedStudentId) return [];
+			const response = await StudentService.getStudentById(selectedStudentId);
+			setStudentPortrait(prev => ({ ...prev, student_info: response.data || {} }));
+			return response.data;
+		},
+		enabled: Boolean(selectedStudentId),
+		...defaultQueryOptions,
+	});
     useEffect(() => {
         if (selectedStudentId) {
             loadStudentPortrait(selectedStudentId);
-            StudentService.getStudentById(selectedStudentId).catch(error =>
-                console.error('Ошибка загрузки дополнительных данных студента:', error)
-            );
         } else {
             setStudentPortrait(null);
         }
@@ -512,6 +521,7 @@ function AdminPortraitView() {
                         <div className="layout-grid-personal">
                             <div className="col-left">
                                 <StudentInfoCard student={studentPortrait.student_info} />
+								{ isLoading ? <LoadingSpinner small title="Загрузка дополнительных данных..." /> : <div></div> /* тут инфа про переводы и тд*/ } 
                             </div>
                             <div className="col-right">
                                 <div className="dashboard-card">

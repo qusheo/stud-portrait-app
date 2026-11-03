@@ -148,7 +148,6 @@ export function CompetencyTable({ data, filters, range }) {
 
     const exportToExcel = async () => {
         try {
-            setPageName('Загрузка файла...');
             setExporting(true);
 
             const excelData = [];
@@ -191,7 +190,6 @@ export function CompetencyTable({ data, filters, range }) {
         }
         finally{
             setExporting(false);
-            setPageName('Компетенции');
         }
     };
 
@@ -310,7 +308,6 @@ export function CompetencyTable_course({ data, filters }) {
         if (exporting) return;
         try {
             setExporting(true);
-            setPageName('Загрузка файла..');
             const year = filters.year.split('/')[1];
             const excelData = [];
             data.forEach(row => {
@@ -359,7 +356,6 @@ export function CompetencyTable_course({ data, filters }) {
         }
         finally{
             setExporting(false);
-            setPageName('Компетенции');
         }
     };
 
