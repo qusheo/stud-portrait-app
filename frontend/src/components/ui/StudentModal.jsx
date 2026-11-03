@@ -16,6 +16,13 @@ const getScores = (student, names, nestedKey) =>
 
 const formatValue = value => (value === null || value === undefined || value === '' ? '—' : value);
 
+/**
+ * @description Раздел модального окна со списком оценок.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.title Заголовок раздела.
+ * @param {Array} props.items Элементы с названием и оценкой.
+ * @param {string} props.type Вариант оформления раздела.
+ */
 function ScoreSection({ title, items, type }) {
     if (!items.length) {
 		return (
@@ -43,6 +50,13 @@ function ScoreSection({ title, items, type }) {
     );
 }
 
+/**
+ * @description Модальное окно с результатами и сведениями о студенте.
+ * @param {Object} props Параметры компонента.
+ * @param {boolean} props.open Управляет отображением окна.
+ * @param {Object} props.student Данные студента.
+ * @param {Function} props.onClose Обработчик закрытия окна.
+ */
 function StudentModal({ open, student, onClose }) {
     const navigate = useNavigate();
     const competencies = getScores(student, COMPETENCIES_NAMES, 'competences');

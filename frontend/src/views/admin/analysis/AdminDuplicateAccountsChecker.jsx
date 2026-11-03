@@ -9,8 +9,8 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 import ValueCard from '@components/cards/ValueCard';
 
 import Button from '@components/ui/Button';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
-import NoData from '@components/ui/NoData';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
@@ -124,9 +124,10 @@ const AdminDuplicateAccountsChecker = () => {
 
     return (
         <div className="AdminDuplicateAccountsChecker">
-            <LoadingSpinner
+            <Loading
+                type="table"
                 loading={loading}
-                text="Поиск дублирующихся аккаунтов..."
+                title="Поиск дублирующихся аккаунтов..."
             />
 
             {!loading && (
@@ -156,7 +157,7 @@ const AdminDuplicateAccountsChecker = () => {
                     {/* ── Точные дубли ── */}
                     <h2>Точные дубли (один email → несколько аккаунтов)</h2>
                     <p className="page-description">Один и тот же email привязан к разным rsv_id.</p>
-                    {data && data.length === 0 && <NoData text="✅ Точных дублей не найдено." />}
+                    {data && data.length === 0 && <Empty title="✅ Точных дублей не найдено." />}
                     <div className="duplicate-students-list">
                         {data?.map(student => (
                             <StudentCard
@@ -175,7 +176,7 @@ const AdminDuplicateAccountsChecker = () => {
                         Эти студенты имеют одинаковое ФИО и пол, но разные email или аккаунты. Возможно, один человек — но могут быть и
                         полные однофамильцы.
                     </p>
-                    {possibleData && possibleData.length === 0 && <NoData text="✅ Возможных дублей не найдено." />}
+                    {possibleData && possibleData.length === 0 && <Empty title="✅ Возможных дублей не найдено." />}
                     <div className="duplicate-students-list">
                         {possibleData?.map(student => (
                             <StudentCard

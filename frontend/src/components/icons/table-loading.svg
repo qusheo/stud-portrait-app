@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Загрузка таблицы</title>
+  <desc id="desc">Минималистичный каркас таблицы с мерцающими строками</desc>
+  <style>
+    .shimmer{animation:pulse 1.7s ease-in-out infinite}
+    .d1{animation-delay:.15s}.d2{animation-delay:.3s}.d3{animation-delay:.45s}
+    @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+    @media (prefers-reduced-motion:reduce){.shimmer{animation:none;opacity:.7}}
+  </style>
+  <rect x="36" y="42" width="528" height="276" rx="12" fill="#fff" stroke="#DDE4EB" stroke-width="2"/>
+  <path d="M36 101H564 M36 154H564 M36 207H564 M36 260H564" stroke="#E6EBF0" stroke-width="2"/>
+  <path d="M228 42V318 M367 42V318 M458 42V318" stroke="#E6EBF0" stroke-width="2"/>
+  <rect x="57" y="64" width="107" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="248" y="64" width="76" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="387" y="64" width="48" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="478" y="64" width="56" height="14" rx="7" fill="#CBD5E1"/>
+  <g fill="#E5EAF0" class="shimmer">
+    <rect x="57" y="121" width="137" height="12" rx="6"/><rect x="248" y="121" width="94" height="12" rx="6"/><rect x="387" y="121" width="45" height="12" rx="6"/><rect x="478" y="121" width="54" height="12" rx="6"/>
+  </g>
+  <g fill="#E5EAF0" class="shimmer d1">
+    <rect x="57" y="174" width="116" height="12" rx="6"/><rect x="248" y="174" width="73" height="12" rx="6"/><rect x="387" y="174" width="53" height="12" rx="6"/><rect x="478" y="174" width="45" height="12" rx="6"/>
+  </g>
+  <g fill="#E5EAF0" class="shimmer d2">
+    <rect x="57" y="227" width="149" height="12" rx="6"/><rect x="248" y="227" width="84" height="12" rx="6"/><rect x="387" y="227" width="42" height="12" rx="6"/><rect x="478" y="227" width="62" height="12" rx="6"/>
+  </g>
+  <g fill="#E5EAF0" class="shimmer d3">
+    <rect x="57" y="280" width="103" height="12" rx="6"/><rect x="248" y="280" width="86" height="12" rx="6"/><rect x="387" y="280" width="56" height="12" rx="6"/><rect x="478" y="280" width="52" height="12" rx="6"/>
+  </g>
+</svg>

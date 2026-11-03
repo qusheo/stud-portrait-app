@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { StudentService } from '@services';
 
+/**
+ * @description График Value-Added для выбранной компетенции студента.
+ * @param {Object} props Параметры компонента.
+ * @param {string|number} props.studentId Идентификатор студента.
+ * @param {string} [props.competency='res_comp_leadership'] Ключ компетенции.
+ */
 const StudentVamChart = ({ studentId, competency = 'res_comp_leadership' }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);

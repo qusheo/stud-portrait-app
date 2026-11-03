@@ -13,6 +13,8 @@ import DbContentTable from '@components/tables/DbContentTable';
 import Button from '@components/ui/Button';
 import Dropdown from '@components/ui/Dropdown';
 import Label, { LABEL_PALETTE } from '@components/ui/Label';
+import Empty from '@components/ui/Empty';
+import Loading from '@components/ui/Loading';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import { Option } from '@components/ui/Select';
 
@@ -188,59 +190,51 @@ LIMIT 50;`
                 </FlexRow>
             </FlexColumn>
 
-            {(error || result) && (
-                <>
-                    <h4>Результат:</h4>
-                    {error && (
-                        <FlexRow>
-                            <Label
-                                text={error}
-                                palette={LABEL_PALETTE.RED}
-                            />
-                        </FlexRow>
-                    )}
-                    {result?.message && (
-                        <FlexRow>
-                            <Label
-                                text={result?.message}
-                                palette={LABEL_PALETTE.GREEN}
-                            />
-                        </FlexRow>
-                    )}
-                    {result?.rows && result.rows.length > 0 && (
-                        <FlexColumn>
+            {loading ? (
+                <Loading type="table" title="Выполнение запроса..." />
+            ) : (
+                (error || result) && (
+                    <>
+                        <h4>Результат:</h4>
+                        {error && <Empty type="table" title={error} />}
+                        {result?.message && (
                             <FlexRow>
                                 <Label
-                                    text={`Найдено строк: ${result.row_count}`}
+                                    text={result?.message}
                                     palette={LABEL_PALETTE.GREEN}
                                 />
-                                <Dropdown label="Выгрузить выбранные данные...">
-                                    <Option
-                                        label="В формате Excel"
-                                        value="xlsx"
-                                        onClick={handleExport}
-                                    />
-                                    <Option
-                                        label="В формате CSV"
-                                        value="csv"
-                                        onClick={handleExport}
-                                    />
-                                </Dropdown>
                             </FlexRow>
-                            <LabelledBox label="Результат запроса">
-                                <DbContentTable data={result} />
-                            </LabelledBox>
-                        </FlexColumn>
-                    )}
-                    {result?.rows && result.rows.length === 0 && (
-                        <FlexRow>
-                            <Label
-                                text="Запрос выполнен успешно; данных не выделено"
-                                palette={LABEL_PALETTE.YELLOW}
-                            />
-                        </FlexRow>
-                    )}
-                </>
+                        )}
+                        {result?.rows && result.rows.length > 0 && (
+                            <FlexColumn>
+                                <FlexRow>
+                                    <Label
+                                        text={`Найдено строк: ${result.row_count}`}
+                                        palette={LABEL_PALETTE.GREEN}
+                                    />
+                                    <Dropdown label="Выгрузить выбранные данные...">
+                                        <Option
+                                            label="В формате Excel"
+                                            value="xlsx"
+                                            onClick={handleExport}
+                                        />
+                                        <Option
+                                            label="В формате CSV"
+                                            value="csv"
+                                            onClick={handleExport}
+                                        />
+                                    </Dropdown>
+                                </FlexRow>
+                                <LabelledBox label="Результат запроса">
+                                    <DbContentTable data={result} />
+                                </LabelledBox>
+                            </FlexColumn>
+                        )}
+                        {result?.rows && result.rows.length === 0 && (
+                            <Empty type="table" title="Запрос выполнен успешно; данных не выделено" />
+                        )}
+                    </>
+                )
             )}
         </div>
     );

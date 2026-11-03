@@ -15,6 +15,16 @@ export const BOX_PALETTE = {
     }
 };
 
+/**
+ * @description Контейнер с подписью и настраиваемым оформлением.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Содержимое контейнера.
+ * @param {string} props.label Подпись контейнера.
+ * @param {Object} [props.palette] Цветовая палитра.
+ * @param {boolean} [props.bordered=false] Показывает рамку и тень.
+ * @param {boolean} [props.inrow=false] Размещает подпись в строку.
+ * @param {boolean} [props.nopad=false] Убирает внутренние отступы.
+ */
 function LabelledBox({ children, label, palette = BOX_PALETTE.GRAY, bordered = false, inrow = false, nopad = false }) {
     const fg = palette?.normal?.fg;
     const bg = palette?.normal?.bg;

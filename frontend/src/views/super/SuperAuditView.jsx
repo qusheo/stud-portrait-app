@@ -14,7 +14,8 @@ import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Tabl
 import DbContentTable from '@components/tables/DbContentTable';
 
 import Label from '@components/ui/Label';
-import NoData from '@components/ui/NoData';
+import Empty from '@components/ui/Empty';
+import Loading from '@components/ui/Loading';
 
 import './SuperAuditView.scss';
 
@@ -116,6 +117,9 @@ function SuperAuditView() {
                         </div>
                     )}
 
+                    {loading ? (
+                        <Loading type="table" title="Загрузка таблиц..." />
+                    ) : (
                     <div className="audit-content">
                         <div className="search-bar">
                             <input
@@ -187,7 +191,7 @@ function SuperAuditView() {
                                             {tableData && (
                                                 <FlexColumn>
                                                     {!tableData?.rows || tableData?.rows?.length === 0 ? (
-                                                        <NoData text="Нет данных для отображения" />
+                                                        <Empty type="table" title="Нет данных для отображения" />
                                                     ) : (
                                                         <>
                                                             <DbContentTable data={tableData} />
@@ -198,11 +202,12 @@ function SuperAuditView() {
                                         </LabelledBox>
                                     </>
                                 ) : (
-                                    <div className="no-selection">Выберите таблицу для просмотра деталей</div>
+                                    <Empty type="table" title="Выберите таблицу для просмотра деталей" />
                                 )}
                             </div>
                         </div>
                     </div>
+                    )}
                 </Content>
             </SidebarLayout>
         </div>

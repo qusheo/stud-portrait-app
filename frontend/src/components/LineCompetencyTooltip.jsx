@@ -3,6 +3,15 @@ import CompetencyTooltip from './CompetencyTooltip';
 
 import './LineCompetencyTooltip.scss';
 
+/**
+ * @description Подсказка компетенции с графиком динамики по годам.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.name Название компетенции.
+ * @param {string} props.description Описание компетенции.
+ * @param {Object} props.position Координаты подсказки.
+ * @param {Array} props.years Учебные годы.
+ * @param {Array} props.values Значения по годам.
+ */
 function LineCompetencyTooltip({ name, description, position, years, values }) {
     const chartOptions = {
         chart: {

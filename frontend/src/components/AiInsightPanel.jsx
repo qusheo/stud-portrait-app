@@ -2,14 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { AdminService } from '@services';
 
 /**
- * AiInsightPanel — переиспользуемая AI-панель для аналитических страниц.
- *
- * Props:
- *   contextType  — тип анализа: 'general' | 'institution_comparison' | 'discipline_impact' | 'vam_trend'
- *   filters      — { institutions, directions, courses, competency }
- *   label        — подпись кнопки/заголовок (например, "LGM Когорта" или "Влияние дисциплин")
- *   autoRun      — если true, запускается сам когда изменяется contextType (по умолчанию false)
- *   disabled     — блокировка кнопки пока страница грузится
+ * @description Панель формирования AI-аналитики для аналитических страниц
+ * @param {Object} props Параметры компонента
+ * @param {string} props.contextType Тип анализа
+ * @param {Object} [props.filters={}] Фильтры анализа
+ * @param {string} [props.label=''] Подпись кнопки и заголовок панели
+ * @param {boolean} [props.autoRun=false] Запускает анализ при смене типа
+ * @param {boolean} [props.disabled=false] Блокирует запуск анализа
  */
 function AiInsightPanel({ contextType, filters = {}, label = '', autoRun = false, disabled = false }) {
     const [summary, setSummary] = useState('');

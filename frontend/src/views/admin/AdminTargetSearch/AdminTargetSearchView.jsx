@@ -4,7 +4,7 @@ import SearchPanel from './SearchPanel.jsx';
 import { useState, useEffect } from 'react';
 import { defaultQueryOptions } from '@utils/queryConfig';
 import { useQuery } from '@tanstack/react-query';
-import { DataTable } from '../../../components/index.js';
+import { DataTable, Empty, Loading } from '../../../components/index.js';
 
 function AdminTargetSearchView() {
 	const [startSearch, setStartSearch ] = useState(false);
@@ -55,14 +55,16 @@ function AdminTargetSearchView() {
 			</div>
 			{showSearch && (<SearchPanel onApply={onApply} loading={loading}/>)}
 			<div className='AdminTargetView__content'>
-				{rows ?  rows.length ? <div className='AdminTargetView__content_table'>
+				{loading ? (
+						<Loading type="table" title="Поиск студентов..." />
+					) : rows ? rows.length ? <div className='AdminTargetView__content_table'>
 						{<DataTable
 							rows={rows}
 							columns={tableColumns}
 							pageSize={10}
 						/>}
 					</div>
-					: <div className='studentSearch__emptyResult'> Ничего не найдено </div>
+					: <Empty type="table" title="Ничего не найдено" />
 					: <></>
 				}
 			</div>

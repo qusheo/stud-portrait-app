@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 const COMPETENCY_KEYS = [
     'res_comp_info_analysis',
@@ -142,7 +144,7 @@ function GroupCard({ group }) {
                         </BarChart>
                     </ResponsiveContainer>
                 ) : (
-                    <div style={{ fontSize: 12, color: '#94a3b8' }}>Нет данных по дисциплинам</div>
+                    <Empty type="charts" title="Нет данных по дисциплинам" />
                 )}
                 <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
                     <span style={{ color: '#22c55e' }}>■</span> лучшие оценки &nbsp;
@@ -244,7 +246,7 @@ export default function CompetencySegmentation({ filters }) {
             .finally(() => setLoading(false));
     }, [competency, filters?.institute, filters?.specialty, filters?.year]);
 
-    if (error) return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для сегментации</div>;
+    if (error) return <Empty type="charts" title="Нет данных для сегментации" />;
 
     return (
         <div
@@ -305,10 +307,9 @@ export default function CompetencySegmentation({ filters }) {
             </div>
 
             {/* Состояния */}
-            {loading && <div style={{ padding: 20, color: '#64748b' }}>Загрузка сегментации...</div>}
-            {error && !loading && <div style={{ padding: 20, color: '#b91c1c' }}>Ошибка: {error}</div>}
+            {loading && <Loading type="charts" title="Загрузка сегментации..." />}
             {!loading && !error && data && data.groups.length === 0 && (
-                <div style={{ padding: 20, color: '#64748b' }}>Нет данных для выбранных фильтров.</div>
+                <Empty type="charts" title="Нет данных для выбранных фильтров." />
             )}
 
             {/* Три карточки рядом */}

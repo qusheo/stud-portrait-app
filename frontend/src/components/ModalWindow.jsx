@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 
 import './ModalWindow.scss';
 
+/**
+ * @description Модальное окно с заголовком, содержимым и нижней панелью.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Элементы ModalBody и ModalFooter.
+ * @param {string} props.title Заголовок окна.
+ * @param {boolean} [props.visible=true] Управляет отображением окна.
+ * @param {Function} props.setVisible Обработчик изменения видимости.
+ */
 function ModalWindow({ children, title, visible = true, setVisible }) {
     if (!visible) {
         return <></>;
@@ -28,10 +36,20 @@ function ModalWindow({ children, title, visible = true, setVisible }) {
     );
 }
 
+/**
+ * @description Основное содержимое модального окна.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Содержимое модального окна.
+ */
 export function ModalBody({ children }) {
     return <div className="ModalBody">{children}</div>;
 }
 
+/**
+ * @description Нижняя панель действий модального окна.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Содержимое нижней панели.
+ */
 export function ModalFooter({ children }) {
     return <div className="ModalFooter">{children}</div>;
 }

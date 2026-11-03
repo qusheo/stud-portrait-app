@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import FlexRow, { WRAP } from '@components/FlexRow';
 import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import TabButton from '@components/ui/TabButton';
 
 import './AdminPortraitView.scss';
@@ -148,7 +150,7 @@ const TestResultsCard = ({ Results, activeTab }) => {
     if (!Results || Results.length === 0) {
         return (
             <div className="dashboard-card no-data-card">
-                <div className="no-data">Нет данных о тестировании</div>
+                <Empty type="charts" title="Нет данных о тестировании" />
             </div>
         );
     }
@@ -257,9 +259,10 @@ const TestResultsCard = ({ Results, activeTab }) => {
             {currentResult ? (
                 <div className="dashboard-card">
                     {isDataEmpty ? (
-                        <div className="no-data-large" style={{ marginTop: 0, boxShadow: 'none', background: '#f8fafc' }}>
-                            Нет данных о {activeTab === 'competences' ? 'компетенциях' : activeTab === 'motivators' ? 'мотиваторах' : 'ценностях'} за выбранный год
-                        </div>
+                        <Empty
+                            type="charts"
+                            title={`Нет данных о ${activeTab === 'competences' ? 'компетенциях' : activeTab === 'motivators' ? 'мотиваторах' : 'ценностях'} за выбранный год`}
+                        />
                     ) : activeTab === 'values' ? (
                         <div className="values-list">
                             {Object.entries(VALUES_NAMES).map(([key, name]) => {
@@ -319,7 +322,7 @@ const TestResultsCard = ({ Results, activeTab }) => {
                 </div>
             ) : (
                 <div className="dashboard-card no-data-card">
-                    <div className="no-data">Загрузка данных...</div>
+                    <Loading type="charts" title="Загрузка данных..." />
                 </div>
             )}
         </div>
@@ -331,7 +334,7 @@ const AcademicPerformanceCard = ({ grades }) => {
         return (
             <div className="dashboard-card">
                 <h3 className="card-title">Оценки по дисциплинам</h3>
-                <div className="no-data">Нет данных об успеваемости</div>
+                <Empty type="table" title="Нет данных об успеваемости" />
             </div>
         );
     }
@@ -389,7 +392,7 @@ const CoursesCard = ({ courses }) => {
         return (
             <div className="dashboard-card">
                 <h3 className="card-title">Пройденные образовательные курсы</h3>
-                <div className="no-data">Нет данных о пройденных курсах</div>
+                <Empty type="table" title="Нет данных о пройденных курсах" />
             </div>
         );
     }
@@ -493,7 +496,7 @@ function AdminPortraitView() {
                 initialStudentId={initialStudentId}
             />
 
-            {loading && <LoadingSpinner text="Загрузка портрета студента..." />}
+            {loading && <Loading title="Загрузка портрета студента..." />}
 
             {!loading && studentPortrait && (
                 <div className="dashboard-container">
@@ -513,11 +516,11 @@ function AdminPortraitView() {
                             <div className="col-right">
                                 <div className="dashboard-card">
                                     <h3 className="card-title">Интересы</h3>
-                                    <div className="no-data">Нет данных об интересах</div>
+                                    <Empty title="Нет данных об интересах" />
                                 </div>
                                 <div className="dashboard-card">
                                     <h3 className="card-title">Навыки</h3>
-                                    <div className="no-data">Нет данных о навыках</div>
+                                    <Empty title="Нет данных о навыках" />
                                 </div>
                             </div>
                         </div>
@@ -536,7 +539,7 @@ function AdminPortraitView() {
                 </div>
             )}
 
-            {!loading && !studentPortrait && selectedStudentId && <div className="no-data-large">Не удалось загрузить данные студента</div>}
+            {!loading && !studentPortrait && selectedStudentId && <Empty title="Не удалось загрузить данные студента" />}
         </div>
     );
 }

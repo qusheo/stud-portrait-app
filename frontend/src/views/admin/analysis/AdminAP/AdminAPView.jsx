@@ -13,7 +13,8 @@ import './AdminAPView.scss';
 import CorrelationHeatmap from './CorrelationHeatmap';
 import CorrelationScatter from './CorrelationScatter';
 import TopCorrelationsTable from './TopCorrelationsTable';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 import { useAdminStore } from '@utils/store';
 import { defaultQueryOptions } from '@utils/queryConfig';
@@ -112,10 +113,9 @@ function DisciplineScatter({ discipline, participants }) {
 }
 
 function DisciplineScatterGrid({ data, discipline }) {
-    if (data == [] || !discipline)
-        return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}> Нет данных для отображения по текущим параметрам </div>;
+    if (data == [] || !discipline) return <Empty type="charts" title="Нет данных для отображения по текущим параметрам" />;
 
-    if (!data.find(d => d.discipline === discipline)) return <div>Ошибка при загрузке дисциплин</div>;
+    if (!data.find(d => d.discipline === discipline)) return <Empty type="charts" title="Ошибка при загрузке дисциплин" />;
     const filtered = data.find(d => d.discipline === discipline);
     return (
         <div className="ds-grid">
@@ -175,7 +175,11 @@ function AdminAPView() {
     const invalidScores = scatterData && (!scatterData.data?.length || (scatterData.names?.length ?? 0) < 4);
     const isError = Boolean(scoresError || correlationError || invalidScores);
     if (isError) {
-        return <div className="AdminAPView">Страница недоступна</div>;
+        return (
+            <div className="AdminAPView">
+                <Empty title="Страница недоступна" />
+            </div>
+        );
     }
     return (
         <div className="AdminAPView">
@@ -189,7 +193,7 @@ function AdminAPView() {
             <>
                 {loadingData ? (
                     <div className="loading-content">
-                        <LoadingSpinner text="Загрузка..." />
+                        <Loading type="charts" title="Загрузка..." />
                     </div>
                 ) : (
                     <>

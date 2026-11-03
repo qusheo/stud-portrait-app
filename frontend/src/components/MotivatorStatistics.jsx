@@ -13,6 +13,11 @@ const GROUP_BY_OPTIONS = [
     { value: 'specialty_course', label: 'По направлениям и курсам' }
 ];
 
+/**
+ * @description Статистика мотиваторов с группировкой и фильтрацией.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.filters Фильтры выборки.
+ */
 const MotivatorStatistics = ({ filters }) => {
     const [statistics, setStatistics] = useState(null);
     const [loading, setLoading] = useState(false);

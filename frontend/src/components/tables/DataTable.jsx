@@ -7,6 +7,14 @@ import { createPortal } from 'react-dom';
 import { Select } from 'antd';
 const DEFAULT_PAGE_SIZE = 50;
 
+/**
+ * @description Панель фильтрации колонки таблицы.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.column Конфигурация колонки.
+ * @param {Function} props.handleFilterChange Обработчик изменения фильтра.
+ * @param {Object} props.filters Текущие значения фильтров.
+ * @param {Function} props.clearFilter Обработчик сброса фильтра колонки.
+ */
 const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
     return (
         <div
@@ -144,6 +152,18 @@ const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
     );
 };
 
+/**
+ * @description Таблица данных с поиском, фильтрами, сортировкой, выбором строк и постраничной загрузкой.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} [props.columns=[]] Конфигурация колонок.
+ * @param {Array} [props.rows=[]] Строки таблицы.
+ * @param {string} [props.rowKey='id'] Поле уникального идентификатора строки.
+ * @param {number} [props.pageSize=50] Количество строк на странице.
+ * @param {Object|Function} [props.cellClickHandlers={}] Обработчики нажатий на ячейки.
+ * @param {boolean} [props.selection=true] Включает выбор строк.
+ * @param {Function} [props.onSelectionChange] Обработчик изменения выбранных строк.
+ * @param {Array} [props._selectedRows=[]] Внешне выбранные строки.
+ */
 const DataTable = ({
     columns = [],
     rows = [],
@@ -716,7 +736,7 @@ const DataTable = ({
                 />
             )}
 
-            {!sortedRows.length && <div className="data-table__empty">Нет данных</div>}
+            {!sortedRows.length && <Empty type="table" />}
         </div>
     );
 };

@@ -2,6 +2,13 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+/**
+ * @description График индивидуальной динамики развития компетенции.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} props.data Точки графика по курсам.
+ * @param {string} props.competency Ключ компетенции.
+ * @param {string} props.competencyLabel Название компетенции.
+ */
 const StudentLgmChart = ({ data, competency, competencyLabel }) => {
     if (!data || data.length === 0) return <div className="no-data">Нет данных</div>;
     return (

@@ -10,7 +10,8 @@ import CompetencySegmentation from './CompetencySegmentation';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
@@ -88,7 +89,7 @@ const Stat = ({ label, value, prev = 0, suffix = '', isGrowth = false, isText = 
 };
 
 function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {} }) {
-    if (!data) return;
+    if (!data) return <Empty type="charts" />;
 
     const years = [];
     const yearsMap = {};
@@ -263,10 +264,10 @@ function YearsSelect({ year, yearsOptions, onChange }) {
     );
 }
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
-    if (!data || !data?.col2) return null;
+    if (!data || !data?.col2) return <Empty title="Нет данных для отображения" />;
     const year = data.year;
     const pieData = [
-        { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },
+        { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#658ed0' },
         { 'name': 'Не прошли', 'value': data.col2.participated?.students_all - data.col2.participated?.amount_in, fill: 'transparent' }
     ];
     //col2 uni
@@ -367,8 +368,8 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                                             data={pieData}
                                             dataKey={'value'}
                                             nameKey={'name'}
-                                            innerRadius="80"
-                                            outerRadius="100"
+                                            innerRadius="75"
+                                            outerRadius="95"
                                             startAngle={90}
                                             endAngle={-270}
                                         ></Pie>
@@ -397,7 +398,7 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
 
                     {/* Правая колонка */}
                     <div className="col-right">
-                        <h4 className="text-xs uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
+                        <h4 className="text-s uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
                         <div style={{ display: 'flex', whiteSpace: 'wrap', gap: '30px', maxWidth: '900px' }}>
                             <Stat
                                 label={`Наиболее развитая. Средний балл: ${data.col3.best.val}`}
@@ -543,10 +544,12 @@ function AdminCompetencesView() {
                 <>
                     {loadingDash ? (
                         <div className="loading-content">
-                            <LoadingSpinner text="Загрузка статистики..." />
+                            <Loading type="charts" title="Загрузка статистики..." />
                         </div>
                     ) : dashboardError ? (
-                        <div className="loading-content">Не удалось загрузить статистику.</div>
+						<div className="loading-content">
+                        	<Empty title="Не удалось загрузить статистику" />
+						</div>
                     ) : (
                         <>
                             <Dashboard
@@ -567,7 +570,9 @@ function AdminCompetencesView() {
             {activeTab === 'graphics' && (
                 <>
                     {loadingTrend ? (
-                        <LoadingSpinner text="Загрузка диаграммы..." />
+						<div className="loading-content">
+							<Loading type="charts" title="Загрузка..." />
+						</div>
                     ) : (
                         <CompetencyTrendLine
                             data={trendData}
@@ -577,7 +582,7 @@ function AdminCompetencesView() {
                 </>
             )}
             {activeTab === 'segmentation' && (
-                <>{loadingTrend ? <LoadingSpinner text="Загрузка диаграммы..." /> : <CompetencySegmentation filters={filters_} />}</>
+                <>{loadingTrend ? <div className="loading-content"><Loading type="charts" title="Загрузка диаграммы..." /></div> : <CompetencySegmentation filters={filters_} />}</>
             )}
 
         </div>

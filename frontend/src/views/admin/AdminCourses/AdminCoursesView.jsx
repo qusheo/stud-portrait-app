@@ -13,7 +13,8 @@ import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Tabl
 import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
 import Label from '@components/ui/Label.jsx';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 
 import './AdminCoursesView.scss';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
@@ -138,21 +139,17 @@ function AdminCoursesView() {
     if (loading) {
         return (
             <div className="AdminCoursesView">
-                <LoadingSpinner text="Загрузка данных по курсам..." />
+                <Loading type="table" title="Загрузка данных по курсам..." />
             </div>
         );
     }
-	if (!coursesData || !coursesData.length) {
-		return (
-			<div className="AdminCoursesView">
-				<div className="courses-container">
-					<div className="courses-header">
-						<h2>Результаты образовательных курсов: нет результатов</h2>
-					</div>
-				</div>
-			</div>
-		)
-	}
+    if (!coursesData || !coursesData.length) {
+        return (
+            <div className="AdminCoursesView">
+                <Empty type="table" title="Результаты образовательных курсов: нет результатов" />
+            </div>
+        );
+    }
     return (
         <div className="AdminCoursesView">
             <div className="courses-container">
@@ -187,14 +184,7 @@ function AdminCoursesView() {
                 {/* Таблица с курсами */}
                 <div className="table-scroll-container">
                     {!loading && coursesData.length === 0 ? (
-                        <div className="no-data">
-                            <div className="no-data-icon">📚</div>
-                            <div className="no-data-text">
-                                <strong>Нет данных по курсам</strong>
-                                <br />
-                                Загрузите данные через раздел "Загрузка данных"
-                            </div>
-                        </div>
+                        <Empty type="table" title="Нет данных по курсам. Загрузите данные через раздел «Загрузка данных»" />
                     ) : (
                         <Table>
                             <TableHeader>

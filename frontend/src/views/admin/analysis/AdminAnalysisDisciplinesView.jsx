@@ -13,9 +13,9 @@ import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Tabl
 import Button from '@components/ui/Button';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox';
 import Label from '@components/ui/Label';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
 import MultiSelect from '@components/ui/MultiSelect';
-import NoData from '@components/ui/NoData';
+import Empty from '@components/ui/Empty';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import SankeyDiagram from '@components/charts/SankeyDiagram';
@@ -215,13 +215,13 @@ function AdminAnalysisDisciplinesView() {
 
     const renderAllDisciplinesImpact = () => {
         if (!allDisciplinesData) {
-            return <NoData text="Нет данных для отображения" />;
+            return <Empty title="Нет данных для отображения" />;
         }
 
         const { impact_matrix, competencies_analyzed } = allDisciplinesData;
 
         if (!impact_matrix || impact_matrix.length === 0) {
-            return <NoData text="Нет данных о влиянии дисциплин" />;
+            return <Empty title="Нет данных о влиянии дисциплин" />;
         }
 
         // Группируем по компетенциям
@@ -323,7 +323,7 @@ function AdminAnalysisDisciplinesView() {
 
     const renderHeatmap = () => {
         if (!heatmapData || heatmapData.length === 0) {
-            return <NoData text="Нет данных для тепловой карты" />;
+            return <Empty title="Нет данных для тепловой карты" />;
         }
 
         const legend = (
@@ -437,7 +437,7 @@ function AdminAnalysisDisciplinesView() {
 
     const renderDisciplineImpact = () => {
         if (!disciplineData || disciplineData.length === 0) {
-            return <NoData text="Нет данных для анализа влияния" />;
+            return <Empty title="Нет данных для анализа влияния" />;
         }
 
         const TABLE_HEADER = (
@@ -509,7 +509,7 @@ function AdminAnalysisDisciplinesView() {
                                     </TitledCard>
                                 ))
                             ) : (
-                                <NoData text="Нет данных по этой компетенции" />
+                                <Empty title="Нет данных по этой компетенции" />
                             )}
                         </div>
                     );
@@ -605,9 +605,10 @@ function AdminAnalysisDisciplinesView() {
                 </FlexRow>
             </div>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Загрузка анализа дисциплин..."
+                title="Загрузка анализа дисциплин..."
             />
 
             {!loading && (disciplineData || heatmapData || allDisciplinesData) && (

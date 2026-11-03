@@ -2,6 +2,14 @@
 
 import React from 'react';
 
+/**
+ * @description Диаграмма размаха с выбросами.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.stats Статистики квартилей и границ.
+ * @param {Array} [props.outliers=[]] Значения выбросов.
+ * @param {number} [props.width=400] Ширина диаграммы.
+ * @param {number} [props.height=300] Высота диаграммы.
+ */
 const BoxplotChart = ({ stats, outliers = [], width = 400, height = 300 }) => {
     const { q1, median, q3, whisker_low, whisker_high, min, max, lower_fence, upper_fence } = stats;
 

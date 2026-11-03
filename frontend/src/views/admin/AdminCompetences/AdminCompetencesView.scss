@@ -1,4 +1,10 @@
 .AdminCompetencesView {
+	.loading-content {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 500px;
+	}
     .dashboard-container {
         @include card-style;
         padding: 2rem;

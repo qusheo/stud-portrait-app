@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import './Autocompleteinput.scss';
 
+/**
+ * @description Поле ввода с фильтруемым списком вариантов.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} [props.options=[]] Варианты для выбора.
+ * @param {*} [props.value=''] Выбранное значение.
+ * @param {Function} props.onChange Обработчик выбора значения.
+ * @param {string} [props.placeholder] Текст-подсказка в пустом поле.
+ */
 function AutocompleteInput({ options = [], value = '', onChange, placeholder = 'Введите значение...' }) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');

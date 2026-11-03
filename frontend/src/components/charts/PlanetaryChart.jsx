@@ -3,6 +3,14 @@ import React, { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import './PlanetaryChart.scss';
 
+/**
+ * @description Круговая иерархическая диаграмма компетенций, мотиваторов или курсов.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.title Заголовок диаграммы.
+ * @param {Array} [props.items=[]] Элементы диаграммы.
+ * @param {string} [props.type='competency'] Тип отображаемых данных.
+ * @param {number} [props.height=500] Высота диаграммы.
+ */
 const PlanetaryChart = ({
     title,
     items = [],

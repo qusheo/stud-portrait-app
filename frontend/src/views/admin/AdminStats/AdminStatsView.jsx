@@ -8,7 +8,8 @@ import TitledCard from '@components/cards/TitledCard.jsx';
 import ValueCard from '@components/cards/ValueCard.jsx';
 
 import Button from '@components/ui/Button.jsx';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 import { AdminService } from '@services';
@@ -205,7 +206,7 @@ function AdminStatsView() {
         return (
             <div className="AdminStatsView">
                 <div className="loading-content">
-                    <LoadingSpinner text="Загрузка статистики..." />
+                    <Loading title="Загрузка статистики..." />
                 </div>
             </div>
         );
@@ -544,7 +545,7 @@ function AdminStatsView() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="no-data">Нет данных о центрах компетенций</div>
+                                        <Empty title="Нет данных о центрах компетенций" />
                                     )}
                                 </div>
                             </Card>
@@ -574,7 +575,7 @@ function AdminStatsView() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="no-data">Нет данных об учебных заведениях</div>
+                                        <Empty title="Нет данных об учебных заведениях" />
                                     )}
                                 </div>
                             </Card>

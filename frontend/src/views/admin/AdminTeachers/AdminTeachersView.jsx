@@ -10,7 +10,7 @@ import TeacherService from '@services/TeacherService.ts';
 
 import TeacherView from './TeacherView.jsx';
 import DataTable from '@components/tables/DataTable';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
 import { AutocompleteInput, Button } from '../../../components/index.js';
 // тестовое
 const teachers = [
@@ -211,7 +211,7 @@ function AdminTeachersView() {
                 </div>
             )}
             {isTableLoading ? (
-                <LoadingSpinner text={'Загрузка таблицы'} />
+                <Loading type="table" title="Загрузка таблицы" />
             ) : (
                 <DataTable
                     rows={tableRows}
