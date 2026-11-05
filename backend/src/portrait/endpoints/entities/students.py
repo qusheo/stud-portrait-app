@@ -10,6 +10,8 @@ from django.views.decorators.http import require_http_methods
 
 from ..common import *
 from ..student_interests import fetch_student_interests
+from portrait.models import User as PortraitUser
+
 
 
 @method('GET')
@@ -17,6 +19,17 @@ from ..student_interests import fetch_student_interests
 @csrf_exempt
 def student_results(request):
     """Get specific participant's results."""
+
+    # Проверяем авторизацию.
+    if not request.user.is_authenticated:
+        raise ResponseError("Authentication required", status=401)
+
+    # Получаем профиль StudPortrait текущего пользователя.
+    account = getattr(request.user, 'portrait_account', None)
+
+    if account is None:
+        raise ResponseError("User account not found", status=403)
+
     stud_id = request.GET.get('stud_id')
 
     if not stud_id:
@@ -31,6 +44,20 @@ def student_results(request):
         participant = Participants.objects.get(part_id=stud_id)
     except Participants.DoesNotExist:
         raise ResponseError("Student not found", status=404)
+
+    # Студент может просматривать только собственный профиль.
+    if account.account_type == PortraitUser.AccountType.STUDENT:
+        if account.participant_id is None:
+            raise ResponseError(
+                "Student account is not linked to a participant",
+                status=403
+            )
+
+        if account.participant_id != participant.part_id:
+            raise ResponseError(
+                "You cannot access another student's profile",
+                status=403
+            )
 
     results_list = [
         {
@@ -51,17 +78,25 @@ def student_results(request):
         for result in Results.objects
         .filter(res_participant=stud_id)
         .select_related(
-            'res_center', 'res_institution', 'res_edu_level', 'res_edu_form', 'res_edu_specialty'
+            'res_center', 'res_institution', 'res_edu_level',
+            'res_edu_form', 'res_edu_specialty'
         )
     ]
 
     try:
-        mapping = StudentMapping.objects.get(mapping_rsv=participant.part_rsv_id)
+        mapping = StudentMapping.objects.get(
+            mapping_rsv=participant.part_rsv_id
+        )
         student_name = mapping.mapping_stud_name
     except StudentMapping.DoesNotExist:
         student_name = participant.part_rsv_id
 
-    latest_result = Results.objects.filter(res_participant=stud_id).order_by('-res_year', '-res_course').first()
+    latest_result = (
+        Results.objects
+        .filter(res_participant=stud_id)
+        .order_by('-res_year', '-res_course')
+        .first()
+    )
 
     return {
         "student": {
@@ -69,14 +104,27 @@ def student_results(request):
             "stud_rsv": participant.part_rsv_id,
             "stud_name": student_name,
             "stud_gender": participant.part_gender,
-            "institution": attrIfObj(latest_result.res_institution, 'inst_name') if latest_result else None,
-            "specialty": attrIfObj(latest_result.res_edu_specialty, 'spec_name') if latest_result else None,
-            "edu_level": attrIfObj(latest_result.res_edu_level, 'edu_level_name') if latest_result else None,
-            "study_form": attrIfObj(latest_result.res_edu_form, 'form_name') if latest_result else None,
+            "institution": (
+                attrIfObj(latest_result.res_institution, 'inst_name')
+                if latest_result else None
+            ),
+            "specialty": (
+                attrIfObj(latest_result.res_edu_specialty, 'spec_name')
+                if latest_result else None
+            ),
+            "edu_level": (
+                attrIfObj(latest_result.res_edu_level, 'edu_level_name')
+                if latest_result else None
+            ),
+            "study_form": (
+                attrIfObj(latest_result.res_edu_form, 'form_name')
+                if latest_result else None
+            ),
             "course_num": participant.part_course_num
         },
         "results": results_list
     }
+
 
 
 @csrf_exempt

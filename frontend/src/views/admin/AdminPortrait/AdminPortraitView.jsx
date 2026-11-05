@@ -1,10 +1,15 @@
+
 import { useState, useEffect } from 'react';
 import Chart from 'react-apexcharts';
 import { useLocation } from 'react-router-dom';
 import { StudentService } from '@services';
 import { toast } from 'react-toastify';
 import FlexRow, { WRAP } from '@components/FlexRow';
-import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import {
+    COMPETENCIES_NAMES,
+    VALUES_NAMES,
+    MOTIVATORS_NAMES
+} from '@utils/utilities.js';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';
@@ -34,6 +39,7 @@ const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
 
     const searchStudents = async () => {
         setLoading(true);
+
         StudentService.getStudentsList(searchTerm, 20)
             .then(data => setStudents(data.data))
             .catch(error => console.error('Ошибка поиска:', error))
@@ -46,16 +52,19 @@ const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
         setStudents([]);
         onSelectStudent(student.id);
     };
-	useEffect(() => {
-		if(!value) return;
+
+    useEffect(() => {
+        if (!value) return;
+
         setIsDropdownOpen(false);
         setSearchTerm('');
         setStudents([]);
-	},[value]);
+    }, [value]);
 
     return (
         <div className="student-search">
             <div className="search-label">Поиск студента:</div>
+
             <div className="search-container">
                 <input
                     type="text"
@@ -67,7 +76,9 @@ const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
                         setIsDropdownOpen(true);
                     }}
                 />
+
                 {loading && <LoadingSpinner small />}
+
                 {isDropdownOpen && students.length > 0 && (
                     <div className="search-results">
                         {students.map(student => (
@@ -77,6 +88,7 @@ const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
                                 onClick={() => handleSelectStudent(student)}
                             >
                                 <div className="result-rsv">{student.rsv_id}</div>
+
                                 <div className="result-info">
                                     {student.institution} • {student.specialty} • {student.course} курс
                                 </div>
@@ -96,37 +108,53 @@ const StudentInfoCard = ({ student }) => {
         <div className="profile-card">
             <div className="profile-header">
                 <div className="avatar">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                    <svg
+                        width="32"
+                        height="32"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                        <path d="M6 12v5c3 3 9 3 12 0v-5" />
                     </svg>
                 </div>
+
                 <div className="profile-title">
                     <h3>{student.stud_name || 'Имя не указано'}</h3>
                     <p>{student.specialty || 'Направление не указано'}</p>
                 </div>
             </div>
+
             <div className="profile-info-grid">
                 <div className="info-item">
                     <span className="info-label">ID студента:</span>
                     <span className="info-value">{student.rsv_id}</span>
                 </div>
+
                 <div className="info-item">
                     <span className="info-label">Пол:</span>
                     <span className="info-value">{student.gender}</span>
                 </div>
+
                 <div className="info-item">
                     <span className="info-label">Учебное заведение:</span>
                     <span className="info-value">{student.institution}</span>
                 </div>
+
                 <div className="info-item">
                     <span className="info-label">Уровень образования:</span>
                     <span className="info-value">{student.edu_level}</span>
                 </div>
+
                 <div className="info-item">
                     <span className="info-label">Форма обучения:</span>
                     <span className="info-value">{student.study_form}</span>
                 </div>
+
                 <div className="info-item">
                     <span className="info-label">Текущий курс:</span>
                     <span className="info-value">{student.current_course}</span>
@@ -142,6 +170,7 @@ const TestResultsCard = ({ Results, activeTab }) => {
     useEffect(() => {
         if (Results && Results.length > 0) {
             const yearExists = Results.some(r => r.year === selectedYear);
+
             if (!yearExists) {
                 setSelectedYear(Results[0].year);
             }
@@ -160,11 +189,15 @@ const TestResultsCard = ({ Results, activeTab }) => {
 
     const hasActualData = obj => {
         if (!obj) return false;
-        return Object.values(obj).some(val => val !== null && val !== undefined);
+
+        return Object.values(obj).some(
+            val => val !== null && val !== undefined
+        );
     };
 
     const getChartData = () => {
         if (!currentResult) return [];
+
         let names = {};
         let dataObj = {};
 
@@ -181,66 +214,163 @@ const TestResultsCard = ({ Results, activeTab }) => {
 
         return Object.entries(names).map(([key, name]) => ({
             name,
-            value: dataObj[key] !== undefined && dataObj[key] !== null ? dataObj[key] : 0
+            value:
+                dataObj[key] !== undefined && dataObj[key] !== null
+                    ? dataObj[key]
+                    : 0
         }));
     };
 
     const chartData = getChartData();
-    const sortedData = [...chartData].sort((a, b) => b.value - a.value);
-    const top3 = sortedData.slice(0, 3);
-    const bottom3 = sortedData.slice(-3).reverse();
 
+    // Три категории мотиваторов.
+    const motivatorGroups = [
+        {
+            title: 'Мотиваторы',
+            emptyMessage: 'Нет данных о мотиваторах',
+            items: []
+        },
+        {
+            title: 'Непроявленные',
+            emptyMessage: 'Нет данных о непроявленных признаках',
+            items: []
+        },
+        {
+            title: 'Демотиваторы',
+            emptyMessage: 'Нет данных о демотиваторах',
+            items: []
+        }
+    ];
+
+    // Каждый признак добавляется во все три категории.
+    // Значение указывается только в подходящей категории.
+    if (activeTab === 'motivators' && currentResult) {
+        Object.entries(MOTIVATORS_NAMES).forEach(([key, name]) => {
+            const rawValue = currentResult.motivators?.[key];
+
+            let value = null;
+
+            if (
+                rawValue !== null &&
+                rawValue !== undefined &&
+                rawValue !== ''
+            ) {
+                const number = Number(rawValue);
+
+                if (Number.isFinite(number) && number >= 200) {
+                    value = number;
+                }
+            }
+
+            motivatorGroups.forEach((group, index) => {
+                let groupValue = null;
+
+                // Мотиваторы: 600 и выше.
+                if (index === 0 && value !== null && value >= 600) {
+                    groupValue = value;
+                }
+
+                // Непроявленные: от 400 до 599 включительно.
+                else if (
+                    index === 1 &&
+                    value !== null &&
+                    value >= 400 &&
+                    value < 600
+                ) {
+                    groupValue = value;
+                }
+
+                // Демотиваторы: от 200 до 399 включительно.
+                else if (
+                    index === 2 &&
+                    value !== null &&
+                    value >= 200 &&
+                    value < 400
+                ) {
+                    groupValue = value;
+                }
+
+                group.items.push({
+                    name,
+                    value: groupValue
+                });
+            });
+        });
+    }
+
+    // Сортировка по возрастанию.
+    // Пустые значения располагаются в конце.
+    motivatorGroups.forEach(group => {
+        group.items.sort((a, b) => {
+            if (a.value === null && b.value === null) return 0;
+            if (a.value === null) return 1;
+            if (b.value === null) return -1;
+
+            return a.value - b.value;
+        });
+    });
+
+    // Проверяем наличие данных для текущей вкладки.
     let isDataEmpty = true;
+
     if (currentResult) {
-        if (activeTab === 'competences') isDataEmpty = !hasActualData(currentResult.competencies);
-        else if (activeTab === 'motivators') isDataEmpty = !hasActualData(currentResult.motivators);
-        else if (activeTab === 'values') isDataEmpty = !hasActualData(currentResult.values);
+        if (activeTab === 'competences') {
+            isDataEmpty = !hasActualData(currentResult.competencies);
+        } else if (activeTab === 'motivators') {
+            // Для мотиваторов проверка выполняется отдельно по каждой категории.
+            isDataEmpty = false;
+        } else if (activeTab === 'values') {
+            isDataEmpty = !hasActualData(currentResult.values);
+        }
     }
 
     const radarOptions = {
-        chart: { type: 'radar', toolbar: { show: false }, fontFamily: 'inherit' },
+        chart: {
+            type: 'radar',
+            toolbar: { show: false },
+            fontFamily: 'inherit'
+        },
         labels: chartData.map(d => d.name),
         xaxis: {
             labels: {
                 style: {
-                    colors: chartData.map(() => '#1e293b'), 
+                    colors: chartData.map(() => '#1e293b'),
                     fontSize: '12px',
                     fontWeight: 600
                 }
             }
         },
-        stroke: { width: 2, colors: ['#3b82f6'] },
-        fill: { opacity: 0.2, colors: ['#3b82f6'] },
-        markers: { size: 4, colors: ['#fff'], strokeColors: '#3b82f6', strokeWidth: 2 },
-        yaxis: { show: false, min: 0, max: 800 },
-        plotOptions: { 
-            radar: { 
+        stroke: {
+            width: 2,
+            colors: ['#3b82f6']
+        },
+        fill: {
+            opacity: 0.2,
+            colors: ['#3b82f6']
+        },
+        markers: {
+            size: 4,
+            colors: ['#fff'],
+            strokeColors: '#3b82f6',
+            strokeWidth: 2
+        },
+        yaxis: {
+            show: false,
+            min: 0,
+            max: 800
+        },
+        plotOptions: {
+            radar: {
                 size: 270,
-                polygons: { strokeColors: '#e2e8f0', connectorColors: '#e2e8f0', fill: { colors: ['#f8fafc', '#fff'] } } 
-            } 
-        }
-    };
-
-    const barOptions = {
-        chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
-        plotOptions: { 
-            bar: { 
-                horizontal: false, 
-                borderRadius: 4, 
-                columnWidth: '90%' 
-            } 
-        },
-        dataLabels: { enabled: false }, 
-        xaxis: { 
-            categories: chartData.map(d => d.name),
-            labels: {
-                rotate: -45, 
-                rotateAlways: true,
-                style: { fontSize: '11px', colors: '#64748b' }
+                polygons: {
+                    strokeColors: '#e2e8f0',
+                    connectorColors: '#e2e8f0',
+                    fill: {
+                        colors: ['#f8fafc', '#fff']
+                    }
+                }
             }
-        },
-        yaxis: { max: 800 },
-        colors: ['#3b82f6']
+        }
     };
 
     return (
@@ -262,13 +392,23 @@ const TestResultsCard = ({ Results, activeTab }) => {
                     {isDataEmpty ? (
                         <Empty
                             type="charts"
-                            title={`Нет данных о ${activeTab === 'competences' ? 'компетенциях' : activeTab === 'motivators' ? 'мотиваторах' : 'ценностях'} за выбранный год`}
+                            title={`Нет данных о ${
+                                activeTab === 'competences'
+                                    ? 'компетенциях'
+                                    : activeTab === 'motivators'
+                                        ? 'мотиваторах'
+                                        : 'ценностях'
+                            } за выбранный год`}
                         />
                     ) : activeTab === 'values' ? (
                         <div className="values-list">
                             {Object.entries(VALUES_NAMES).map(([key, name]) => {
                                 const val = currentResult?.values?.[key];
-                                if (val === null || val === undefined) return null;
+
+                                if (val === null || val === undefined) {
+                                    return null;
+                                }
+
                                 return (
                                     <div key={key} className="value-item">
                                         {name}
@@ -276,50 +416,126 @@ const TestResultsCard = ({ Results, activeTab }) => {
                                 );
                             })}
                         </div>
-                    ) : (
+                    ) : activeTab === 'competences' ? (
                         <div className="analytics-split-layout">
                             <div className="chart-side">
-                                {activeTab === 'competences' && chartData.length > 0 && (
-                                    <Chart 
-                                        options={radarOptions} 
-                                        series={[{ name: 'Баллы', data: chartData.map(d => d.value) }]} 
-                                        type="radar" 
-                                        height={600} 
-                                        width="100%"
-                                    />
-                                )}
-                                {activeTab === 'motivators' && chartData.length > 0 && (
-                                    <Chart 
-                                        options={barOptions} 
-                                        series={[{ name: 'Баллы', data: chartData.map(d => d.value) }]} 
-                                        type="bar" 
-                                        height={600} 
-                                        width="100%"
-                                    />
-                                )}
-                            </div>
-                            
-                            <div className="analysis-side">
-                                <h4 className="analysis-title">Анализ данных</h4>
-                                <div className="analysis-block">
-                                    <h5>Преобладает (Топ-3)</h5>
-                                    <ul>
-                                        {top3.map((item, i) => (
-                                            <li key={i}><span>{item.name}</span> <strong>{item.value}</strong></li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div className="analysis-block">
-                                    <h5>Слабые черты (Топ-3)</h5>
-                                    <ul>
-                                        {bottom3.map((item, i) => (
-                                            <li key={i}><span>{item.name}</span> <strong>{item.value}</strong></li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                <Chart
+                                    options={radarOptions}
+                                    series={[
+                                        {
+                                            name: 'Баллы',
+                                            data: chartData.map(d => d.value)
+                                        }
+                                    ]}
+                                    type="radar"
+                                    height={600}
+                                    width="100%"
+                                />
                             </div>
                         </div>
-                    )}
+                    ) : activeTab === 'motivators' ? (
+                        <div
+                            className="motivator-groups"
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '24px',
+                                width: '100%'
+                            }}
+                        >
+                            {motivatorGroups.map((group, index) => {
+                                // Проверяем, есть ли хотя бы один признак
+                                // с реальным значением в этой категории.
+                                const hasGroupData = group.items.some(
+                                    item => item.value !== null
+                                );
+
+                                return (
+                                    <div
+                                        className="dashboard-card"
+                                        key={group.title}
+                                        style={{
+                                            width: '100%',
+                                            minWidth: 0,
+                                            margin: 0
+                                        }}
+                                    >
+                                        <h3 className="card-title">
+                                            {group.title}
+                                        </h3>
+
+                                        {hasGroupData ? (
+                                            <Chart
+                                                options={{
+                                                    chart: {
+                                                        type: 'bar',
+                                                        toolbar: { show: false },
+                                                        fontFamily: 'inherit'
+                                                    },
+                                                    plotOptions: {
+                                                        bar: {
+                                                            horizontal: false,
+                                                            borderRadius: 4,
+                                                            columnWidth: '55%'
+                                                        }
+                                                    },
+                                                    dataLabels: {
+                                                        enabled: true,
+                                                        formatter: value => {
+                                                            return value === null ||
+                                                                value === undefined
+                                                                ? ''
+                                                                : value;
+                                                        }
+                                                    },
+                                                    xaxis: {
+                                                        categories: group.items.map(
+                                                            item => item.name
+                                                        ),
+                                                        labels: {
+                                                            rotate: -45,
+                                                            rotateAlways: true,
+                                                            trim: false,
+                                                            hideOverlappingLabels: false,
+                                                            style: {
+                                                                fontSize: '11px'
+                                                            }
+                                                        }
+                                                    },
+                                                    yaxis: {
+                                                        min: 0
+                                                    },
+                                                    colors: [
+                                                        index === 0
+                                                            ? '#16a34a'
+                                                            : index === 1
+                                                                ? '#eab308'
+                                                                : '#dc2626'
+                                                    ]
+                                                }}
+                                                series={[
+                                                    {
+                                                        name: 'Баллы',
+                                                        data: group.items.map(
+                                                            item => item.value
+                                                        )
+                                                    }
+                                                ]}
+                                                type="bar"
+                                                height={380}
+                                                width="100%"
+                                            />
+                                        ) : (
+                                            <Empty
+                                                type="charts"
+                                                title={group.emptyMessage}
+                                            />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : null}
                 </div>
             ) : (
                 <div className="dashboard-card no-data-card">
@@ -341,39 +557,55 @@ const AcademicPerformanceCard = ({ grades }) => {
     }
 
     const groupedByYear = {};
+
     grades.forEach(grade => {
-        if (!groupedByYear[grade.year]) groupedByYear[grade.year] = [];
+        if (!groupedByYear[grade.year]) {
+            groupedByYear[grade.year] = [];
+        }
+
         groupedByYear[grade.year].push(grade);
     });
 
-    const getGradeClass = (grade) => {
+    const getGradeClass = grade => {
         const num = parseInt(grade, 10);
+
         if (num === 5) return 'grade-excellent';
         if (num === 4) return 'grade-good';
         if (num === 3) return 'grade-satisfactory';
+
         return 'grade-poor';
     };
 
     return (
         <div className="dashboard-card">
             <h3 className="card-title">Оценки по дисциплинам</h3>
+
             {Object.entries(groupedByYear).map(([year, yearGrades]) => (
                 <div key={year} className="grades-year">
-                    <h4 className="year-subtitle">{year} учебный год</h4>
+                    <h4 className="year-subtitle">
+                        {year} учебный год
+                    </h4>
+
                     <div className="table-wrapper">
                         <table className="clean-table">
                             <thead>
                                 <tr>
                                     <th>Дисциплина</th>
-                                    <th style={{ width: '100px', textAlign: 'center' }}>Оценка</th>
+                                    <th style={{ width: '100px', textAlign: 'center' }}>
+                                        Оценка
+                                    </th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {yearGrades.map((grade, idx) => (
                                     <tr key={idx}>
                                         <td>{grade.discipline}</td>
+
                                         <td style={{ textAlign: 'center' }}>
-                                            <span className={`grade-badge ${getGradeClass(grade.main_attestation)}`}>
+                                            <span
+                                                className={`grade-badge ${getGradeClass(grade.main_attestation)}`}
+                                            >
                                                 {grade.main_attestation || '—'}
                                             </span>
                                         </td>
@@ -392,7 +624,10 @@ const CoursesCard = ({ courses }) => {
     if (!courses || courses.length === 0) {
         return (
             <div className="dashboard-card">
-                <h3 className="card-title">Пройденные образовательные курсы</h3>
+                <h3 className="card-title">
+                    Пройденные образовательные курсы
+                </h3>
+
                 <Empty type="table" title="Нет данных о пройденных курсах" />
             </div>
         );
@@ -425,22 +660,35 @@ const CoursesCard = ({ courses }) => {
 
     return (
         <div className="dashboard-card">
-            <h3 className="card-title">Пройденные образовательные курсы</h3>
+            <h3 className="card-title">
+                Пройденные образовательные курсы
+            </h3>
+
             <div className="courses-grid">
                 {courses.map((course, idx) => (
                     <div key={idx} className="course-block">
-                        <h4 className="course-subtitle">Курс {idx + 1}</h4>
+                        <h4 className="course-subtitle">
+                            Курс {idx + 1}
+                        </h4>
+
                         <div className="course-tags">
                             {courseFields.map(field => {
                                 const value = course[field.key];
+
                                 if (value !== null && value !== undefined) {
                                     return (
                                         <div key={field.key} className="course-tag">
-                                            <span className="tag-label">{field.name}</span>
-                                            <span className="tag-value">{value}</span>
+                                            <span className="tag-label">
+                                                {field.name}
+                                            </span>
+
+                                            <span className="tag-value">
+                                                {value}
+                                            </span>
                                         </div>
                                     );
                                 }
+
                                 return null;
                             })}
                         </div>
@@ -454,6 +702,7 @@ const CoursesCard = ({ courses }) => {
 function AdminPortraitView() {
     const location = useLocation();
     const initialStudentId = location.state?.studentId ?? null;
+
     const [selectedStudentId, setSelectedStudentId] = useState(initialStudentId);
     const [studentPortrait, setStudentPortrait] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -462,18 +711,25 @@ function AdminPortraitView() {
     useEffect(() => {
         setSelectedStudentId(initialStudentId);
     }, [initialStudentId]);
-	
-	const { data: extraData = [], isPending: isLoading } = useQuery({
-		queryKey: ['student', selectedStudentId, 'extraData'],
-		queryFn: async () => {
-			if (!selectedStudentId) return [];
-			const response = await StudentService.getStudentById(selectedStudentId);
-			setStudentPortrait(prev => ({ ...prev, student_info: response.data || {} }));
-			return response.data;
-		},
-		enabled: Boolean(selectedStudentId),
-		...defaultQueryOptions,
-	});
+
+    const { isPending: isLoading } = useQuery({
+        queryKey: ['student', selectedStudentId, 'extraData'],
+        queryFn: async () => {
+            if (!selectedStudentId) return [];
+
+            const response = await StudentService.getStudentById(selectedStudentId);
+
+            setStudentPortrait(prev => ({
+                ...prev,
+                student_info: response.data || {}
+            }));
+
+            return response.data;
+        },
+        enabled: Boolean(selectedStudentId),
+        ...defaultQueryOptions
+    });
+
     useEffect(() => {
         if (selectedStudentId) {
             loadStudentPortrait(selectedStudentId);
@@ -484,6 +740,7 @@ function AdminPortraitView() {
 
     const loadStudentPortrait = async studentId => {
         setLoading(true);
+
         try {
             const data = await StudentService.getStudentPortrait(studentId);
             setStudentPortrait(data.data);
@@ -500,7 +757,7 @@ function AdminPortraitView() {
             <h2>Цифровой портрет студента</h2>
 
             <StudentSearch
-				value={initialStudentId}
+                value={initialStudentId}
                 onSelectStudent={setSelectedStudentId}
                 initialStudentId={initialStudentId}
             />
@@ -509,25 +766,65 @@ function AdminPortraitView() {
 
             {!loading && studentPortrait && (
                 <div className="dashboard-container">
-                    <FlexRow margin="0 0 24px 0" wrap={WRAP.DO} className="tabs-row">
-                        <TabButton text="Мои данные" onClick={() => setActiveTab('personal')} isActive={activeTab === 'personal'} />
-                        <TabButton text="Компетенции" onClick={() => setActiveTab('competences')} isActive={activeTab === 'competences'} />
-                        <TabButton text="Мотиваторы" onClick={() => setActiveTab('motivators')} isActive={activeTab === 'motivators'} />
-                        <TabButton text="Ценности" onClick={() => setActiveTab('values')} isActive={activeTab === 'values'} />
-                        <TabButton text="Образование" onClick={() => setActiveTab('education')} isActive={activeTab === 'education'} />
+                    <FlexRow
+                        margin="0 0 24px 0"
+                        wrap={WRAP.DO}
+                        className="tabs-row"
+                    >
+                        <TabButton
+                            text="Мои данные"
+                            onClick={() => setActiveTab('personal')}
+                            isActive={activeTab === 'personal'}
+                        />
+
+                        <TabButton
+                            text="Компетенции"
+                            onClick={() => setActiveTab('competences')}
+                            isActive={activeTab === 'competences'}
+                        />
+
+                        <TabButton
+                            text="Мотиваторы"
+                            onClick={() => setActiveTab('motivators')}
+                            isActive={activeTab === 'motivators'}
+                        />
+
+                        <TabButton
+                            text="Ценности"
+                            onClick={() => setActiveTab('values')}
+                            isActive={activeTab === 'values'}
+                        />
+
+                        <TabButton
+                            text="Образование"
+                            onClick={() => setActiveTab('education')}
+                            isActive={activeTab === 'education'}
+                        />
                     </FlexRow>
 
                     {activeTab === 'personal' && (
                         <div className="layout-grid-personal">
                             <div className="col-left">
-                                <StudentInfoCard student={studentPortrait.student_info} />
-								{ isLoading ? <LoadingSpinner small title="Загрузка дополнительных данных..." /> : <div></div> /* тут инфа про переводы и тд*/ } 
+                                <StudentInfoCard
+                                    student={studentPortrait.student_info}
+                                />
+
+                                {isLoading ? (
+                                    <LoadingSpinner
+                                        small
+                                        title="Загрузка дополнительных данных..."
+                                    />
+                                ) : (
+                                    <div></div>
+                                )}
                             </div>
+
                             <div className="col-right">
                                 <div className="dashboard-card">
                                     <h3 className="card-title">Интересы</h3>
                                     <Empty title="Нет данных об интересах" />
                                 </div>
+
                                 <div className="dashboard-card">
                                     <h3 className="card-title">Навыки</h3>
                                     <Empty title="Нет данных о навыках" />
@@ -536,20 +833,36 @@ function AdminPortraitView() {
                         </div>
                     )}
 
-                    {(activeTab === 'competences' || activeTab === 'motivators' || activeTab === 'values') && (
-                        <TestResultsCard Results={studentPortrait.test_results} activeTab={activeTab} />
+                    {(activeTab === 'competences' ||
+                        activeTab === 'motivators' ||
+                        activeTab === 'values') && (
+                        <TestResultsCard
+                            Results={studentPortrait.test_results}
+                            activeTab={activeTab}
+                        />
                     )}
 
                     {activeTab === 'education' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                            <AcademicPerformanceCard grades={studentPortrait.academic_performance} />
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '24px'
+                            }}
+                        >
+                            <AcademicPerformanceCard
+                                grades={studentPortrait.academic_performance}
+                            />
+
                             <CoursesCard courses={studentPortrait.courses} />
                         </div>
                     )}
                 </div>
             )}
 
-            {!loading && !studentPortrait && selectedStudentId && <Empty title="Не удалось загрузить данные студента" />}
+            {!loading && !studentPortrait && selectedStudentId && (
+                <Empty title="Не удалось загрузить данные студента" />
+            )}
         </div>
     );
 }

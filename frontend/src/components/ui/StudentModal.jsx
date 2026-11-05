@@ -25,15 +25,15 @@ const formatValue = value => (value === null || value === undefined || value ===
  */
 function ScoreSection({ title, items, type }) {
     if (!items.length) {
-		return (
-			<section className={`StudentModal__score-section StudentModal__score-section--${type}`}>
-				<h4>{title}</h4>
-				<ul>
-					<span>Отсутствуют</span>
-				</ul>
-			</section>
-		);
-	}
+        return (
+            <section className={`StudentModal__score-section StudentModal__score-section--${type}`}>
+                <h4>{title}</h4>
+                <ul>
+                    <span>Отсутствуют</span>
+                </ul>
+            </section>
+        );
+    }
 
     return (
         <section className={`StudentModal__score-section StudentModal__score-section--${type}`}>
@@ -62,19 +62,20 @@ function StudentModal({ open, student, onClose }) {
     const competencies = getScores(student, COMPETENCIES_NAMES, 'competences');
     const motivators = getScores(student, MOTIVATORS_NAMES, 'motivators');
     const values = getScores(student, VALUES_NAMES, 'values');
+
     const averageCompetency = competencies.length
         ? Math.round((competencies.reduce((sum, item) => sum + item.score, 0) / competencies.length) * 10) / 10
         : null;
 
-	const { data: extraData = [], isPending: isLoading } = useQuery({
-		queryKey: ['student', student?.part_id, 'extraData'],
-		queryFn: async () => {
-			if (!student?.part_id) return [];
-			const response = await StudentService.getStudentById(student.part_id);
-			return response.data;
-		},
-		enabled: Boolean(student?.part_id)
-	});
+    const { data: extraData = [], isPending: isLoading } = useQuery({
+        queryKey: ['student', student?.part_id, 'extraData'],
+        queryFn: async () => {
+            if (!student?.part_id) return [];
+            const response = await StudentService.getStudentById(student.part_id);
+            return response.data;
+        },
+        enabled: Boolean(student?.part_id)
+    });
 
     const studentName =
         student?.name || student?.part_name || (student?.participant != null ? `Студент № ${student.participant}` : 'Студент');
@@ -112,15 +113,11 @@ function StudentModal({ open, student, onClose }) {
                     <h3>Общие сведения</h3>
                     <dl className="StudentModal__info">
                         {generalInfo.map(([label, value]) => (
-                            <div
-                                className="StudentModal__info-item"
-                                key={label}
-                            >
+                            <div className="StudentModal__info-item" key={label}>
                                 <dt>{label}</dt>
                                 <dd>{formatValue(value)}</dd>
                             </div>
                         ))}
-						{}
                     </dl>
                 </section>
 
@@ -137,18 +134,27 @@ function StudentModal({ open, student, onClose }) {
                         items={competencies.filter(item => item.score >= 600)}
                         type="competencies"
                     />
-					<div className="StudentModal__scores_mot">
-						<ScoreSection
-							title="Мотиваторы (600+)"
-							items={motivators.filter(item => item.score >= 600)}
-							type="motivators"
-						/>
-						<ScoreSection
-							title="Демотиваторы (до 400)"
-							items={motivators.filter(item => item.score < 400)}
-							type="demotivators"
-						/>
-					</div>
+
+                    <div className="StudentModal__scores_mot">
+                        <ScoreSection
+                            title="Мотиваторы (600–1000)"
+                            items={motivators.filter(item => item.score >= 600)}
+                            type="motivators"
+                        />
+
+                        <ScoreSection
+                            title="Непроявленные (400–599)"
+                            items={motivators.filter(item => item.score >= 400 && item.score < 600)}
+                            type="unexpressed"
+                        />
+
+                        <ScoreSection
+                            title="Демотиваторы (200–399)"
+                            items={motivators.filter(item => item.score >= 200 && item.score < 400)}
+                            type="demotivators"
+                        />
+                    </div>
+
                     <ScoreSection
                         title="Ценности (600+)"
                         items={values.filter(item => item.score >= 600)}

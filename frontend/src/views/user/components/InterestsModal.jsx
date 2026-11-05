@@ -111,7 +111,7 @@ export default function StudentInterestsModal({ open, studentId, onClose }) {
             okButtonProps={{ loading: mutation.isPending, disabled: isLoading || !data }}
             cancelButtonProps={{ disabled: mutation.isPending }}
             closable={!mutation.isPending}
-            maskClosable={!mutation.isPending}
+            mask={{ closable: !mutation.isPending }}
             width={650}
             destroyOnHidden
         >

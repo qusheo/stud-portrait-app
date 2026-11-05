@@ -319,7 +319,15 @@ class User(models.Model):
         choices=AccountType.choices,
         default=AccountType.ADMIN,
     )
-
+    participant = models.OneToOneField(
+        "Participants",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="portrait_account",
+        db_column="participant_id",
+    )
+    
     class Meta:
         db_table = "portrait_user"
 

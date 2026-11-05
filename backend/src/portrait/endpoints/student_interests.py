@@ -1,10 +1,25 @@
 import json
 import traceback
+from .auth import get_portrait_account
 from django.db import connection, transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from .common import *
+
+def can_access_student_interests(request, student_id: int) -> bool:
+    # Пользователь должен быть авторизован
+    if not request.user.is_authenticated:
+        return False
+
+    # Получаем связанный аккаунт приложения
+    account = get_portrait_account(request.user)
+
+    if account is None:
+        return False
+
+    # Студент может изменять интересы только своего профиля
+    return account.participant_id == student_id
 
 def fetch_student_interests(student_id: int) -> list[str]:
     with connection.cursor() as cursor:
@@ -26,6 +41,12 @@ def get_student_interests(request):
 
         if student_id <= 0:
             raise ValueError("Некорректный student_id")
+
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"ok": False, "message": "Необходима авторизация"},
+                status=401,
+            )
 
         if not Participants.objects.filter(part_id=student_id).exists():
             return JsonResponse(

@@ -271,8 +271,11 @@ async getCsrfToken() {
 
     getPortraitStudentResults(studentId) {
         const params = new URLSearchParams({ stud_id: studentId });
-        const promise = fetch(`${HOST}/portrait/student-results/?${params}`);
-        return promise;
+
+        return fetch(`${HOST}/portrait/student-results/?${params}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
     }
 
     getPortraitGetInstitutionDirections(selectedInstitutions) {
@@ -691,12 +694,18 @@ async getCsrfToken() {
     /* *** GENDOX *** */
 
     getStudentResumeData(studentId, year) {
-        const params = new URLSearchParams();
-        params.append('student_id', studentId);
+    const params = new URLSearchParams();
+
+    params.append('student_id', studentId);
+
+    // Передаём учебный год только тогда, когда он действительно выбран
+    if (year !== null && year !== undefined && year !== '' && year !== 'null') {
         params.append('year', year);
-        params.append('with_ai', 'true');
-        const promise = fetch(`${HOST}/portrait/gendox/student-resume-data/?${params}`);
-        return promise;
+    }
+
+    params.append('with_ai', 'true');
+
+    return fetch(`${HOST}/portrait/gendox/student-resume-data/?${params}`);
     }
 
     windowGenerateDocxResume(studentId) {
@@ -732,18 +741,27 @@ async getCsrfToken() {
 	}
 
 	async updateStudentInterests(studentId, changes) {
-		const { csrfToken } = await this.getCsrfToken();
+    const numericStudentId = Number(studentId);
 
-		return fetch(`${HOST}/portrait/interests/update_student_interests/`, {
-			method: 'PATCH',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-			body: JSON.stringify({ student_id: studentId, changes }),
-		});
-	}
+    if (!Number.isInteger(numericStudentId) || numericStudentId <= 0) {
+        throw new Error('Некорректный ID студента');
+    }
+
+    const { csrfToken } = await this.getCsrfToken();
+
+    return fetch(`${HOST}/portrait/interests/update_student_interests/`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            student_id: numericStudentId,
+            changes,
+        }),
+    });
+    }
 
 }
 export default new Api();

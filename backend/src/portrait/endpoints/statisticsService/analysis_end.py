@@ -138,10 +138,16 @@ def analyze_student_vam(request):
         if not student_id:
             return JsonResponse({'ok': False, 'message': 'student_id required'}, status=400)
 
-        # Получаем все результаты студента, сортируем по году/курсу
-        results = Results.objects.filter(res_participant_id=student_id).order_by('res_year', 'res_course')
-        if not results:
-            return JsonResponse({'ok': False, 'message': 'Нет данных для студента'}, status=404)
+        results = Results.objects.filter(
+            res_participant_id=student_id
+        ).order_by('res_year', 'res_course')
+
+        if not results.exists():
+            return JsonResponse({
+            'ok': True,
+            'has_data': False,
+            'message': 'У студента пока нет результатов тестирования'
+            })
 
         data = []
         for r in results:
@@ -155,9 +161,10 @@ def analyze_student_vam(request):
 
         if len(data) < 2:
             return JsonResponse({
-                'ok': False,
-                'message': 'Недостаточно данных для VAM (нужно минимум 2 замера)'
-            }, status=400)
+            'ok': True,
+            'has_data': False,
+            'message': 'Для расчёта VAM необходимо минимум два замера'
+            })
 
         df = pd.DataFrame(data)
         vam = ValueAddedModel()
