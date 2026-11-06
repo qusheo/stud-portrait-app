@@ -9,9 +9,6 @@ from django.utils import timezone
 
 from .common import *
 
-
-# ============================== ENDPOINTS ============================== #
-
 @method(POST)
 @jsonResponse
 @csrf_exempt
