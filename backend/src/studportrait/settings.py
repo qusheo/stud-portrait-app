@@ -1,12 +1,9 @@
 from pathlib import Path
-import sys
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-from dotenv import load_dotenv
 
-load_dotenv()
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = 'django-insecure-$8wbe#x&7-o8$0-3bd&th8)+y=23h1p8%g&=6_uv4iulzn#ien'
@@ -82,6 +79,9 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
+        "OPTIONS": {
+            "sslmode": "require",
+        },
     }
 }
 REDIS_SERVER = os.getenv("REDIS_URL")
