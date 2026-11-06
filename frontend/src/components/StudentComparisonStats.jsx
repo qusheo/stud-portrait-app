@@ -4,6 +4,12 @@ import { StudentService } from '@services';
 
 import './StudentComparisonStats.scss';
 
+/**
+ * @description Сравнение результатов студента с другими студентами.
+ * @param {Object} props Параметры компонента.
+ * @param {string|number} props.studentId Идентификатор студента.
+ * @param {string} props.year Учебный год.
+ */
 const StudentComparisonStats = ({ studentId, year }) => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(false);

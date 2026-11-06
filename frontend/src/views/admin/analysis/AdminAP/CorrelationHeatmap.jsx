@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 export default function CorrelationHeatmap({ data, loading }) {
     // Состояние: сколько дисциплин показывать (по умолчанию топ-20 по объёму данных)
     const [topN, setTopN] = useState(20);
 
     if (loading) {
-        return <div style={{ padding: 20 }}>Загрузка тепловой карты...</div>;
+        return <Loading type="charts" title="Загрузка тепловой карты..." />;
     }
     if (!data || !data.correlations || data.correlations.length === 0) {
-        return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для построения тепловой карты корреляций</div>;
+        return <Empty type="charts" title="Нет данных для построения тепловой карты корреляций" />;
     }
 
     const competencies = data.competencies || [];

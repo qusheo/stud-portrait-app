@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTrendLine } from './CompetencesCharts.jsx';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTable_course, CompetencyTrendLine } from './CompetencesCharts.jsx';
 
 vi.mock('recharts', () => {
     const Container = ({ children }) => <div>{children}</div>;
@@ -44,7 +44,8 @@ vi.mock('recharts', () => {
 vi.mock('@utils/utilities.js', () => ({
     COMPETENCIES_NAMES: { res_comp_info_analysis: 'Анализ информации' },
     MOTIVATORS_NAMES: {},
-    FIELD_NAMES: {}
+    FIELD_NAMES: {},
+    downloadExcelWorkbook: vi.fn().mockResolvedValue(undefined)
 }));
 const trends = {
     trends: [
@@ -139,5 +140,21 @@ describe('графики компетенций', () => {
         expect(screen.getByText('+50')).toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: /Скрыть таблицу/ }));
         expect(screen.getByRole('button', { name: /Показать таблицу/ })).toBeInTheDocument();
+    });
+
+    it('сбрасывает состояние загрузки после экспорта по курсам', async () => {
+        render(
+            <CompetencyTable_course
+                data={radar}
+                filters={{ year: '2023/2024' }}
+            />
+        );
+        const button = screen.getByRole('button', { name: 'Скачать' });
+
+        fireEvent.click(button);
+        expect(button).toHaveAttribute('aria-busy', 'true');
+
+        await waitFor(() => expect(button).toHaveAttribute('aria-busy', 'false'));
+        expect(button).toBeEnabled();
     });
 });

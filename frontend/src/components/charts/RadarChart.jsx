@@ -2,6 +2,16 @@ import Chart from 'react-apexcharts';
 import { CATEGORIES_DESCRIPTIONS } from '@utils/utilities';
 import './RadarChart.scss';
 
+/**
+ * @description Радарная диаграмма с подсказками по категориям.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.title Заголовок диаграммы.
+ * @param {string} props.seriesLabel Название серии данных.
+ * @param {Array} props.seriesData Значения серии.
+ * @param {Array} props.categories Категории диаграммы.
+ * @param {Array} props.competencyKeys Ключи компетенций для подсказок.
+ * @param {number} [props.height=450] Высота диаграммы.
+ */
 function RadarChart({ title, seriesLabel, seriesData, categories, competencyKeys, height = 450 }) {
     // Функция для форматирования подписей с переносами
     const formatCategoryLabels = categories => {

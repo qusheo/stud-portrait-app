@@ -21,7 +21,7 @@ ACCESS_PERMISSION_KEYS = (
     "canViewCourses",
     "canViewMotivators",
     "canViewCompetences",
-    "canViewStudentPortrait",
+    "canViewPortrait",
     "canViewTeachers",
     "canViewAnalysisDisciplines",
     "canViewAP",
@@ -62,6 +62,21 @@ def get_account_type(user):
         return None
 
     return account.account_type
+
+
+def get_participant_id(user):
+    """
+    Возвращает ID участника, связанного с учётной записью.
+
+    Для студента это ID его собственного профиля.
+    Для остальных ролей значение может быть None.
+    """
+    account = get_portrait_account(user)
+
+    if account is None:
+        return None
+
+    return account.participant_id
 
 
 @require_GET
@@ -115,7 +130,6 @@ def login_view(request):
         }, status=401)
 
     # Не разрешаем вход без связанного профиля StudPortrait.
-    # Это не позволяет автоматически выдавать роль администратора.
     account_type = get_account_type(user)
 
     if account_type is None:
@@ -123,6 +137,8 @@ def login_view(request):
             "ok": False,
             "message": "Для учётной записи не настроена роль StudPortrait",
         }, status=403)
+
+    participant_id = get_participant_id(user)
 
     login(request, user)
 
@@ -132,6 +148,7 @@ def login_view(request):
         "user_id": user.pk,
         "username": user.get_username(),
         "account_type": account_type,
+        "participant_id": participant_id,
         "is_authenticated": True,
     })
 
@@ -164,6 +181,7 @@ def current_user(request):
         "first_name": request.user.first_name,
         "last_name": request.user.last_name,
         "account_type": account_type,
+        "participant_id": get_participant_id(request.user),
     })
 
 
@@ -182,7 +200,7 @@ def logout_view(request):
 
 @require_GET
 def get_user_permissions(request):
-    """Возвращает текущую роль и права пользователя."""
+    """Возвращает текущую роль, права и ID связанного участника."""
     if not request.user.is_authenticated:
         return JsonResponse({
             "ok": False,
@@ -203,6 +221,7 @@ def get_user_permissions(request):
         ACCESS_PERMISSION_KEYS,
         account_type == PortraitUser.AccountType.ADMIN,
     )
+
     permissions.update({
         "canViewOwnPortrait": True,
         "canViewOwnReport": True,
@@ -212,7 +231,8 @@ def get_user_permissions(request):
         "ok": True,
         "account_type": account_type,
         "user_id": request.user.pk,
+        "participant_id": get_participant_id(request.user),
         "username": request.user.get_username(),
         "is_authenticated": True,
         "permissions": permissions,
-})
+    })

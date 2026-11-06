@@ -12,6 +12,8 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 import TitledCard from '@components/cards/TitledCard';
 
 import Button from '@components/ui/Button';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import Label from '@components/ui/Label';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import Select, { Option } from '@components/ui/Select.jsx';
@@ -83,10 +85,7 @@ function AdminGroupedDiagramsView() {
     if (loading) {
         return (
             <div className="AdminGroupedDiagramsView">
-                <div className="loading">
-                    <div className="spinner"></div>
-                    <div>Загрузка данных для группировки...</div>
-                </div>
+                <Loading type="charts" title="Загрузка данных для группировки..." />
             </div>
         );
     }
@@ -219,16 +218,7 @@ function AdminGroupedDiagramsView() {
                     </div>
                 )}
 
-                {!chartData && !loading && (
-                    <div className="no-data">
-                        <div className="no-data-icon">📊</div>
-                        <div className="no-data-text">
-                            <strong>Нет данных для отображения</strong>
-                            <br />
-                            Не удалось загрузить данные для группировки
-                        </div>
-                    </div>
-                )}
+                {!chartData && !loading && <Empty type="charts" title="Не удалось загрузить данные для группировки" />}
             </div>
         </div>
     );

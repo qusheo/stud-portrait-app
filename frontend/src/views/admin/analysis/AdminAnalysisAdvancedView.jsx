@@ -13,8 +13,8 @@ import TitledCard from '@components/cards/TitledCard';
 import ValueCard from '@components/cards/ValueCard';
 
 import Button from '@components/ui/Button';
-import NoData from '@components/ui/NoData';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Empty from '@components/ui/Empty';
+import Loading from '@components/ui/Loading';
 import MultiSelect from '@components/ui/MultiSelect';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
@@ -355,7 +355,7 @@ function AdminAnalysisAdvancedView() {
     // -------------------- Рендер LGM --------------------
     const renderLGMCohort = () => {
         if (!lgmCohortData || !lgmCohortData.data || lgmCohortData.data.length === 0) {
-            return <NoData text="Нет данных для отображения" />;
+            return <Empty title="Нет данных для отображения" />;
         }
         const { competency, group_by, data: groups, total_qualified_students } = lgmCohortData;
 
@@ -808,7 +808,7 @@ function AdminAnalysisAdvancedView() {
 
     // -------------------- Рендер потока уровней --------------------
     const renderFlowAnalysis = () => {
-        if (!flowData) return <NoData text="Нет данных. Нажмите 'Поток уровней' для загрузки." />;
+        if (!flowData) return <Empty title="Нет данных. Нажмите 'Поток уровней' для загрузки." />;
         return (
             <div className="flow-container">
                 <SankeyDiagram
@@ -843,7 +843,7 @@ function AdminAnalysisAdvancedView() {
     // -------------------- Рендер VAM --------------------
     const renderVAM = () => {
         if (!vamData || vamData.length === 0) {
-            return <NoData text="Нет данных для отображения. Нажмите 'Загрузить VAM' после выбора фильтров." />;
+            return <Empty title="Нет данных для отображения. Нажмите 'Загрузить VAM' после выбора фильтров." />;
         }
 
         const groupsMap = new Map();
@@ -1207,9 +1207,10 @@ function AdminAnalysisAdvancedView() {
                 )}
             </FlexRow>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Загрузка визуализации..."
+                title="Загрузка визуализации..."
             />
 
             {!loading && (

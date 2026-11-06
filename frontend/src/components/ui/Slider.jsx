@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import './Slider.scss';
 
+/**
+ * @description Ползунок для выбора одного значения из списка.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} [props.values=[]] Доступные значения.
+ * @param {*} [props.initValue] Начальное значение.
+ * @param {Function} props.onChange Обработчик изменения значения.
+ * @param {string} props.label Подпись ползунка.
+ * @param {boolean} [props.disabled=false] Отключает выбор значения.
+ */
 function Slider({ values = [], initValue, onChange, label, disabled = false }) {
     const [selected, setSelected] = useState(initValue || values[0]);
 

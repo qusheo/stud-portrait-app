@@ -26,7 +26,8 @@ import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES, downloa
 import ExcelJS from 'exceljs';
 
 import './AdminMotivatorsView.scss';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 import { useAdminStore } from '@utils/store.jsx';
 import { defaultQueryOptions } from '@utils/queryConfig';
@@ -141,7 +142,7 @@ function MotTable({ data, currentFilters }) {
     const [tableOpen, setTableOpen] = useState(false);
     const [selected, setSelected] = useState(['М', 'Д', 'Н']);
 
-    if (!data) return null;
+    if (!data) return <Empty type="table" />;
 
     const mot_demot = ['М', 'Д', 'Н'];
     const toggleChoice = mot_demot => {
@@ -423,7 +424,7 @@ function MotivatorCharts({ chart_data, currentFilters }) {
 
     if (!chart_data || chart_data.length === 0) {
         console.log('MotivatorChart: нет данных');
-        return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для отображения</div>;
+        return <Empty type="charts" title="Нет данных для отображения" />;
     }
 
     return (
@@ -659,10 +660,12 @@ function AdminMotivatorsView() {
             </div>
             {loadingMotDash ? (
                 <div className="loading-content">
-                    <LoadingSpinner text="Загрузка диаграммы..." />
+                    <Loading type="charts" title="Загрузка диаграммы..." />
                 </div>
             ) : error ? (
-                <div className="loading-content">Не удалось загрузить данные.</div>
+                <div className="loading-content">
+					<Empty />
+				</div>
             ) : (
                 <>
                     <MotivatorCharts

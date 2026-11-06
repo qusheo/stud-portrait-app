@@ -7,6 +7,8 @@ import ResultTable from '@components/ResultTable';
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import Subtitle from '@components/Subtitle';
 import Title from '@components/Title';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 import './UserReportView.scss';
 
@@ -96,7 +98,7 @@ function UserReportView() {
                     <Title title={reportTitle} />
                     <div className="report-container">
                         {loading ? (
-                            <div className="loading">Загрузка данных...</div>
+                            <Loading type="table" title="Загрузка данных..." />
                         ) : tablesData.length > 0 ? (
                             tablesData.map((table, index) => (
                                 <div
@@ -111,7 +113,7 @@ function UserReportView() {
                                 </div>
                             ))
                         ) : (
-                            <div className="no-data">Нет данных для отображения</div>
+                            <Empty type="table" title="Нет данных для отображения" />
                         )}
                     </div>
                 </Content>

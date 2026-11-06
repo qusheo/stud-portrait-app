@@ -1,5 +1,13 @@
 import './CompetencyTooltip.scss';
 
+/**
+ * @description Подсказка с описанием компетенции
+ * @param {Object} props Параметры компонента
+ * @param {string} props.name Название компетенции
+ * @param {string} props.description Описание компетенции
+ * @param {Object} props.position Координаты подсказки
+ * @param {*} props.children Дополнительное содержимое
+ */
 function CompetencyTooltip({ name, description, position, children }) {
     return (
         <div

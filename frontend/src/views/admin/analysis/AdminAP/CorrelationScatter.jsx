@@ -4,6 +4,8 @@ import ReactApexChart from 'react-apexcharts';
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES } from '@utils/utilities.js';
 import { defaultQueryOptions } from '@utils/queryConfig';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 export default function CorrelationScatter({ correlationData, loading, filters }) {
     const [selectedDiscipline, setSelectedDiscipline] = useState('');
@@ -41,9 +43,9 @@ export default function CorrelationScatter({ correlationData, loading, filters }
     });
     const scatterPoints = selectedCorrelation?.scatter ?? correlationData?.scatter ?? [];
 
-    if (loading) return <div style={{ padding: 20 }}>Загрузка диаграммы рассеяния...</div>;
+    if (loading) return <Loading type="charts" title="Загрузка диаграммы рассеяния..." />;
     if (!correlationData || !correlationData.disciplines || correlationData.disciplines.length === 0) {
-        return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для построения диаграммы рассеяния</div>;
+        return <Empty type="charts" title="Нет данных для построения диаграммы рассеяния" />;
     }
 
     const currentCorr = (correlationData.correlations || []).find(
@@ -272,9 +274,9 @@ export default function CorrelationScatter({ correlationData, loading, filters }
 
             {/* Сама диаграмма */}
             {loadingScatter ? (
-                <div style={{ padding: 40, textAlign: 'center' }}>Загрузка точек...</div>
+                <Loading type="charts" title="Загрузка точек..." />
             ) : scatterPoints.length === 0 ? (
-                <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>Выберите дисциплину и компетенцию</div>
+                <Empty type="charts" title="Выберите дисциплину и компетенцию" />
             ) : (
                 <ReactApexChart
                     options={options}

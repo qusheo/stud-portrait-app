@@ -4,6 +4,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 
 const COLORS = ['#1976d2', '#d32f2f', '#388e3c', '#f57c00', '#7b1fa2', '#00796b', '#fbc02d'];
 
+/**
+ * @description График общих трендов и индивидуальных траекторий LGM.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.data Тренды и индивидуальные траектории.
+ * @param {number} [props.maxIndividualTrajectories=100] Максимум отображаемых траекторий.
+ */
 const LgmSpaghettiPlot = ({ data, maxIndividualTrajectories = 100 }) => {
     if (!data || !data.trend_lines) {
         return <div className="no-data">Нет данных для LGM</div>;

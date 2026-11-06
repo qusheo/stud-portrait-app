@@ -6,6 +6,7 @@ const observerInstances = [];
 
 vi.mock('./DataTable.scss', () => ({}));
 vi.mock('antd', () => ({
+    Empty: ({ description }) => <div>{description}</div>,
     Select: ({ options = [], value = [], onChange }) => (
         <div>
             {options.map(option => (

@@ -26,6 +26,8 @@ import { toast } from 'react-toastify';
 
 import './AdminCompetencesView.scss';
 import { Button } from '../../../components';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -66,16 +68,17 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
                         <XAxis
                             dataKey="displayName"
                             interval={0}
-                            angle={-20}
+                            angle={-35}
                             tick={{
                                 fontSize: 11,
                                 fill: ' #64748b',
-                                dy: 11
+                                dy: -5
                             }}
                             tickMargin={12}
                             tickLine={false}
-                            dx={-50}
-                            height={45}
+                            dx={-16}
+							dy={0}
+                            height={40}
                             textAnchor="end"
                         />
                         <YAxis
@@ -141,11 +144,10 @@ export function CompetencyTable({ data, filters, range }) {
     const [exporting, setExporting] = useState(false);
     const setPageName = usePageStore(state => state.setPageName);
 
-    if (!data) return null;
+    if (!data) return <Empty type="table" />;
 
     const exportToExcel = async () => {
         try {
-            setPageName('Загрузка файла...');
             setExporting(true);
 
             const excelData = [];
@@ -187,7 +189,6 @@ export function CompetencyTable({ data, filters, range }) {
             toast.error('Не удалось сформировать Excel файл.');
         }
         finally{
-            setPageName('');
             setExporting(false);
         }
     };
@@ -204,14 +205,16 @@ export function CompetencyTable({ data, filters, range }) {
             <div className={`ct-table-wrap ${tableOpen ? 'open' : ''}`}>
                 <div className="table-container">
                     <div className="ct-top">
-                        <button
-                            className="btnExcel"
-                            onClick={() => exportToExcel()}
-                            onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
-                            onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
-                        >
-                            Скачать
-                        </button>
+                        <div>
+						    <Button 
+								type={'green'}
+								text={'Скачать'}
+								loading={exporting}
+								onClick={() => exportToExcel()}
+								onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
+								onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
+							/>
+						</div>
                     </div>
                     <table className="ct-table">
                         <thead>
@@ -272,7 +275,7 @@ export function CompetencyTable_course({ data, filters }) {
     const [exporting, setExporting] = useState(false);
     const setPageName = usePageStore(state => state.setPageName);
 
-    if (!data) return null;
+    if (!data) return <Empty type="table" />;
     const course = [
         { key: 'course_1', name: '1 Курс' },
         { key: 'course_2', name: '2 Курс' },
@@ -305,7 +308,6 @@ export function CompetencyTable_course({ data, filters }) {
         if (exporting) return;
         try {
             setExporting(true);
-            setPageName('Загрузка файла..');
             const year = filters.year.split('/')[1];
             const excelData = [];
             data.forEach(row => {
@@ -340,7 +342,7 @@ export function CompetencyTable_course({ data, filters }) {
             });
             const header = `${filters.institute ? `${filters.institute}, ` : ''} ${filters.specialty ? `${filters.specialty}, ` : ''} ${filters.year ? `${filters.year} учебный год ` : ''}`;
             const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet(`Компетенции ${year ? `${year - 1}/${year}` : ''}`);
+            const worksheet = workbook.addWorksheet(`Компетенции ${year ? `${year - 1}_${year}` : ''}`);
             worksheet.addRow([header]);
             if (excelData.length) {
                 worksheet.addRow(Object.keys(excelData[0]));
@@ -353,7 +355,6 @@ export function CompetencyTable_course({ data, filters }) {
             toast.error('Не удалось сформировать Excel файл');
         }
         finally{
-            setPageName('');
             setExporting(false);
         }
     };
@@ -361,15 +362,16 @@ export function CompetencyTable_course({ data, filters }) {
     return (
         <div className="table-container">
             <div className="ct-top">
+				<div style={{alignItems: 'center', display: 'flex'}}>
                 <Button 
-                    color={'green'}
-                    title={'Скачать'}
-                    className="btnExcel"
+                    type={'green'}
+                    text={'Скачать'}
                     loading={exporting}
                     onClick={() => exportToExcel()}
                     onMouseOver={e => (e.target.style.backgroundColor = '#15803d')}
                     onMouseOut={e => (e.target.style.backgroundColor = '#16a34a')}
                 />
+				</div>
                 <p className="slider-note">*перетащите полузнки, чтобы изменить</p>
             </div>
             <table className="ct-table">
@@ -459,7 +461,7 @@ export function CompRadar({ data }) {
     ];
     if (!data) {
         console.log('CompRadar: ошибка загрузки данных');
-        return <div className="p-4 text-gray-500">Нет данных для отображения</div>;
+        return <Empty type="charts" title="Нет данных для отображения" />;
     }
 
     const getStrokeOpacity = course => {
@@ -582,11 +584,9 @@ export function CompetencyTrendLine({ data, loading }) {
     const [hiddenLines, setHiddenLines] = useState({});
     const [connectDots, setConnectDots] = useState(true);
 
-    if (loading) return <div style={{ padding: 20 }}>Загрузка графика динамики...</div>;
+    if (loading) return <Loading type="charts" title="Загрузка графика динамики..." />;
     if (!data || !data.trends || data.trends.length === 0) {
-        return (
-            <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для построения графика динамики компетенций</div>
-        );
+        return <Empty type="charts" title="Нет данных для построения графика динамики компетенций" />;
     }
 
     const allCourses = new Set();

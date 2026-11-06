@@ -9,7 +9,7 @@ export interface UserPermissions {
     canViewCourses: boolean;
     canViewMotivators: boolean;
     canViewCompetences: boolean;
-    canViewStudentPortrait: boolean;
+    canViewPortrait: boolean;
     canViewTeachers: boolean;
     canViewAnalysisDisciplines: boolean;
     canViewAP: boolean;
@@ -39,7 +39,7 @@ export const Permission = {
     MOTIVATORS: 'canViewMotivators',
     COMPETENCES: 'canViewCompetences',
     PORTRAIT: 'canViewPortrait',
-    PORTRAIT_DETAILED: 'canViewDetailedPortrait',
+    //PORTRAIT_DETAILED: 'canViewDetailedPortrait',
     TEACHERS: 'canViewTeachers',
     ANALYSIS_DISCIPLINES: 'canViewAnalysisDisciplines',
     AP: 'canViewAP',
@@ -75,13 +75,43 @@ export function filterLinkTree<T extends { links: Array<{ permission?: Permissio
         .filter(category => category.links.length > 0);
 }
 
-//@ts-ignore
-const ALL_PERMISSIONS = Object.fromEntries(Object.values(Permission).map(permission => [permission, true])) as UserPermissions;
 
-export const DEFAULT_PERMISSIONS_BY_ACCOUNT_TYPE: PermissionsByAccountType = Object.fromEntries(
-    Object.values(AccountType).map(accountType => [accountType, { ...ALL_PERMISSIONS }])
-) as PermissionsByAccountType;
+const ALL_PERMISSIONS: UserPermissions = {
+    canViewStats: false,
+    canViewGeography: false,
+    canViewSearch: false,
+    canViewGrouping: false,
+    canViewResults: false,
+    canViewCourses: false,
+    canViewMotivators: false,
+    canViewCompetences: false,
+    canViewPortrait: false,
+    canViewTeachers: false,
+    canViewAnalysisDisciplines: false,
+    canViewAP: false,
+    canViewAnalysisAdvanced: false,
+    canViewAiAnalytics: false,
+    canViewEduProfiles: false,
+    canViewTransferAnalysis: false,
+    canViewAnomalousStudents: false,
+    canViewDuplicateAccounts: false,
+    canViewHelp: false,
+    canViewAudit: false,
+    canViewUpload: false,
+    canViewSql: false,
+    canViewOwnPortrait: false,
+    canViewOwnReport: false
+};
+
+export const DEFAULT_PERMISSIONS_BY_ACCOUNT_TYPE: PermissionsByAccountType = {
+    [AccountType.ADMIN]: { ...ALL_PERMISSIONS },
+    [AccountType.CENTRE]: { ...ALL_PERMISSIONS },
+    [AccountType.INSTITUTION_ADMIN]: { ...ALL_PERMISSIONS },
+    [AccountType.TEACHER]: { ...ALL_PERMISSIONS },
+    [AccountType.STUDENT]: { ...ALL_PERMISSIONS }
+};
 
 export function getDefaultPermissions(accountType: AccountType): UserPermissions {
     return { ...DEFAULT_PERMISSIONS_BY_ACCOUNT_TYPE[accountType] };
 }
+

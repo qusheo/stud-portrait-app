@@ -20,6 +20,11 @@ function linearRegression(xs, ys) {
     return { slope, intercept };
 }
 
+/**
+ * @description Диаграмма рассеяния Value-Added по курсам с линиями регрессии.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} props.data Точки данных с группами и доверительными интервалами.
+ */
 const VamCourseScatter = ({ data }) => {
     // Группировка входных данных
     const groups = useMemo(() => {
@@ -89,6 +94,12 @@ const VamCourseScatter = ({ data }) => {
         );
     }, []);
 
+    /**
+     * @description Подсказка с данными точки диаграммы.
+     * @param {Object} props Параметры компонента.
+     * @param {boolean} props.active Признак активной подсказки.
+     * @param {Array} props.payload Данные точки под указателем.
+     */
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             const point = payload[0].payload;

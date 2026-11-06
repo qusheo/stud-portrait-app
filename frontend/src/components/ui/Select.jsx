@@ -12,6 +12,16 @@ const SelectContext = createContext({
     onChangeCallback: undefined
 });
 
+/**
+ * @description Выпадающий список одиночного выбора.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Элементы Option и OptionGroup.
+ * @param {*} [props.initValue] Начальное значение.
+ * @param {Function} props.onChange Обработчик изменения значения.
+ * @param {string} [props.placeholder='Выберите...'] Текст до выбора значения.
+ * @param {Object} [props.palette] Цветовая палитра списка.
+ * @param {boolean} [props.disabled=false] Отключает список.
+ */
 function Select({ children, initValue, onChange, placeholder = 'Выберите...', palette = ADMIN_PALETTE.GRAY, disabled = false }) {
     const arr = React.Children.toArray(children);
 
@@ -49,6 +59,13 @@ function Select({ children, initValue, onChange, placeholder = 'Выберите
     );
 }
 
+/**
+ * @description Элемент выпадающего списка Select.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.value Значение варианта.
+ * @param {string} props.label Отображаемая подпись.
+ * @param {Function} [props.onClick] Дополнительный обработчик выбора.
+ */
 export function Option({ value, label, onClick }) {
     const { selectedValue, valueSetter, labelSetter, onChangeCallback } = useContext(SelectContext);
     const { setOpen } = useContext(DropdownContext);
@@ -68,6 +85,12 @@ export function Option({ value, label, onClick }) {
     );
 }
 
+/**
+ * @description Группа элементов выпадающего списка Select.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Элементы Option.
+ * @param {string} props.label Название группы.
+ */
 export function OptionGroup({ children, label }) {
     const arr = React.Children.toArray(children);
     return (

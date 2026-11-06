@@ -17,7 +17,7 @@ import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
 import Dropdown from '@components/ui/Dropdown.jsx';
 import Label from '@components/ui/Label.jsx';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
 import MultiSelect from '@components/ui/MultiSelect.jsx';
 import NumberField from '@components/ui/NumberField.jsx';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
@@ -424,7 +424,7 @@ function AdminResultsView() {
                 >
                     {loading && !results.length ? (
                         <div className="loading">
-                            <LoadingSpinner text="Загрузка данных..." />
+                            <Loading type="table" title="Загрузка данных..." />
                         </div>
                     ) : (
                         <DataTable

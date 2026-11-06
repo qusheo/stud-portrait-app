@@ -12,8 +12,8 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 import TitledCard from '@components/cards/TitledCard';
 import ValueCard from '@components/cards/ValueCard';
 import Button from '@components/ui/Button';
-import NoData from '@components/ui/NoData';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Empty from '@components/ui/Empty';
+import Loading from '@components/ui/Loading';
 import MultiSelect from '@components/ui/MultiSelect';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
@@ -247,9 +247,10 @@ function AdminAnomalousStudentView() {
                 </LabelledBox>
             </div>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Анализ распределения..."
+                title="Анализ распределения..."
             />
 
             {!loading && groupedData && (
@@ -431,7 +432,7 @@ function AdminAnomalousStudentView() {
                 </>
             )}
 
-            {!loading && !groupedData && !stats && <NoData text="Выберите фильтры и нажмите 'Найти аномалии'" />}
+            {!loading && !groupedData && !stats && <Empty title="Выберите фильтры и нажмите 'Найти аномалии'" />}
         </div>
     );
 }

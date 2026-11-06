@@ -26,6 +26,19 @@ export const CONTENT = {
     STRETCH: 'stretch'
 };
 
+/**
+ * @description Flex-контейнер для горизонтального размещения содержимого.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.className Дополнительный CSS-класс.
+ * @param {*} props.children Содержимое контейнера.
+ * @param {string|number} [props.gap='5'] Отступ между элементами в пикселях.
+ * @param {string} [props.margin='0'] Внешние отступы в пикселях.
+ * @param {boolean} [props.reverse=false] Меняет направление элементов.
+ * @param {string} [props.wrap] Режим переноса элементов.
+ * @param {string} [props.justify] Выравнивание по основной оси.
+ * @param {string} [props.align] Выравнивание по поперечной оси.
+ * @param {string} [props.content] Выравнивание строк контейнера.
+ */
 function FlexRow({
     className,
     children,

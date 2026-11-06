@@ -20,6 +20,12 @@ export const LAYOUT_STYLE = {
     NORMAL: 'normal'
 };
 
+/**
+ * @description Макет страницы с боковой панелью и областью содержимого.
+ * @param {Object} props Параметры компонента.
+ * @param {string} [props.style='normal'] Вариант оформления макета.
+ * @param {boolean} [props.sidebar=true] Показывает боковую панель.
+ */
 export function SidebarLayout({ style = LAYOUT_STYLE.NORMAL, sidebar = true }) {
     return (
         <div className={`SidebarLayout style--${style}`}>
@@ -29,6 +35,14 @@ export function SidebarLayout({ style = LAYOUT_STYLE.NORMAL, sidebar = true }) {
     );
 }
 
+/**
+ * @description Шапка страницы с названием и действиями аккаунта.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.title Заголовок страницы.
+ * @param {string} props.name Имя пользователя.
+ * @param {Function} [props.onAccountClick] Обработчик перехода к аккаунту.
+ * @param {Function} [props.onLogout] Обработчик выхода из аккаунта.
+ */
 export function Header({ title, name, onAccountClick, onLogout }) {
     return (
         <div className="Header">
@@ -76,6 +90,12 @@ export function Header({ title, name, onAccountClick, onLogout }) {
     );
 }
 
+/**
+ * @description Боковая панель навигации.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} props.links Пользовательский список ссылок.
+ * @param {Array} props.linkTree Дерево ссылок с группами.
+ */
 export function Sidebar({ links, linkTree }) {
     const [isOpen, setIsOpen] = React.useState(true);
     const location = useLocation();

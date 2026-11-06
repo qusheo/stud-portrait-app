@@ -20,6 +20,8 @@ import Button from '@components/ui/Button';
 import { STUDENT_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
 import TabButton from '@components/ui/TabButton';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
 import { toast } from 'react-toastify';
 
@@ -390,7 +392,7 @@ function UserView() {
                             <div className="col-right">
                                 <div className="dashboard-card" style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
                                     <h3 className="card-title" style={{ margin: '0 0 20px 0', fontSize: '18px', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Дополнительная информация</h3>
-                                    <div className="no-data" style={{ color: '#64748b', fontStyle: 'italic', padding: '15px 0', textAlign: 'center' }}>Здесь будет ваша активность</div>
+                                    <Empty title="Здесь будет ваша активность" />
                                 </div>
                             </div>
                         </div>
@@ -461,7 +463,7 @@ function UserView() {
 
                         <div className="charts-grid">
                             {loading ? (
-                                <div className="loading">Загрузка данных...</div>
+                                <Loading type="charts" title="Загрузка данных..." />
                             ) : compCharts.length > 0 ? (
                                 compCharts.map((chart, index) => (
                                     <div key={index} className="chart-card">
@@ -519,7 +521,7 @@ function UserView() {
                                 </Select>
                             </div>
                             {lgmData.length === 0 ? (
-                                <div className="no-data">Нет данных для отображения</div>
+                                <Empty type="charts" title="Нет данных для отображения" />
                             ) : (
                                 <StudentLgmChart
                                     data={lgmData}
@@ -566,7 +568,7 @@ function UserView() {
                                     />
                                 </div>
                             ) : motCharts.length === 0 && (
-                                <div className="no-data">Нет данных по мотиваторам за выбранный год</div>
+                                <Empty type="charts" title="Нет данных по мотиваторам за выбранный год" />
                             )}
                         </div>
                     </div>
@@ -602,7 +604,7 @@ function UserView() {
                                     />
                                 </div>
                             ) : valCharts.length === 0 && (
-                                <div className="no-data">Нет данных по ценностям за выбранный год</div>
+                                <Empty type="charts" title="Нет данных по ценностям за выбранный год" />
                             )}
                         </div>
                     </div>
@@ -622,7 +624,7 @@ function UserView() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="no-data-large" style={{ textAlign: 'center', padding: '40px', color: '#64748b', background: '#fff', borderRadius: '12px' }}>Нет данных об образовательных курсах</div>
+                            <Empty type="books" title="Нет данных об образовательных курсах" />
                         )}
                     </div>
                 )}

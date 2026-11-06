@@ -6,6 +6,14 @@ import Select from 'react-select';
 import './FilterHeader.scss';
 import Button from '@ui/Button';
 
+/**
+ * @description Панель фильтров по институту, направлению и учебному году
+ * @param {Object} props Параметры компонента
+ * @param {Object} props.filters Текущие значения фильтров
+ * @param {Function} props.onFilterChange Обработчик изменения фильтра
+ * @param {Function} props.onResetFilters Обработчик сброса фильтров
+ * @param {boolean} [props.showYearsSelect=true] Показывает селектор учебного года
+ */
 export default function FilterHeader({ filters, onFilterChange, onResetFilters, showYearsSelect = true }) {
     const noFilters = () => {
         if (!filters) return true;

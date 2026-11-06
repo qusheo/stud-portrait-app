@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { StudentService } from '@services';
 import { COMPETENCIES_NAMES } from '@utils/utilities';
 
+/**
+ * @description График влияния дисциплин на компетенции студента.
+ * @param {Object} props Параметры компонента.
+ * @param {string|number} props.studentId Идентификатор студента.
+ */
 const StudentDisciplineImpact = ({ studentId }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);

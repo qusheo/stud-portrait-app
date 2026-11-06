@@ -9,6 +9,11 @@ export const BOX_COLOR = {
     BLUE: 'rgba(190, 229, 235, 0.75)'
 };
 
+/**
+ * @description Цветной индикатор.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.color Цвет фона индикатора.
+ */
 function ColorBox({ color }) {
     return (
         <span

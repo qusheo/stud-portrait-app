@@ -14,7 +14,7 @@ import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Tabl
 
 import Button from '@components/ui/Button';
 import FileInput from '@components/ui/FileInput';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
 import NumberField from '@components/ui/NumberField';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
@@ -389,7 +389,7 @@ function SuperUploadView() {
         <div>
             {/* ── Шаблоны — выбираем ДО или ВМЕСТЕ с файлом ── */}
             {templatesLoading ? (
-                <LoadingSpinner text="Загрузка шаблонов..." />
+                <Loading title="Загрузка шаблонов..." />
             ) : (
                 savedTemplates.length > 0 && (
                     <div className="template-load-row">

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Api from '../../api.js';
 import { useUserStore } from '../../user/store/userStore.js';
+import { AccountType } from '../../user/entities/accountType.ts';
 import './LoginView.scss';
 
 export default function LoginView() {
@@ -13,6 +14,7 @@ export default function LoginView() {
 
     const navigate = useNavigate();
     const location = useLocation();
+
     const loadPermissions = useUserStore(state => state.loadPermissions);
 
     const handleSubmit = async event => {
@@ -32,16 +34,35 @@ export default function LoginView() {
                 );
             }
 
+            // Получаем роль и ID профиля из backend.
             await loadPermissions(true);
 
-            if (!useUserStore.getState().isAuthenticated) {
+            const userState = useUserStore.getState();
+
+            if (!userState.isAuthenticated) {
                 throw new Error(
                     'Не удалось подтвердить авторизацию. Проверьте сессию.'
                 );
             }
 
-            const destination = location.state?.from?.pathname || '/';
+            let destination;
+
+            if (userState.accountType === AccountType.STUDENT) {
+                // Студент всегда открывает только собственный профиль.
+                if (!userState.participantId) {
+                    throw new Error(
+                        'Для этой учётной записи не найден связанный профиль студента.'
+                    );
+                }
+
+                destination = `/user/${userState.participantId}`;
+            } else {
+                // Для остальных ролей сохраняем прежнее поведение.
+                destination = location.state?.from?.pathname || '/';
+            }
+
             navigate(destination, { replace: true });
+
         } catch (err) {
             setError(err.message || 'Не удалось выполнить вход');
         } finally {
@@ -57,7 +78,7 @@ export default function LoginView() {
                 <h1 className="login-title">Вход в систему</h1>
 
                 <p className="login-description">
-                    Войдите, чтобы продолжить работу с цифровыми портретами.
+                    Войдите, чтобы продолжить работу с цифровыми профилями.
                 </p>
 
                 <form className="login-form" onSubmit={handleSubmit}>
