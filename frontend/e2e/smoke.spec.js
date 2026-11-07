@@ -1,8 +1,10 @@
 const { test, expect } = require('@playwright/test');
 
+const API = process.env.E2E_API_URL ?? '';
+
 test.describe('smoke', () => {
     test('backend health endpoint returns ok', async ({ request }) => {
-        const res = await request.get('/portrait/health/');
+        const res = await request.get(`${API}/portrait/health/`);
         expect(res.ok()).toBeTruthy();
         expect(await res.json()).toEqual({ status: 'ok' });
     });
