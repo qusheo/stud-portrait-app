@@ -135,7 +135,7 @@ class Participants(models.Model):
     part_id = models.AutoField(primary_key=True)
     part_rsv_id = models.CharField(unique=True, max_length=512)
     part_course_num = models.IntegerField(blank=True, null=True)
-    part_gender = models.IntegerField(blank=True, null=True)
+    part_gender = models.CharField(max_length=16, blank=True, null=True)
 
     class Meta:
         managed = False
