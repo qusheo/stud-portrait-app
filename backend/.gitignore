@@ -9,3 +9,5 @@ __pycache__/
 .Python
 
 src/portrait/llm_model/
+
+load_tests/results/

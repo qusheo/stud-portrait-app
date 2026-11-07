@@ -14,7 +14,8 @@ Locust-пользователи по кругу входят под пятью �
 .venv\Scripts\python -m pip install -r requirements.txt
 cd src
 ..\.venv\Scripts\python manage.py seed_users
-..\.venv\Scripts\python manage.py runserver
+cd ..
+run.bat
 ```
 
 Из каталога `backend` выполнить 90-секундный smoke-тест с одним пользователем:
@@ -32,3 +33,21 @@ cd src
 Результаты сохраняются в `load_tests/results` и не добавляются в Git.
 
 Для конкретных тестовых данных можно задать переменные окружения `STUDENT_ID`, `TEACHER_ID`, `TEST_YEAR` и `TEST_COMPETENCY`. Для удалённого тестового стенда адрес передаётся через `--host`; не запускать нагрузку против production без разрешения.
+
+## Сценарии LT-01…LT-09
+
+`scenarios_locustfile.py` — бизнес-сценарии по типам пользовательских операций (теги LT-01…LT-08, веса по приоритету; LT-09 — смешанный прогон всех сразу). Пользователи логинятся под seed-учётками (пароль из `seed_users`), LT-07 включает чтение и PATCH-изменение интересов.
+
+Изолированный прогон одного сценария:
+
+```cmd
+.venv\Scripts\python -m locust -f load_tests\scenarios_locustfile.py --headless --tags LT-05 -u 30 -r 3 -t 45s
+```
+
+Смешанная нагрузка:
+
+```cmd
+.venv\Scripts\python -m locust -f load_tests\scenarios_locustfile.py --headless -u 60 -r 2 -t 3m
+```
+
+Результаты прогонов (`.log`) сохраняются в `load_tests/results` и не добавляются в Git.

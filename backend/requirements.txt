@@ -53,6 +53,7 @@ psycopg==3.2.10
 pyarrow==23.0.1
 Pygments==2.19.2
 pytest==8.4.2
+uvicorn==0.54.0
 pytest-cov==7.0.0
 pytest-django==4.11.1
 python-dateutil==2.9.0.post0

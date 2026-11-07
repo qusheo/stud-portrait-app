@@ -38,10 +38,7 @@ pip install torch  --index-url https://download.pytorch.org/whl/cu126
 **Launch**
 
 ```cmd
-cd backend
-.venv\Scripts\activate
-cd src
-python manage.py runserver
+backend/run.sh
 ```
 
 **Test**

@@ -20,4 +20,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["python", "src/manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["uvicorn", "studportrait.asgi:application", "--app-dir", "src", "--host", "0.0.0.0", "--port", "8000", "--workers", "3"]

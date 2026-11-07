@@ -1,5 +1,31 @@
 # Логические модули бэкенда
 
+## Запуск сервера
+
+Сервер запускается через uvicorn (дефолт, как в контейнере):
+
+```bash
+# из корня репозитория
+backend/run.sh            # Git Bash: 3 воркера, порт 8000
+backend\run.bat           # cmd
+```
+
+Эквивалентная команда вручную:
+
+```bash
+cd backend/src
+../.venv/Scripts/python.exe -m uvicorn studportrait.asgi:application --host 0.0.0.0 --port 8000 --workers 3
+```
+
+Режим разработки (автоперезагрузка при изменении кода, один воркер):
+
+```bash
+cd backend/src
+../.venv/Scripts/python.exe -m uvicorn studportrait.asgi:application --reload --port 8000
+```
+
+Проверка: `curl localhost:8000/portrait/health/` → `{"status": "ok"}`. Остановка — `Ctrl+C`.
+
 ## `auth` - модуль авторизации
 
 ## `audit` - модуль аудита данных
