@@ -1,4 +1,3 @@
-
 import json
 import traceback
 
@@ -16,7 +15,7 @@ from ..helpers.helpers import (
     get_latest_results,
     serialize_student,
 )
-
+from backend.src.portrait.endpoints.selectionService.utils.projectToResultsMap import calculate_project_type_score
 
 def parse_requirements(
     requirements: dict[str, dict[str, str]],
@@ -109,7 +108,6 @@ def find_students_by_requirements(
             f"{field}__lte": maximum,
         })
 
-    # Если требований нет, возможна пагинация непосредственно в SQL.
     if not filters:
         queryset = queryset.order_by("res_participant_id")
         total = queryset.count()
