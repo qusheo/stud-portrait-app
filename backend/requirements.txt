@@ -15,6 +15,7 @@ coverage==7.10.7
 datasets==4.8.3
 dill==0.4.1
 django-cors-headers==4.9.0
+Django==6.1.2
 django-redis==6.0.0
 et_xmlfile==2.0.0
 filelock==3.25.2
