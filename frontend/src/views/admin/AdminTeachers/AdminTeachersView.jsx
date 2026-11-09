@@ -12,100 +12,34 @@ import TeacherView from './TeacherView.jsx';
 import DataTable from '@components/tables/DataTable';
 import Loading from '@components/ui/Loading.jsx';
 import { AutocompleteInput, Button } from '../../../components/index.js';
-// тестовое
-const teachers = [
-    {
-        name: 'Иванов Иван Петрович',
-        gender: 'Мужской',
-        position: 'Профессор',
-        disciplines: ['Математический анализ', 'Линейная алгебра'],
-        institution: 'МГУ имени М. В. Ломоносова',
-        edu_level: 'Высшее',
-        academic_degree: 'Доктор физико-математических наук',
-        academic_title: 'Профессор',
-        qualification: 'Математик',
-        experience: 18
-    },
-    {
-        name: 'Петрова Анна Сергеевна',
-        gender: 'Женский',
-        position: 'Доцент',
-        disciplines: ['Программирование', 'Базы данных'],
-        institution: 'НИУ ВШЭ',
-        edu_level: 'Высшее',
-        academic_degree: 'Кандидат технических наук',
-        academic_title: 'Доцент',
-        qualification: 'Инженер-программист',
-        experience: 12
-    },
-    {
-        name: 'Сидоров Алексей Викторович',
-        gender: 'Мужской',
-        position: 'Старший преподаватель',
-        disciplines: ['Физика', 'Электротехника'],
-        institution: 'МГТУ имени Н. Э. Баумана',
-        edu_level: 'Высшее',
-        academic_degree: 'Кандидат физико-математических наук',
-        academic_title: 'Отсутствует',
-        qualification: 'Инженер-физик',
-        experience: 9
-    },
-    {
-        name: 'Кузнецова Мария Андреевна',
-        gender: 'Женский',
-        position: 'Доцент',
-        disciplines: ['Экономика', 'Финансовый менеджмент'],
-        institution: 'РЭУ имени Г. В. Плеханова',
-        edu_level: 'Высшее',
-        academic_degree: 'Кандидат экономических наук',
-        academic_title: 'Доцент',
-        qualification: 'Экономист',
-        experience: 12
-    },
-    {
-        name: 'Смирнов Дмитрий Олегович',
-        gender: 'Мужской',
-        position: 'Ассистент',
-        disciplines: ['Алгоритмы и структуры данных', 'Веб-разработка'],
-        institution: 'Университет ИТМО',
-        edu_level: 'Магистратура',
-        academic_degree: 'Отсутствует',
-        academic_title: 'Отсутствует',
-        qualification: 'Разработчик программного обеспечения',
-        experience: 3
-    },
-    {
-        name: 'Васильева Елена Николаевна',
-        gender: 'Женский',
-        position: 'Профессор',
-        disciplines: ['Педагогика', 'Психология образования'],
-        institution: 'РГПУ имени А. И. Герцена',
-        edu_level: 'Высшее',
-        academic_degree: 'Доктор педагогических наук',
-        academic_title: 'Профессор',
-        qualification: 'Педагог-психолог',
-        experience: 20
-    },
-    {
-        name: 'Морозов Павел Игоревич',
-        gender: 'Мужской',
-        position: 'Доцент',
-        disciplines: ['Машинное обучение', 'Искусственный интеллект', 'Анализ данных'],
-        institution: 'МФТИ',
-        edu_level: 'Высшее',
-        academic_degree: 'Кандидат технических наук',
-        academic_title: 'Доцент',
-        qualification: 'Специалист по анализу данных',
-        experience: 7
-    }
-];
+
+// education_details: [тип образования, направление, ..., степень]
+const EDUCATION_DETAILS_LABELS = ['Тип образования', 'Направление', 'Степень'];
+
+const formatEducationDetails = details => {
+    if (!Array.isArray(details) || details.length === 0) return '—';
+    return details.length >= 2 ? details[1] : details[0];
+};
+
+const educationDetailsItems = details => {
+    const lastIndex = details.length - 1;
+    return details.map((item, index) => {
+        const label =
+            index === 0
+                ? EDUCATION_DETAILS_LABELS[0]
+                : index === lastIndex && lastIndex > 1
+                    ? EDUCATION_DETAILS_LABELS[2]
+                    : EDUCATION_DETAILS_LABELS[1];
+        return `${label}: ${item}`;
+    });
+};
 
 function AdminTeachersView() {
     const [shownTeacher, setShownTeacher] = useState(null);
     const [showTeacherView, setShowTeacherView] = useState(false);
 
-    const [openDisciplinesModal, setOpenDisciplinesModal] = useState(false);
-    const [disciplinesList, setDisciplinesList] = useState([]);
+    const [openListModal, setOpenListModal] = useState(false);
+    const [listItems, setListItems] = useState([]);
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const modalRef = useRef(null);
 
@@ -118,27 +52,49 @@ function AdminTeachersView() {
         ...defaultQueryOptions
     });
     const columns = buildColumns();
-    let rows = teachers.map((r, index) => ({ ...r, rowId: index + 1 }));
+    let rows = dataRows.map((r, index) => {
+        const educationDetails = Array.isArray(r.education_details) ? r.education_details : [];
+        const professionalDevelopment = Array.isArray(r.professional_development) ? r.professional_development : [];
+        const professionalRetraining = Array.isArray(r.professional_retraining) ? r.professional_retraining : [];
+        return {
+            ...r,
+            rowId: index + 1,
+            educationDetails,
+            professionalDevelopment,
+            professionalRetraining,
+            education_details: formatEducationDetails(educationDetails),
+            professional_development: professionalDevelopment.length,
+            professional_retraining: professionalRetraining.length
+        };
+    });
     const tableRows = rows;
     const searchOptions = rows.map(r => ({
         label: `${r.name}, ${r.position} | ${r.institution}`,
         value: r.rowId
     }));
-    
+
     function cellClickHandler(row, column) {
+        const teacher = rows.find(r => r.rowId === row.rowId);
+        if (!teacher) return;
+
         if (column.id === 'name') {
-            const teacher = rows.find(r => r.rowId === row.rowId);
             setShownTeacher(teacher);
             setShowTeacherView(true);
         } else if (column.id === 'disciplines') {
-            const disciplines = rows.find(r => r.rowId === row.rowId).disciplines;
-            showDisciplinesModal(disciplines);
+            showListModal(teacher.disciplines);
+        } else if (column.id === 'education_details') {
+            showListModal(educationDetailsItems(teacher.educationDetails));
+        } else if (column.id === 'professional_development') {
+            showListModal(teacher.professionalDevelopment);
+        } else if (column.id === 'professional_retraining') {
+            showListModal(teacher.professionalRetraining);
         }
     }
-    function showDisciplinesModal(disciplines) {
-        setDisciplinesList(disciplines);
+    function showListModal(items) {
+        if (!items?.length) return;
+        setListItems(items);
         setModalPosition({ x: event.clientX, y: event.clientY });
-        setOpenDisciplinesModal(true);
+        setOpenListModal(true);
     }
     function onInputChange(val) {
         const teacher = rows.find(r => r.rowId === val);
@@ -157,20 +113,20 @@ function AdminTeachersView() {
 	}
 
     useEffect(() => {
-        if (!openDisciplinesModal) return;
+        if (!openListModal) return;
 
         const handleClickOutside = event => {
-            if (!event.target.closest('.AdminTeachersView__disciplines-modal')) {
-                setOpenDisciplinesModal(false);
+            if (!event.target.closest('.AdminTeachersView__list-modal')) {
+                setOpenListModal(false);
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [openDisciplinesModal]);
+    }, [openListModal]);
 
     useLayoutEffect(() => {
-        if (!openDisciplinesModal || !modalRef.current) return;
+        if (!openListModal || !modalRef.current) return;
 
         const modal = modalRef.current;
         const rect = modal.getBoundingClientRect();
@@ -181,7 +137,7 @@ function AdminTeachersView() {
 
         modal.style.left = `${x}px`;
         modal.style.top = `${y}px`;
-    }, [openDisciplinesModal, modalPosition]);
+    }, [openListModal, modalPosition]);
 
     return (
         <div className="AdminTeachersView">
@@ -196,7 +152,7 @@ function AdminTeachersView() {
                 {showTeacherView && (
 					<div className="AdminTeachersView__search_actions">
 						<Button text={'Перейти к профилю'} onClick={() => redirectToPortrait()}/>
-						<Button 
+						<Button
 							text={'X Закрыть'}
 							type="cancel"
 							className="AdminTeachersView__search-close"
@@ -223,22 +179,22 @@ function AdminTeachersView() {
                 />
             )}
 
-            {openDisciplinesModal && (
+            {openListModal && (
                 <div
                     ref={modalRef}
-                    className={`AdminTeachersView__disciplines-modal`}
+                    className={`AdminTeachersView__list-modal`}
                     style={{
                         left: modalPosition.x,
                         top: modalPosition.y
                     }}
                 >
-                    <div className="AdminTeachersView__disciplines-modal-content">
-                        {disciplinesList.map((discipline, index) => (
+                    <div className="AdminTeachersView__list-modal-content">
+                        {listItems.map((item, index) => (
                             <div
                                 key={index}
-                                className="AdminTeachersView__discipline-item"
+                                className="AdminTeachersView__list-item"
                             >
-                                {discipline}
+                                {item}
                             </div>
                         ))}
                     </div>

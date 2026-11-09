@@ -1,41 +1,65 @@
-const BASE_COLUMNS_NAMES = {
+export const BASE_COLUMNS_NAMES = {
+    //source_row: 'Номер строки источника',
     name: 'ФИО',
     gender: 'Пол',
     position: 'Должность',
-    disciplines: 'Дисциплины', // список []
+    disciplines: 'Дисциплины',
     institution: 'Образовательная организация',
     edu_level: 'Уровень образования',
     academic_degree: 'Учёная степень',
     academic_title: 'Учёное звание',
     qualification: 'Квалификация',
-    experience: 'Стаж работы'
+    experience: 'Стаж работы',
+    experience_text: 'Стаж работы (текст)',
+    education_details: 'Сведения об образовании',
+    professional_development: 'Повышение квалификации',
+    professional_retraining: 'Профессиональная переподготовка'
 };
-const searchableCols = ['name', 'institution', 'position', 'disciplines'];
-const numberCols = ['experience'];
-const numberTypeCols = ['rowId', 'experience', 'disciplines'];
 
-const getFilterType = (id) => {
+const columnOrder = [
+    'name',
+    'gender',
+    'position',
+    'disciplines',
+    'institution',
+    'edu_level',
+    'academic_degree',
+    'academic_title',
+    'qualification',
+    'experience',
+    'experience_text',
+    'education_details',
+    'professional_development',
+    'professional_retraining'
+];
+
+const searchableCols = ['name', 'institution', 'position', 'disciplines'];
+const numberCols = ['id', 'source_row', 'experience'];
+const jsonCols = ['disciplines', 'education_details', 'professional_development', 'professional_retraining'];
+
+const getFilterType = id => {
     return id === 'disciplines' ? 'combined' : numberCols.includes(id) ? 'number' : 'text';
-}
+};
+
+const getColumnWidth = id => {
+    switch (id) {
+        case 'name':
+        case 'education_details':
+        case 'professional_development':
+        case 'professional_retraining':
+            return 200;
+        case 'institution':
+            return 220;
+        case 'disciplines':
+            return 90;
+        case 'gender':
+            return 80;
+        default:
+            return 120;
+    }
+};
 
 export const buildColumns = () => {
-    const columnOrder = [
-        'name',
-        'gender',
-        'position',
-        'disciplines',
-        'institution',
-        'edu_level',
-        'academic_degree',
-        'academic_title',
-        'qualification',
-        'experience'
-    ];
-
-    const names = {
-        ...BASE_COLUMNS_NAMES
-    };
-
     const numberCol = {
         id: 'rowId',
         title: '№',
@@ -52,39 +76,16 @@ export const buildColumns = () => {
         numberCol,
         ...columnOrder.map(id => ({
             id,
-            title: names[id] ?? id,
+            title: BASE_COLUMNS_NAMES[id] ?? id,
             width: getColumnWidth(id),
             sortable: true,
-            filterable: id !== 'name',
+            filterable: id !== 'name' && !jsonCols.includes(id),
             filterType: getFilterType(id),
-            contentType: numberTypeCols.includes(id) ? 'number' : 'text',
-            searchable: !!searchableCols.find(id_ => id === id_),
+            contentType: numberCols.includes(id) ? 'number' : 'text',
+            searchable: searchableCols.includes(id),
             tooltip: true,
-            clickable: id === 'name' || id === 'disciplines',
+            clickable: id === 'name' || jsonCols.includes(id),
             results: false
         }))
     ];
-};
-
-const getColumnWidth = id => {
-    switch (id) {
-        case 'name':
-            return 200;
-
-        case 'institution':
-        case 'specialty':
-            return 220;
-
-        case 'center':
-            return 200;
-
-        case 'disciplines':
-            return 90;
-
-        case 'gender':
-            return 80;
-
-        default:
-            return 120;
-    }
 };

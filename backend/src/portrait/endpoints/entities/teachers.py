@@ -5,23 +5,30 @@ from django.views.decorators.http import require_http_methods
 
 from ..common import *
 
-def get_teachers_table():
-    fields = [
-        'name',
-        'gender',
-        'position',
-        'disciplines',
-        'institution',
-        'edu_level',
-        'academic_degree',
-        'academic_title',
-        'qualification',
-        'experience',
-    ]
+@require_http_methods(["GET"])
+def get_teachers_table(request):
     try:
-        rows = []
-        for i in fields:
-            rows.append({i: 0}) #прросто заготовка пока
+        rows = [
+            {
+                'id': teacher.teacher_id,
+                'source_row': teacher.source_row,
+                'name': teacher.name,
+                'gender': teacher.gender or '',
+                'position': teacher.position or '',
+                'disciplines': teacher.disciplines or [],
+                'institution': teacher.institution or '',
+                'edu_level': teacher.edu_level or '',
+                'academic_degree': teacher.academic_degree or '',
+                'academic_title': teacher.academic_title or '',
+                'qualification': teacher.qualification or '',
+                'experience': teacher.experience,
+                'experience_text': teacher.experience_text or '',
+                'education_details': teacher.education_details or [],
+                'professional_development': teacher.professional_development or [],
+                'professional_retraining': teacher.professional_retraining or [],
+            }
+            for teacher in Teachers.objects.all().order_by('teacher_id')
+        ]
         return JsonResponse({"ok": True, "data": rows})
     except Exception as e:
         print(traceback.format_exc())

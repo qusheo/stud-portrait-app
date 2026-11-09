@@ -233,6 +233,30 @@ class Specialties(models.Model):
         managed = False
         db_table = 'specialties'
 
+class Teachers(models.Model):
+    teacher_id = models.AutoField(primary_key=True)
+    source_row = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=512)
+    gender = models.CharField(max_length=16, blank=True, null=True)
+    position = models.CharField(max_length=512, blank=True, null=True)
+    disciplines = models.JSONField(default=list, blank=True)
+    institution = models.CharField(max_length=1024, blank=True, null=True)
+    edu_level = models.CharField(max_length=512, blank=True, null=True)
+    academic_degree = models.CharField(max_length=256, blank=True, null=True)
+    academic_title = models.CharField(max_length=256, blank=True, null=True)
+    qualification = models.CharField(max_length=512, blank=True, null=True)
+    experience = models.IntegerField(blank=True, null=True)
+    experience_text = models.CharField(max_length=512, blank=True, null=True)
+    education_details = models.JSONField(default=list, blank=True)
+    professional_development = models.JSONField(default=list, blank=True)
+    professional_retraining = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        db_table = 'teachers'
+
+    def __str__(self):
+        return self.name
+
 class Studyforms(models.Model):
     form_id = models.AutoField(primary_key=True)
     form_name = models.CharField(max_length=256)

@@ -1,4 +1,4 @@
-from portrait.models import COMP, MOT, VAL
+from portrait.constants import RsvCompetencies as COMP, RsvMotivators as MOT, RsvValues as VAL
 
 PROJECT_TYPE_RSV = {
     "social": {

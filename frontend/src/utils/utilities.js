@@ -36,11 +36,11 @@ export const LINK_TREE = [
             { title: 'Анализ дисциплин', to: '/admin/analysis/disciplines', permission: Permission.ANALYSIS_DISCIPLINES },
             { title: 'Дисциплины и компетенции', to: '/admin/AP', permission: Permission.AP },
             { title: 'Визуализации', to: '/admin/analysis/advanced', permission: Permission.ANALYSIS_ADVANCED },
-            { title: 'ИИ-аналитика', to: '/admin/analysis/ai-analytics', permission: Permission.AI_ANALYTICS },
-            { title: 'Области образования', to: '/admin/analysis/edu-profiles', permission: Permission.EDU_PROFILES },
-            { title: 'Переведённые студенты', to: '/admin/analysis/transfered-students', permission: Permission.TRANSFER_ANALYSIS },
-            { title: 'Аномальные студенты', to: '/admin/analysis/anomalous-students', permission: Permission.ANOMALOUS_STUDENTS },
-            { title: 'Дублирующиеся аккаунты', to: '/admin/analysis/dublicate-accounts', permission: Permission.DUPLICATE_ACCOUNTS }
+            //{ title: 'ИИ-аналитика', to: '/admin/analysis/ai-analytics', permission: Permission.AI_ANALYTICS },
+            //{ title: 'Области образования', to: '/admin/analysis/edu-profiles', permission: Permission.EDU_PROFILES },
+            //{ title: 'Переведённые студенты', to: '/admin/analysis/transfered-students', permission: Permission.TRANSFER_ANALYSIS },
+            //{ title: 'Аномальные студенты', to: '/admin/analysis/anomalous-students', permission: Permission.ANOMALOUS_STUDENTS },
+            //{ title: 'Дублирующиеся аккаунты', to: '/admin/analysis/dublicate-accounts', permission: Permission.DUPLICATE_ACCOUNTS }
         ]
     }
 ];
