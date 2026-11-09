@@ -17,8 +17,10 @@ import TabButton from '@components/ui/TabButton';
 import { useQuery } from '@tanstack/react-query';
 import { defaultQueryOptions } from '@utils/queryConfig';
 import './AdminPortraitView.scss';
+import { Button } from '../../../components';
+import { useNavigate } from 'react-router-dom';
 
-const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
+export const StudentSearch = ({ value, onSelectStudent, initialStudentId }) => {
     const [searchTerm, setSearchTerm] = useState(
         initialStudentId == null ? '' : String(initialStudentId)
     );
@@ -701,6 +703,7 @@ const CoursesCard = ({ courses }) => {
 
 function AdminPortraitView() {
     const location = useLocation();
+    const navigate = useNavigate();
     const initialStudentId = location.state?.studentId ?? null;
 
     const [selectedStudentId, setSelectedStudentId] = useState(initialStudentId);
@@ -752,16 +755,21 @@ function AdminPortraitView() {
         }
     };
 
+    function redirectToGrouping() {
+        navigate('/admin/grouping', { state: { studentId: selectedStudentId } });
+    }
+
     return (
         <div className="AdminPortraitView">
             <h2>Цифровой портрет студента</h2>
-
-            <StudentSearch
-                value={initialStudentId}
-                onSelectStudent={setSelectedStudentId}
-                initialStudentId={initialStudentId}
-            />
-
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <StudentSearch
+                    value={initialStudentId}
+                    onSelectStudent={setSelectedStudentId}
+                    initialStudentId={initialStudentId}
+                />
+                {studentPortrait && (<Button text={'Подбор студентов'} onClick={redirectToGrouping} />)}
+            </div>
             {loading && <Loading title="Загрузка портрета студента..." />}
 
             {!loading && studentPortrait && (

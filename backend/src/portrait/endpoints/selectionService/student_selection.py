@@ -2,11 +2,14 @@
 import json
 import traceback
 
+from django.db.models import OuterRef, Subquery
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from ...models import ParticipantsWithNames
 from ..helpers.helpers import (
+    DESCENDING_LEVELS,
     FIELDS,
     INDICATORS,
     LEVELS,
@@ -17,7 +20,7 @@ from ..helpers.helpers import (
 
 def parse_requirements(
     requirements: dict[str, dict[str, str]],
-) -> dict[str, int]:
+) -> dict[str, tuple[int, int, bool]]:
     filters = {}
 
     for category, indicators in requirements.items():
@@ -31,7 +34,7 @@ def parse_requirements(
 
         if not indicators:
             filters.update({
-                field: LEVELS["medium"]
+                field: (*LEVELS["medium"], False)
                 for field in allowed_fields
             })
             continue
@@ -43,22 +46,27 @@ def parse_requirements(
             if not isinstance(level, str) or level not in LEVELS:
                 raise ValueError(f"Некорректный уровень: {level}")
 
-            filters[field] = LEVELS[level]
+            filters[field] = (*LEVELS[level], level in DESCENDING_LEVELS)
 
     return filters
 
 
 def calculate_requirements_score(
     row: dict,
-    filters: dict[str, int],
+    filters: dict[str, tuple[int, int, bool]],
 ) -> float | None:
     if not filters:
         return None
 
-    scores = [
-        (float(row[field]) - minimum) / (800 - minimum)
-        for field, minimum in filters.items()
-    ]
+    scores = []
+
+    for field, (minimum, maximum, descending) in filters.items():
+        value = float(row[field])
+
+        if descending:
+            scores.append((maximum - value) / (maximum - minimum))
+        else:
+            scores.append((value - minimum) / (maximum - minimum))
 
     return round(100 * sum(scores) / len(scores), 2)
 
@@ -77,7 +85,13 @@ def find_students_by_requirements(
         raise ValueError("offset не может быть отрицательным")
 
     filters = parse_requirements(requirements or {})
-    queryset = get_latest_results()
+    queryset = get_latest_results().annotate(
+        student_name=Subquery(
+            ParticipantsWithNames.objects
+            .filter(part_id=OuterRef("res_participant_id"))
+            .values("student_name")[:1]
+        )
+    )
 
     if specialty_ids:
         queryset = queryset.filter(
@@ -89,10 +103,10 @@ def find_students_by_requirements(
             res_course__in=courses
         )
 
-    for field, minimum in filters.items():
+    for field, (minimum, maximum, _) in filters.items():
         queryset = queryset.filter(**{
             f"{field}__gte": minimum,
-            f"{field}__lte": 800,
+            f"{field}__lte": maximum,
         })
 
     # Если требований нет, возможна пагинация непосредственно в SQL.
@@ -100,7 +114,7 @@ def find_students_by_requirements(
         queryset = queryset.order_by("res_participant_id")
         total = queryset.count()
 
-        rows = queryset.values(*FIELDS)[offset:offset + limit]
+        rows = queryset.values(*FIELDS, "student_name")[offset:offset + limit]
 
         return {
             "total": total,
@@ -114,7 +128,7 @@ def find_students_by_requirements(
 
     students = []
 
-    for row in queryset.values(*FIELDS).iterator(chunk_size=2000):
+    for row in queryset.values(*FIELDS, "student_name").iterator(chunk_size=2000):
         students.append({
             **serialize_student(row),
             "matchScore": calculate_requirements_score(row, filters),

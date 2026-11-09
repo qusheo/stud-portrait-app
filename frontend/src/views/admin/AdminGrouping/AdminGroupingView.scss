@@ -1,0 +1,19 @@
+.AdminGroupingView{
+    &-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    &-searchBar {
+        .searchMode {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    }
+    .tab-buttons{
+        display: flex;
+        gap: 8px;
+    }
+}

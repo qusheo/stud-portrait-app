@@ -3,14 +3,11 @@
 	&__content{
 		padding-top: 16px;
 		padding-bottom: 16px;
-		max-height: calc(90vh - 90px);
 		min-height: 100px;
 		width: 100%;
-		overflow: auto;
 		&_table{
-			height: 100%;
+			height: calc(90vh - 122px);
 			width: 100%;
-			overflow: auto;
 		}
 	}
     .studentSearch{

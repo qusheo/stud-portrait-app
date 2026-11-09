@@ -19,10 +19,18 @@ INDICATORS = {
     "values": VAL.list,
 }
 
+# Диапазоны баллов (200-800) для уровней показателей
 LEVELS = {
-    "medium": 400,
-    "high": 600,
+    "basic": (200, 800),
+    "medium": (400, 800),
+    "high": (600, 800),
+    "demotivator": (200, 399),
+    "not_manifested": (400, 599),
+    "motivator": (600, 800),
 }
+
+# Уровни, где меньший балл означает более сильное выражение (скор считается в обратную сторону)
+DESCENDING_LEVELS = {"demotivator"}
 
 FIELDS = [
     tRES.ID,
@@ -61,7 +69,13 @@ def serialize_student(row: dict) -> dict:
     return {
         "studentId": row["res_participant_id"],
         "resultId": row[tRES.ID],
+        "studentName": row.get("student_name"),
         "specialtyId": row["res_edu_specialty_id"],
         "course": row[tRES.COURSE_NUM],
         "year": row[tRES.YEAR],
+        **{
+            field: row.get(field)
+            for group in INDICATORS.values()
+            for field in group
+        },
     }
