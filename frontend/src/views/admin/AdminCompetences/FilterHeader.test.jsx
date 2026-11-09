@@ -170,4 +170,5 @@ describe('FilterHeader', () => {
         await waitFor(() => expect(getFilterOptions).toHaveBeenCalled());
         expect(screen.getByRole('combobox', { name: 'institute' }).options).toHaveLength(1);
     });
+    
 });
