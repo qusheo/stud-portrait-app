@@ -1,13 +1,35 @@
+import re
 import requests
+from concurrent.futures import ThreadPoolExecutor
 from bs4 import BeautifulSoup
 import pandas as pd
 import time
-
 
 headers = {
     "User-Agent": "Mozilla/5.0"
 }
 
+def get_latest_year():
+    url = "https://monitoring.miccedu.ru/?m=vpo"
+    response = requests.get(
+        url, 
+        headers={"User-Agent": "Mozilla/5.0"},
+        timeout=30
+    )
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "lxml")
+    text = soup.get_text(" ", strip=True)
+    years = re.findall(
+        r"Мониторинг\s+(20\d{2})",
+        text
+    )
+
+    if not years:
+        raise ValueError("Не найден год мониторинга")
+
+    return max(map(int, years))
+
+years = range(2022, get_latest_year() + 1)
 
 def get_universities(search_text, year):
     url = "https://monitoring.miccedu.ru/iam/set_SearchVuzList.php"
@@ -82,8 +104,14 @@ def parse_university(university_id, university_name, year):
         "students": students
     }
 
+def parse_one(data):
+    university_id, university_name, year = data
 
-years = range(2022, 2026)
+    return parse_university(
+        university_id,
+        university_name,
+        year
+    )
 
 search_words = [
     "университет",
@@ -109,18 +137,30 @@ for year in years:
 
     print(f"{year}: всего уникальных id:", len(all_universities))
 
-    for index, (university_id, university_name) in enumerate(all_universities.items(), start=1):
-        result = parse_university(university_id, university_name, year)
+# Подготавливаем задания для потоков
+tasks = [
+    (university_id, university_name, year)
+    for university_id, university_name in all_universities.items()
+]
+
+with ThreadPoolExecutor(max_workers=3) as executor:
+
+    results = executor.map(parse_one, tasks)
+
+    for index, result in enumerate(results, start=1):
+
         all_results.append(result)
 
         print(year, index, result)
 
         if index % 20 == 0:
             df_backup = pd.DataFrame(all_results)
-            df_backup.to_csv("universities_students_2022_2025_backup.csv", index=False, encoding="utf-8-sig")
-            print("Файл сохранён")
 
-        time.sleep(0.2)
+            df_backup.to_csv(
+                "universities_students_backup.csv",
+                index=False,
+                encoding="utf-8-sig"
+            )
 
 df = pd.DataFrame(all_results)
 
