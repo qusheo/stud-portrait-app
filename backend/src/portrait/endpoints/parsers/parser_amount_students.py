@@ -122,6 +122,7 @@ search_words = [
 ]   
 
 all_results = []
+tasks = []
 
 for year in years:
     print(f"\nГОД {year}")
@@ -137,11 +138,10 @@ for year in years:
 
     print(f"{year}: всего уникальных id:", len(all_universities))
 
-# Подготавливаем задания для потоков
-tasks = [
-    (university_id, university_name, year)
-    for university_id, university_name in all_universities.items()
-]
+    tasks.extend(
+        (university_id, university_name, year)
+        for university_id, university_name in all_universities.items()
+    )
 
 with ThreadPoolExecutor(max_workers=3) as executor:
 
@@ -151,7 +151,7 @@ with ThreadPoolExecutor(max_workers=3) as executor:
 
         all_results.append(result)
 
-        print(year, index, result)
+        print(result["year"], index, result)
 
         if index % 20 == 0:
             df_backup = pd.DataFrame(all_results)
