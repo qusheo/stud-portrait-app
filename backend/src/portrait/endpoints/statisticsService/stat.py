@@ -2,51 +2,67 @@ from collections import defaultdict
 import numpy as np
 import traceback
 
-from django.db.models import Avg, Count, Q, F
+from django.db.models import Avg, Count, Q, F, Sum
 from django.http import JsonResponse
 
 from ..common import *
+from portrait.models import StudentsAmount
 
 def get_year_metrics(year, filter):
+    population_year = int(str(year).split("/")[-1])
+    population = StudentsAmount.objects.filter(year=population_year)
+    institution_name = filter.get("res_institution__inst_name")
+    if institution_name:
+        population = population.filter(institution__inst_name=institution_name)
+    students_uni = population.aggregate(total=Sum("amount_of_students"))["total"]
+
     res_queryset = Results.objects.filter(res_year=year, **filter)
     max_mot={"name": "-", "count": 0}
     max_demot={"name": "-", "count": 0}
-    if not res_queryset.exists():
+    aggregates = {f"avg_{field}": Avg(field) for field in COMP.list}
+    aggregates.update(
+        row_count=Count("pk"),
+        student_count=Count("res_participant", distinct=True),
+    )
+    for field in MOT.list:
+        aggregates[f"high_{field}"] = Count("pk", filter=Q(**{f"{field}__gte": 600}))
+        aggregates[f"low_{field}"] = Count("pk", filter=Q(**{f"{field}__lt": 400}))
+    metrics = res_queryset.aggregate(**aggregates)
+    if not metrics["row_count"]:
         return {
             "total_avg": 0,
             "course_percent": 0,
             "all_comps": {f: 0 for f in COMP.list},
             "motivator": max_mot,
             "demotivator" : max_demot,
-            "participated" : {"amount_in": 0, "students_all": 0}
+            "participated" : {"amount_in": 0, "students_all": students_uni}
         }
-    avgs = res_queryset.aggregate(**{f'avg_{f}': Avg(f) for f in COMP.list})
+    avgs = {f'avg_{field}': metrics[f'avg_{field}'] for field in COMP.list}
     
     valid_values = [v for v in avgs.values() if v is not None]
     total_avg = sum(valid_values) / len(COMP.list) if valid_values else 0
 
-    participant_ids = list(res_queryset.values_list('res_participant_id', flat=True).distinct())
-    total_students = res_queryset.values('res_participant').distinct().count()
+    participant_ids = res_queryset.values('res_participant_id')
+    total_students = metrics["student_count"]
     students_with_courses = Courseresults.objects.filter(
         course_participant__in=participant_ids 
     ).count()
     
     for f in MOT.list: ## мотиваторы
-        all = res_queryset.values(f).count()
-        cnt_high = res_queryset.filter(**{f"{f}__gte": 600}).count() / all if all!=0 else 0
+        total_rows = metrics["row_count"]
+        cnt_high = metrics[f"high_{f}"] / total_rows
         cnt_high = round(cnt_high *10000)/100
         if cnt_high>max_mot["count"]: 
             max_mot["count"]= cnt_high
             max_mot["name"]=f
         
-        cnt_low = res_queryset.filter(**{f"{f}__lt": 400}).count() / all if all!=0 else 0
+        cnt_low = metrics[f"low_{f}"] / total_rows
         cnt_low = round(cnt_low *10000)/100
         if cnt_low>max_demot["count"]: 
             max_demot["count"]=cnt_low
             max_demot["name"]=f
     
     course_percent = (students_with_courses / total_students * 100) if total_students > 0 else 0
-    students_uni = total_students * 1.2  # тут должны быть обучающиеся в унике вообще
     return {
         "total_avg": round(total_avg, 2),
         "course_percent": round(course_percent, 1),
@@ -142,18 +158,24 @@ def get_dashboard_stats(request):
         if curr_data and prev_data:
             growth = ((curr_data['total_avg'] - prev_data['total_avg']) / prev_data['total_avg']) * 100 if prev_data['total_avg']!=0 else 0
 
-        unis = Results.objects.filter(res_year=curr_year)         \
-            .values_list('res_institution__inst_name', flat=True) \
-            .distinct()
-
+        # Aggregate all universities in one query instead of a query per university.
+        ranking_aggregates = {}
+        for field in COMP.list:
+            valid = Q(**{f"{field}__isnull": False}) & ~Q(**{field: 0})
+            ranking_aggregates[f"sum_{field}"] = Sum(field, filter=valid)
+            ranking_aggregates[f"count_{field}"] = Count(field, filter=valid)
+        ranking_rows = Results.objects.filter(res_year=curr_year).values(
+            "res_institution__inst_name"
+        ).annotate(**ranking_aggregates)
         rate_list = []
-        for uni in unis:
-            rows_data = Results.objects                                     \
-                .filter(res_year=curr_year, res_institution__inst_name=uni) \
-                .values_list(*COMP.list)
-            rows = np.array([np.array([np.nan if i is None or i == 0 else i for i in row]) for row in rows_data]).astype(float)
-            avg = np.mean(np.delete(rows, np.where(np.isnan(rows))))
-            rate_list.append({'uni_name': uni, 'overall_avg': round(avg,3)})
+        for row in ranking_rows:
+            count = sum(row[f"count_{field}"] for field in COMP.list)
+            total = sum(row[f"sum_{field}"] or 0 for field in COMP.list)
+            avg = round(total / count, 3) if count else None
+            rate_list.append({
+                "uni_name": row["res_institution__inst_name"],
+                "overall_avg": avg,
+            })
         rate_list = sorted(
             rate_list,
             key=lambda x: (x['overall_avg'] is None, -(x['overall_avg'] or 0))
@@ -260,12 +282,22 @@ def get_competency_average_by_years(request):
         if inst: base_filter['res_institution__inst_name'] = inst
         if spec: base_filter['res_edu_specialty__spec_name'] = spec
 
-        years = Results.objects.filter(**base_filter).values_list('res_year', flat=True).distinct()
+        yearly_averages = (
+            Results.objects.filter(**base_filter)
+            .exclude(res_year__isnull=True)
+            .exclude(res_year="")
+            .values("res_year")
+            .annotate(**{field: Avg(field) for field in COMP.list})
+            .order_by("res_year")
+        )
         years_data = []
-        for year in sorted(years):
-            year_metrics = get_year_metrics(year, base_filter)
-            for k, v in year_metrics['all_comps'].items():
-                years_data.append({"year": year, "name": k, "average": v})
+        for row in yearly_averages:
+            for field in COMP.list:
+                years_data.append({
+                    "year": row["res_year"],
+                    "name": field,
+                    "average": round(row[field] or 0, 2),
+                })
         return JsonResponse({"ok": True, "data": years_data})
     except Exception as e:
         print(traceback.format_exc())
@@ -273,21 +305,19 @@ def get_competency_average_by_years(request):
 
 def get_competency_stats_courses(filter):
     courses = [1, 2, 3, 4]
-    results = {}
-    main = Results.objects.filter(**filter)
-    for course in courses:
-        qs = main.filter(res_course=course)
-        if qs.exists():
-            avgs = qs.aggregate(**{field: Avg(field) for field in COMP.list})
-            results[course] = avgs
-        else:
-            results[course] = {f: 0 for f in COMP.list}
-    
+    grouped = (
+        Results.objects.filter(res_course__in=courses, **filter)
+        .values("res_course")
+        .annotate(**{field: Avg(field) for field in COMP.list})
+        .order_by()
+    )
+    results = {row["res_course"]: row for row in grouped}
+
     chart_data = []
     for field in COMP.list:
         row = {"name": field}
         for course in courses:
-            val = results[course].get(field) or 0
+            val = results.get(course, {}).get(field) or 0
             row[f"course_{course}"] = round(float(val), 2)
         chart_data.append(row)
     return chart_data

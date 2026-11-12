@@ -280,7 +280,7 @@ class StudentsAmount(models.Model):
 
     class Meta:
         managed = False
-        db_table = "StudentsAmounts"
+        db_table = "students_amounts"
         constraints = [
             models.UniqueConstraint(
                 fields=["institution", "year"],
