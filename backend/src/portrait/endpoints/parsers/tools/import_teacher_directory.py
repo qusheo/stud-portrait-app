@@ -17,7 +17,7 @@ import django  # noqa: E402
 
 django.setup()
 
-from portrait.models import Teachers  # noqa: E402
+from portrait.models import Teacher  # noqa: E402
 from ..teacher_directory_parser import parse_teacher_directory  # noqa: E402
 
 
@@ -36,7 +36,7 @@ def main() -> None:
         return
 
     teachers = [
-        Teachers(
+        Teacher(
             source_row=record.source_row,
             name=record.name,
             gender=record.gender,
@@ -57,9 +57,9 @@ def main() -> None:
     ]
 
     # Full refresh: the source page is the complete directory.
-    Teachers.objects.all().delete()
-    Teachers.objects.bulk_create(teachers)
-    print(f"Imported into teachers: {Teachers.objects.count()} rows")
+    Teacher.objects.all().delete()
+    Teacher.objects.bulk_create(teachers)
+    print(f"Imported into teacher: {Teacher.objects.count()} rows")
 
 
 if __name__ == "__main__":

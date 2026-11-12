@@ -52,7 +52,7 @@ function AdminTeachersView() {
         ...defaultQueryOptions
     });
     const columns = buildColumns();
-    let rows = dataRows.map((r, index) => {
+    let tableRows = dataRows.length ? dataRows.map((r, index) => {
         const educationDetails = Array.isArray(r.education_details) ? r.education_details : [];
         const professionalDevelopment = Array.isArray(r.professional_development) ? r.professional_development : [];
         const professionalRetraining = Array.isArray(r.professional_retraining) ? r.professional_retraining : [];
@@ -66,15 +66,14 @@ function AdminTeachersView() {
             professional_development: professionalDevelopment.length,
             professional_retraining: professionalRetraining.length
         };
-    });
-    const tableRows = rows;
-    const searchOptions = rows.map(r => ({
+    }) : [];
+    const searchOptions = tableRows.map(r => ({
         label: `${r.name}, ${r.position} | ${r.institution}`,
         value: r.rowId
     }));
 
     function cellClickHandler(row, column) {
-        const teacher = rows.find(r => r.rowId === row.rowId);
+        const teacher = tableRows.find(r => r.rowId === row.rowId);
         if (!teacher) return;
 
         if (column.id === 'name') {
@@ -97,7 +96,7 @@ function AdminTeachersView() {
         setOpenListModal(true);
     }
     function onInputChange(val) {
-        const teacher = rows.find(r => r.rowId === val);
+        const teacher = tableRows.find(r => r.rowId === val);
         if (!teacher) return;
         setShownTeacher(teacher);
         setShowTeacherView(true);

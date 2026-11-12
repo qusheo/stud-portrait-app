@@ -10,7 +10,7 @@ def get_teachers_table(request):
     try:
         rows = [
             {
-                'id': teacher.teacher_id,
+                'id': teacher.id,
                 'source_row': teacher.source_row,
                 'name': teacher.name,
                 'gender': teacher.gender or '',
@@ -27,7 +27,7 @@ def get_teachers_table(request):
                 'professional_development': teacher.professional_development or [],
                 'professional_retraining': teacher.professional_retraining or [],
             }
-            for teacher in Teachers.objects.all().order_by('teacher_id')
+            for teacher in Teacher.objects.all().order_by('id')
         ]
         return JsonResponse({"ok": True, "data": rows})
     except Exception as e:

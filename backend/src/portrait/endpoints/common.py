@@ -27,7 +27,7 @@ from ..models import (
     Datauploadtemplate as DataUploadTemplate, Educationdisciplines as EducationDisciplines, Educationforms as EducationForms,
     Educationlevels as EducationLevels, Educationspecialties as EducationSpecialties, Institutions, Participants,
     Studentmapping as StudentMapping, Results as Results, Specialties, ParticipantsWithNames as ParticipantsWithNames,
-    Teachers
+    Teacher
 )
 
 

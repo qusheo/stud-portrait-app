@@ -233,8 +233,8 @@ class Specialties(models.Model):
         managed = False
         db_table = 'specialties'
 
-class Teachers(models.Model):
-    teacher_id = models.AutoField(primary_key=True)
+class Teacher(models.Model):
+    id = models.AutoField(primary_key=True)
     source_row = models.IntegerField(blank=True, null=True)
     name = models.CharField(max_length=512)
     gender = models.CharField(max_length=16, blank=True, null=True)
@@ -250,9 +250,11 @@ class Teachers(models.Model):
     education_details = models.JSONField(default=list, blank=True)
     professional_development = models.JSONField(default=list, blank=True)
     professional_retraining = models.JSONField(default=list, blank=True)
+    source_url = models.TextField(default='')
+    parsed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'teachers'
+        db_table = 'teacher'
 
     def __str__(self):
         return self.name
