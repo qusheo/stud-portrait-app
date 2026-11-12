@@ -1,8 +1,10 @@
 import './AdminTeachersView.scss';
 
+import ExcelJS from 'exceljs';
 import { defaultQueryOptions } from '@utils/queryConfig';
+import { downloadExcelWorkbook } from '@utils/utilities.js';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState, useLayoutEffect, useRef } from 'react';
+import { useEffect, useState, useLayoutEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { buildColumns } from './buildTeachersTable.js';
@@ -12,6 +14,7 @@ import TeacherView from './TeacherView.jsx';
 import DataTable from '@components/tables/DataTable';
 import Loading from '@components/ui/Loading.jsx';
 import { AutocompleteInput, Button } from '../../../components/index.js';
+import { toast } from 'react-toastify';
 
 // education_details: [тип образования, направление, ..., степень]
 const EDUCATION_DETAILS_LABELS = ['Тип образования', 'Направление', 'Степень'];
@@ -37,6 +40,8 @@ const educationDetailsItems = details => {
 function AdminTeachersView() {
     const [shownTeacher, setShownTeacher] = useState(null);
     const [showTeacherView, setShowTeacherView] = useState(false);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [exportLoading, setExportLoading] = useState(false);
 
     const [openListModal, setOpenListModal] = useState(false);
     const [listItems, setListItems] = useState([]);
@@ -45,34 +50,43 @@ function AdminTeachersView() {
 
 	const navigate = useNavigate();
 
-    const { data: dataRows = [], isPending: isTableLoading } = useQuery({
+    const { data: teachersResponse, isPending: isTableLoading } = useQuery({
         queryKey: ['admin', 'teachers-table'],
         queryFn: () => TeacherService.getTeachersTable(),
         enabled: true,
         ...defaultQueryOptions
     });
-    const columns = buildColumns();
-    let tableRows = dataRows.length ? dataRows.map((r, index) => {
-        const educationDetails = Array.isArray(r.education_details) ? r.education_details : [];
-        const professionalDevelopment = Array.isArray(r.professional_development) ? r.professional_development : [];
-        const professionalRetraining = Array.isArray(r.professional_retraining) ? r.professional_retraining : [];
-        return {
-            ...r,
-            rowId: index + 1,
-            educationDetails,
-            professionalDevelopment,
-            professionalRetraining,
-            education_details: formatEducationDetails(educationDetails),
-            professional_development: professionalDevelopment.length,
-            professional_retraining: professionalRetraining.length
-        };
-    }) : [];
-    const searchOptions = tableRows.map(r => ({
-        label: `${r.name}, ${r.position} | ${r.institution}`,
-        value: r.rowId
-    }));
+    const dataRows = teachersResponse?.data ?? [];
+    const columns = useMemo(() => buildColumns(), []);
+    const tableRows = useMemo(
+        () =>
+            dataRows.map((r, index) => {
+                const educationDetails = Array.isArray(r.education_details) ? r.education_details : [];
+                const professionalDevelopment = Array.isArray(r.professional_development) ? r.professional_development : [];
+                const professionalRetraining = Array.isArray(r.professional_retraining) ? r.professional_retraining : [];
+                return {
+                    ...r,
+                    rowId: index + 1,
+                    educationDetails,
+                    professionalDevelopment,
+                    professionalRetraining,
+                    education_details: formatEducationDetails(educationDetails),
+                    professional_development: professionalDevelopment.length,
+                    professional_retraining: professionalRetraining.length
+                };
+            }),
+        [dataRows]
+    );
+    const searchOptions = useMemo(
+        () =>
+            tableRows.map(r => ({
+                label: `${r.name}, ${r.position} | ${r.institution}`,
+                value: r.rowId
+            })),
+        [tableRows]
+    );
 
-    function cellClickHandler(row, column) {
+    function cellClickHandler(row, column, event) {
         const teacher = tableRows.find(r => r.rowId === row.rowId);
         if (!teacher) return;
 
@@ -80,16 +94,16 @@ function AdminTeachersView() {
             setShownTeacher(teacher);
             setShowTeacherView(true);
         } else if (column.id === 'disciplines') {
-            showListModal(teacher.disciplines);
+            showListModal(teacher.disciplines, event);
         } else if (column.id === 'education_details') {
-            showListModal(educationDetailsItems(teacher.educationDetails));
+            showListModal(educationDetailsItems(teacher.educationDetails), event);
         } else if (column.id === 'professional_development') {
-            showListModal(teacher.professionalDevelopment);
+            showListModal(teacher.professionalDevelopment, event);
         } else if (column.id === 'professional_retraining') {
-            showListModal(teacher.professionalRetraining);
+            showListModal(teacher.professionalRetraining, event);
         }
     }
-    function showListModal(items) {
+    function showListModal(items, event) {
         if (!items?.length) return;
         setListItems(items);
         setModalPosition({ x: event.clientX, y: event.clientY });
@@ -110,6 +124,54 @@ function AdminTeachersView() {
             navigate('/admin/portrait', { state: { studentId: null } }); //shownTeacher.rowId
         }
 	}
+
+    const getExportValue = (teacher, columnId) => {
+        switch (columnId) {
+            case 'disciplines':
+                return Array.isArray(teacher.disciplines) ? teacher.disciplines.join('; ') : (teacher.disciplines ?? '');
+            case 'education_details':
+                return educationDetailsItems(teacher.educationDetails).join('; ');
+            case 'professional_development':
+                return teacher.professionalDevelopment.join('; ');
+            case 'professional_retraining':
+                return teacher.professionalRetraining.join('; ');
+            default:
+                return teacher[columnId] ?? '';
+        }
+    };
+
+    async function handleExportSelected() {
+        if (!selectedRows.length) return;
+
+        setExportLoading(true);
+        try {
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Преподаватели');
+            const exportColumns = columns.filter(column => column.id !== 'rowId');
+
+            worksheet.columns = exportColumns.map(column => ({
+                header: column.title,
+                key: column.id,
+                width: Math.min(Math.max(column.title.length + 2, 12), 60)
+            }));
+
+            selectedRows.forEach(teacher => {
+                worksheet.addRow(
+                    Object.fromEntries(exportColumns.map(column => [column.id, getExportValue(teacher, column.id)]))
+                );
+            });
+
+            worksheet.getRow(1).font = { bold: true };
+            worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+
+            await downloadExcelWorkbook(workbook, `teachers_${new Date().toISOString().split('T')[0]}.xlsx`);
+        } catch (error) {
+            console.error('Export error:', error);
+            toast.error('Ошибка при выгрузке данных');
+        } finally {
+            setExportLoading(false);
+        }
+    }
 
     useEffect(() => {
         if (!openListModal) return;
@@ -165,6 +227,8 @@ function AdminTeachersView() {
                     <TeacherView teacher={shownTeacher} />
                 </div>
             )}
+            {selectedRows.length > 0 && <div className='AdminTeachersView__btn-container'><Button type="accept" text={exportLoading ? 'Загрузка...' : `Выгрузить выбранные (${selectedRows.length})`} loading={exportLoading} onClick={handleExportSelected}/></div>}
+            <div className="AdminTeachersView__table">
             {isTableLoading ? (
                 <Loading type="table" title="Загрузка таблицы" />
             ) : (
@@ -173,10 +237,11 @@ function AdminTeachersView() {
                     columns={columns}
                     cellClickHandlers={cellClickHandler}
                     rowKey={'rowId'}
-                    pageSize={20}
+                    pageSize={10}
                     _selectedRows={shownTeacher ? [shownTeacher] : []}
+                    onSelectionChange={setSelectedRows}
                 />
-            )}
+            )}</div>
 
             {openListModal && (
                 <div

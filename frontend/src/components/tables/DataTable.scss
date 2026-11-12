@@ -166,8 +166,12 @@
         font-size: 13px;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: wrap;
+        white-space: nowrap;
         text-align: center;
+
+        &--wrap {
+            white-space: normal;
+        }
 
         &:last-child {
             border-right: none;

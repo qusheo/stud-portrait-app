@@ -153,6 +153,47 @@ const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
 };
 
 /**
+ * @description Ячейка таблицы. По умолчанию не влезающий текст обрезается многоточием
+ * и при наведении показывается тултип с полным значением. Если у колонки задан
+ * cellWrap, текст переносится как обычно и тултип не показывается.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.content Отображаемое значение ячейки.
+ * @param {boolean} props.wrap Включает обычный перенос текста.
+ */
+const TableCell = ({ content, wrap, ...rest }) => {
+    const cellRef = useRef(null);
+    const [truncated, setTruncated] = useState(false);
+
+    useLayoutEffect(() => {
+        const element = cellRef.current;
+
+        if (!element || wrap) return;
+
+        const measure = () => setTruncated(element.scrollWidth > element.clientWidth);
+
+        measure();
+
+        const observer = new ResizeObserver(measure);
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [content, wrap]);
+
+    const showTooltip = !wrap && truncated && content != null && content !== '';
+
+    return (
+        <td
+            ref={cellRef}
+            title={showTooltip ? String(content) : undefined}
+            {...rest}
+        >
+            {content}
+        </td>
+    );
+};
+
+/**
  * @description Таблица данных с поиском, фильтрами, сортировкой, выбором строк и постраничной загрузкой.
  * @param {Object} props Параметры компонента.
  * @param {Array} [props.columns=[]] Конфигурация колонок.
@@ -701,11 +742,15 @@ const DataTable = ({
 
                                 {columns.map(column => {
                                     const value = row[column.id];
+
                                     return (
-                                        <td
+                                        <TableCell
                                             key={column.id}
+                                            content={getCellValue(value, column)}
+                                            wrap={column.cellWrap}
                                             className={[
                                                 'data-table__cell',
+                                                column.cellWrap ? 'data-table__cell--wrap' : '',
                                                 column.results ? getResultClass(value) : '',
                                                 column.clickable ? 'data-table__cell--clickable' : ''
                                             ]
@@ -718,9 +763,7 @@ const DataTable = ({
                                                 ...(column?.contentType === 'number' && { fontsize: 12, fontFamily: 'Ebrima' }),
                                             }}
                                             onClick={event => handleCellClick(column, row, event)}
-                                        >
-                                            {getCellValue(value, column)}
-                                        </td>
+                                        />
                                     );
                                 })}
                             </tr>

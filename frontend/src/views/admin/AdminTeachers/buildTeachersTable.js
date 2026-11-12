@@ -38,18 +38,19 @@ const numberCols = ['id', 'source_row', 'experience'];
 const jsonCols = ['disciplines', 'education_details', 'professional_development', 'professional_retraining'];
 
 const getFilterType = id => {
-    return id === 'disciplines' ? 'combined' : numberCols.includes(id) ? 'number' : 'text';
+    return id === 'disciplines' || id === 'education_details' ? 'combined' : numberCols.includes(id) || jsonCols.includes(id) ? 'number' : 'text';
 };
 
 const getColumnWidth = id => {
     switch (id) {
         case 'name':
-        case 'education_details':
-        case 'professional_development':
-        case 'professional_retraining':
             return 200;
         case 'institution':
-            return 220;
+            return 200;
+        case 'education_details':
+            return 140;
+        case 'professional_development':
+        case 'professional_retraining':
         case 'disciplines':
             return 90;
         case 'gender':
