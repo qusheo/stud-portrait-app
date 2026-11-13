@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
+import { toast } from 'react-toastify';
 
-import { ToastContainer, toast } from 'react-toastify';
 import { FIELD_NAMES, LINK_TREE } from '@utils/utilities.js';
 import { AdminService } from '@services';
 
@@ -12,6 +12,8 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 import TitledCard from '@components/cards/TitledCard';
 
 import Button from '@components/ui/Button';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import Label from '@components/ui/Label';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 import Select, { Option } from '@components/ui/Select.jsx';
@@ -39,7 +41,7 @@ function AdminGroupedDiagramsView() {
 
     const fetchGroupedData = async data => {
         setLoading(true);
-        AdminService.postDataseshGroupSelected(data.sessionId, data.selectedIds, data.groupingColumn)
+        AdminService.postDataseshGroupSelected(data.selectedIds, data.groupingColumn, data.filters || [])
             .then(result => setChartData(result.grouped_data))
             .catch(error => console.error('Error fetching grouped data:', error))
             .finally(() => setLoading(false));
@@ -83,10 +85,7 @@ function AdminGroupedDiagramsView() {
     if (loading) {
         return (
             <div className="AdminGroupedDiagramsView">
-                <div className="loading">
-                    <div className="spinner"></div>
-                    <div>Загрузка данных для группировки...</div>
-                </div>
+                <Loading type="charts" title="Загрузка данных для группировки..." />
             </div>
         );
     }
@@ -219,26 +218,8 @@ function AdminGroupedDiagramsView() {
                     </div>
                 )}
 
-                {!chartData && !loading && (
-                    <div className="no-data">
-                        <div className="no-data-icon">📊</div>
-                        <div className="no-data-text">
-                            <strong>Нет данных для отображения</strong>
-                            <br />
-                            Не удалось загрузить данные для группировки
-                        </div>
-                    </div>
-                )}
+                {!chartData && !loading && <Empty type="charts" title="Не удалось загрузить данные для группировки" />}
             </div>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

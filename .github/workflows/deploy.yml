@@ -20,3 +20,21 @@ jobs:
           passphrase: ${{ secrets.VPS_PASSPHRASE }}
           script: |
             /opt/apps/stud-portrait-app/deploy.sh
+
+  health-check:
+    name: Post-deploy health check
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Backend health check
+        run: >
+          curl --fail --silent --show-error
+          --retry 12 --retry-delay 5 --retry-all-errors
+          http://${{ secrets.VPS_HOST }}/portrait/health/
+
+      - name: Frontend smoke check
+        run: >
+          curl --fail --silent --show-error
+          --retry 5 --retry-delay 5 --retry-all-errors
+          http://${{ secrets.VPS_HOST }}/

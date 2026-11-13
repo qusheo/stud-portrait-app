@@ -1,16 +1,91 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useLayoutEffect } from 'react';
 import './DataTable.scss';
 import { Search, SearchX, FilterIcon } from 'lucide-react';
 import { buildTableColumns } from './buildTableFilters';
 import Empty from '../ui/Empty';
+import { createPortal } from 'react-dom';
+import { Select } from 'antd';
 const DEFAULT_PAGE_SIZE = 50;
 
+/**
+ * @description Панель фильтрации колонки таблицы.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.column Конфигурация колонки.
+ * @param {Function} props.handleFilterChange Обработчик изменения фильтра.
+ * @param {Object} props.filters Текущие значения фильтров.
+ * @param {Function} props.clearFilter Обработчик сброса фильтра колонки.
+ */
 const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
     return (
         <div
             className="data-table__filter"
             onClick={event => event.stopPropagation()}
         >
+            {column.filter.type === 'combined' && (
+                <div className="data-table__filter-combined">
+                    <select
+                        value={filters[column.id]?.mode ?? 'number'}
+                        onChange={event =>
+                            handleFilterChange(column.id, {
+                                mode: event.target.value,
+                                value: event.target.value === 'text' ? [] : '',
+                                operator: '=',
+                            })
+                        }
+                    >
+                        <option value="number">Количество</option>
+                        <option value="text">Название</option>
+                    </select>
+
+                    {(filters[column.id]?.mode ?? 'number') === 'number' ? (
+                        <div className="data-table__filter-input">
+                            <select
+                                value={filters[column.id]?.operator ?? '='}
+                                onChange={event =>
+                                    handleFilterChange(column.id, {
+                                        operator: event.target.value,
+                                    })
+                                }
+                            >
+                                {column.filter.operators?.map(operator => (
+                                    <option key={operator} value={operator}>
+                                        {operator}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <input
+                                type="number"
+                                value={filters[column.id]?.value ?? ''}
+                                placeholder="Количество"
+                                onChange={event =>
+                                    handleFilterChange(column.id, {
+                                        value: event.target.value,
+                                    })
+                                }
+                            />
+                        </div>
+                    ) : (
+                        <Select
+                            mode="multiple"
+                            showSearch
+                            allowClear
+                            maxTagCount="responsive"
+                            placeholder="Выберите дисциплины"
+                            options={column.filter.options}
+                            value={filters[column.id]?.value ?? []}
+                            optionFilterProp="label"
+                            onChange={value =>
+                                handleFilterChange(column.id, {
+                                    value,
+                                })
+                            }
+                            getPopupContainer={() => document.body}
+                            notFoundContent="Нет данных"
+                        />
+                    )}
+                </div>
+            )}
             {column.filter.type === 'select' && (
                 <select
                     value={filters[column.id]?.value ?? ''}
@@ -77,6 +152,59 @@ const FilterPanel = ({ column, handleFilterChange, filters, clearFilter }) => {
     );
 };
 
+/**
+ * @description Ячейка таблицы. По умолчанию не влезающий текст обрезается многоточием
+ * и при наведении показывается тултип с полным значением. Если у колонки задан
+ * cellWrap, текст переносится как обычно и тултип не показывается.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.content Отображаемое значение ячейки.
+ * @param {boolean} props.wrap Включает обычный перенос текста.
+ */
+const TableCell = ({ content, wrap, ...rest }) => {
+    const cellRef = useRef(null);
+    const [truncated, setTruncated] = useState(false);
+
+    useLayoutEffect(() => {
+        const element = cellRef.current;
+
+        if (!element || wrap) return;
+
+        const measure = () => setTruncated(element.scrollWidth > element.clientWidth);
+
+        measure();
+
+        const observer = new ResizeObserver(measure);
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
+    }, [content, wrap]);
+
+    const showTooltip = !wrap && truncated && content != null && content !== '';
+
+    return (
+        <td
+            ref={cellRef}
+            title={showTooltip ? String(content) : undefined}
+            {...rest}
+        >
+            {content}
+        </td>
+    );
+};
+
+/**
+ * @description Таблица данных с поиском, фильтрами, сортировкой, выбором строк и постраничной загрузкой.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} [props.columns=[]] Конфигурация колонок.
+ * @param {Array} [props.rows=[]] Строки таблицы.
+ * @param {string} [props.rowKey='id'] Поле уникального идентификатора строки.
+ * @param {number} [props.pageSize=50] Количество строк на странице.
+ * @param {Object|Function} [props.cellClickHandlers={}] Обработчики нажатий на ячейки.
+ * @param {boolean} [props.selection=true] Включает выбор строк.
+ * @param {Function} [props.onSelectionChange] Обработчик изменения выбранных строк.
+ * @param {Array} [props._selectedRows=[]] Внешне выбранные строки.
+ */
 const DataTable = ({
     columns = [],
     rows = [],
@@ -84,7 +212,8 @@ const DataTable = ({
     pageSize = DEFAULT_PAGE_SIZE,
     cellClickHandlers = {},
     selection = true,
-    onSelectionChange
+    onSelectionChange,
+    _selectedRows = []
 }) => {
     const [filters, setFilters] = useState({});
     const [sort, setSort] = useState(null);
@@ -92,18 +221,31 @@ const DataTable = ({
     const [selectedRowIds, setSelectedRowIds] = useState(new Set());
     const [openedSearch, setOpenedSearch] = useState({});
     const [openedFilter, setOpenedFilter] = useState(null);
+    const [filterPosition, setFilterPosition] = useState({ x: 0, y: 0 });
     const containerRef = useRef(null);
     const sentinelRef = useRef(null);
+    const filterPopoverRef = useRef(null);
+    const filterButtonRectRef = useRef(null);
 
     const tableColumns = useMemo(() => buildTableColumns(columns, rows), [columns, rows]);
     const getRowId = row => row[rowKey];
 
-    if (!rows.length)
-        return (
-            <div className="data-table">
-                <Empty />
-            </div>
-        );
+    useLayoutEffect(() => {
+        if (!openedFilter || !filterPopoverRef.current || !filterButtonRectRef.current) return;
+
+        const { height, width } = filterPopoverRef.current.getBoundingClientRect();
+        const button = filterButtonRectRef.current;
+        const padding = 8;
+
+        const x = Math.max(padding, Math.min(button.left, window.innerWidth - width - padding));
+
+        const y = button.bottom + 6 + height > window.innerHeight - padding ? button.top - height - 6 : button.bottom + 6;
+
+        setFilterPosition({
+            x,
+            y: Math.max(padding, y)
+        });
+    }, [openedFilter]);
 
     const toggleSearch = id => {
         setOpenedSearch(prev => ({
@@ -111,8 +253,17 @@ const DataTable = ({
             [id]: !prev[id]
         }));
     };
-    const toggleFilter = columnId => {
+    const toggleFilter = (columnId, event) => {
         setOpenedFilter(current => (current === columnId ? null : columnId));
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const width = 240;
+        const padding = 8;
+        const gap = 6;
+        const x = Math.max(padding, Math.min(rect.left, window.innerWidth - width - padding));
+        const y = rect.bottom + gap;
+
+        setFilterPosition({ x, y });
 
         setOpenedSearch({});
     };
@@ -142,8 +293,45 @@ const DataTable = ({
 
                 const filterValue = filters[column.id];
 
-                if (!filterValue || filterValue.value === '' || filterValue.value == null) {
+                if (
+                    !filterValue ||
+                    filterValue.value == null ||
+                    filterValue.value === '' ||
+                    (Array.isArray(filterValue.value) && filterValue.value.length === 0)
+                ) {
                     return true;
+                }
+
+                if (column.filter?.type === 'combined') {
+                    if (!Array.isArray(value)) return false;
+
+                    if ((filterValue.mode ?? 'number') === 'text') {
+                        const selectedValues = Array.isArray(filterValue.value)
+                            ? filterValue.value
+                            : filterValue.value != null && filterValue.value !== ''
+                                ? [filterValue.value]
+                                : [];
+
+                        return selectedValues.some(selected =>
+                            value.some(item => String(item) === String(selected))
+                        );
+                    }
+
+                    const rowValue = value.length;
+                    const target = Number(filterValue.value);
+
+                    if (!Number.isFinite(target)) return false;
+
+                    switch (filterValue.operator ?? '=') {
+                        case '>':
+                            return rowValue > target;
+
+                        case '<':
+                            return rowValue < target;
+
+                        default:
+                            return rowValue === target;
+                    }
                 }
 
                 if (column.filter?.type === 'select') {
@@ -152,10 +340,12 @@ const DataTable = ({
 
                 if (column.filter?.type === 'input') {
                     if (column.filterType === 'number') {
+                        if (value == null || value === '') return false;
+
                         const rowValue = Number(value);
                         const target = Number(filterValue.value);
 
-                        if (Number.isNaN(rowValue) || Number.isNaN(target)) {
+                        if (!Number.isFinite(rowValue) || !Number.isFinite(target)) {
                             return false;
                         }
 
@@ -187,8 +377,8 @@ const DataTable = ({
         const { id, direction } = sort;
 
         return [...filteredRows].sort((a, b) => {
-            const aValue = a[id];
-            const bValue = b[id];
+            const aValue = Array.isArray(a[id]) ? a[id].length : a[id];
+            const bValue = Array.isArray(b[id]) ? b[id].length : b[id];
 
             if (aValue == null && bValue == null) return 0;
             if (aValue == null) return 1;
@@ -234,6 +424,11 @@ const DataTable = ({
     };
 
     const allFilteredSelected = filteredRows.length > 0 && filteredRows.every(row => selectedRowIds.has(getRowId(row)));
+    
+    const externalSelectedIds = JSON.stringify(_selectedRows.map(row => row[rowKey]));
+    useEffect(() => {
+        setSelectedRowIds(new Set(JSON.parse(externalSelectedIds)));
+    }, [externalSelectedIds]);
 
     const toggleAll = () => {
         setSelectedRowIds(current => {
@@ -328,6 +523,18 @@ const DataTable = ({
             return next;
         });
     };
+    useEffect(() => {
+        if (!openedFilter) return;
+
+        const handleClickOutside = event => {
+            if (!event.target.closest('.data-table__filter-popover') && !event.target.closest('.ant-select-dropdown')) {
+                setOpenedFilter(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openedFilter]);
 
     const getSortIcon = column => {
         if (!column.sortable) return null;
@@ -352,6 +559,10 @@ const DataTable = ({
     };
 
     const getCellValue = (value, column) => {
+        if (column.filterType === 'combined' && Array.isArray(value)) {
+            return value.length;
+        }
+
         if (column.results && (value == null || Number(value) === 0)) {
             return '-';
         }
@@ -359,15 +570,22 @@ const DataTable = ({
         return value ?? '';
     };
 
-    const handleCellClick = (column, row) => {
+    const handleCellClick = (column, row, event) => {
         if (!column.clickable) return;
 
-        const handler = cellClickHandlers[column.id];
-
-        if (handler) {
-            handler(row);
+        if (typeof cellClickHandlers === 'function') {
+            cellClickHandlers(row, column, event);
+        } else {
+            cellClickHandlers[column.id]?.(row, event);
         }
     };
+
+    if (!rows.length)
+        return (
+            <div className="data-table">
+                <Empty />
+            </div>
+        );
 
     return (
         <div
@@ -420,22 +638,36 @@ const DataTable = ({
                                                 }`}
                                                 onClick={event => {
                                                     event.stopPropagation();
-                                                    toggleFilter(column.id);
+                                                    toggleFilter(column.id, event);
                                                 }}
                                             >
-                                                <FilterIcon size={10} />
-                                            </div>
-                                        )}
-                                        {column.filterable && column.filter && openedFilter === column.id && (
-                                            <div className="data-table__filter-popover">
-                                                <FilterPanel
-                                                    column={column}
-                                                    handleFilterChange={handleFilterChange}
-                                                    filters={filters}
-                                                    clearFilter={clearFilter}
+                                                <FilterIcon
+                                                    className="header-icon"
+                                                    size={10}
                                                 />
                                             </div>
                                         )}
+                                        {column.filterable &&
+                                            column.filter &&
+                                            openedFilter === column.id &&
+                                            createPortal(
+                                                <div
+                                                    className="data-table__filter-popover"
+                                                    ref={filterPopoverRef}
+                                                    style={{
+                                                        left: filterPosition.x,
+                                                        top: filterPosition.y
+                                                    }}
+                                                >
+                                                    <FilterPanel
+                                                        column={column}
+                                                        handleFilterChange={handleFilterChange}
+                                                        filters={filters}
+                                                        clearFilter={clearFilter}
+                                                    />
+                                                </div>,
+                                                document.body
+                                            )}
                                         {column.searchable && (
                                             <div
                                                 className="data-table__search-button"
@@ -444,7 +676,17 @@ const DataTable = ({
                                                     toggleSearch(column.id);
                                                 }}
                                             >
-                                                {openedSearch[column.id] ? <SearchX size={10} /> : <Search size={10} />}
+                                                {openedSearch[column.id] ? (
+                                                    <SearchX
+                                                        className="header-icon"
+                                                        size={10}
+                                                    />
+                                                ) : (
+                                                    <Search
+                                                        className="header-icon"
+                                                        size={10}
+                                                    />
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -462,7 +704,6 @@ const DataTable = ({
 
                                         {!!search[column.id] && (
                                             <button
-                                                type="button"
                                                 onClick={event => {
                                                     event.stopPropagation();
                                                     handleSearch(column.id, '');
@@ -503,10 +744,13 @@ const DataTable = ({
                                     const value = row[column.id];
 
                                     return (
-                                        <td
+                                        <TableCell
                                             key={column.id}
+                                            content={getCellValue(value, column)}
+                                            wrap={column.cellWrap}
                                             className={[
                                                 'data-table__cell',
+                                                column.cellWrap ? 'data-table__cell--wrap' : '',
                                                 column.results ? getResultClass(value) : '',
                                                 column.clickable ? 'data-table__cell--clickable' : ''
                                             ]
@@ -515,12 +759,11 @@ const DataTable = ({
                                             style={{
                                                 width: column.width,
                                                 minWidth: column.width,
-                                                maxWidth: column.width
+                                                maxWidth: column.width,
+                                                ...(column?.contentType === 'number' && { fontsize: 12, fontFamily: 'Ebrima' }),
                                             }}
-                                            onClick={() => handleCellClick(column, row)}
-                                        >
-                                            {getCellValue(value, column)}
-                                        </td>
+                                            onClick={event => handleCellClick(column, row, event)}
+                                        />
                                     );
                                 })}
                             </tr>
@@ -536,7 +779,7 @@ const DataTable = ({
                 />
             )}
 
-            {!sortedRows.length && <div className="data-table__empty">Нет данных</div>}
+            {!sortedRows.length && <Empty type="table" />}
         </div>
     );
 };

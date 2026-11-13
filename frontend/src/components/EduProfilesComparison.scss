@@ -71,7 +71,7 @@
             }
 
             &.active {
-                background: #1976d2;
+                background: $blue-700;
                 color: white;
             }
         }
@@ -128,7 +128,7 @@
                     background: white;
                     border-radius: 8px;
                     padding: 12px;
-                    border-left: 4px solid #1976d2;
+                    border-left: 4px solid $blue-700;
 
                     .item-name {
                         font-weight: 600;
@@ -146,12 +146,12 @@
                         margin-bottom: 8px;
 
                         &.positive {
-                            background: #e8f5e9;
-                            color: #4caf50;
+                            background: $green-100;
+                            color: $green-500;
                         }
 
                         &.negative {
-                            background: #ffebee;
+                            background: $red-100;
                             color: #f44336;
                         }
                     }

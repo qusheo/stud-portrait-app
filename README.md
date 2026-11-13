@@ -31,17 +31,14 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install --ignore-requires-python -r requirements.txt
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+pip install torch  --index-url https://download.pytorch.org/whl/cu126
 
 ```
 
 **Launch**
 
 ```cmd
-cd backend
-.venv\Scripts\activate
-cd src
-python manage.py runserver
+backend/run.sh
 ```
 
 **Test**

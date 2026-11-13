@@ -35,7 +35,11 @@ class DataViewFilter:
         categories = dict.get('categories')
         min = dict.get('min')
         max = dict.get('max')
-        match dict['type']:
+        filter_type = dict['type']
+        if filter_type == 'basic':
+            filter_type = cls.CATEGORIAL
+            categories = dict.get('selectedValues')
+        match filter_type:
             case cls.CATEGORIAL:
                 if categories is None:
                     raise ValueError("Categories not provided")
@@ -46,7 +50,7 @@ class DataViewFilter:
                 raise ValueError(f"Invalid filter type: {dict['type']}")
         return cls(
             id =         dict['id'],
-            type =       dict['type'],
+            type =       filter_type,
             field =      dict['field'],
             categories = categories,
             min =        min,
@@ -190,25 +194,51 @@ def create_data_session(request):
 @method(POST)
 @jsonResponse
 @csrf_exempt
-def extract_session_data(request):
-    """ Get data meeting the session conditions.
-    """
+def extract_data(request):
+    """Get data matching the provided filters and columns."""
     data = json.loads(request.body)
-    session_id = data.get('session_id')
+    filters = parse_data_view_filters(data.get('filters', []))
+    start = data.get('start', 0)
+    end = data.get('end', 1000)
 
-    session = acquire_session(session_id)
+    if type(start) is not int or type(end) is not int or start < 0 or end < start:
+        raise ResponseError("Invalid window limits")
 
-    results_query = Results.objects \
-        .all()                          \
-        .select_related(
+    results_query = apply_data_view_filters(
+        Results.objects.all().order_by(tRES.ID).select_related(
             tRES.PARTICIPANT, tRES.CENTER, tRES.INSTITUTION,
             tRES.EDU_LEVEL, tRES.EDU_FORM, tRES.EDU_SPEC
-        )
+        ),
+        filters,
+    )
 
-    for filter in session.filters:
+    filtered_count = results_query.count()
+    results_slice = results_query[start:end]
+    results_list = [result_to_json(result) for result in results_slice]
+
+    return {
+        "results": results_list,
+        "filtered_count": filtered_count,
+        "shown_count": len(results_list),
+        "available_values": extract_available_values_for_filters(filters),
+    }
+
+
+def parse_data_view_filters(raw_filters: list[dict]) -> list[DataViewFilter]:
+    if type(raw_filters) is not list:
+        raise ResponseError("Invalid filters")
+
+    try:
+        return [DataViewFilter.fromDict(item) for item in raw_filters]
+    except (KeyError, TypeError, ValueError) as error:
+        raise ResponseError(f"Invalid filters provided: {error}") from error
+
+
+def apply_data_view_filters(results_query, filters: list[DataViewFilter]):
+    for filter in filters:
         match filter.type:
             case DataViewFilter.CATEGORIAL:
-                if filter.field in RESULTS_FIELD_MAP:
+                if filter.categories and filter.field in RESULTS_FIELD_MAP:
                     results_query = results_query.filter(
                         **isIn(RESULTS_FIELD_MAP[filter.field], filter.categories)
                     )
@@ -218,18 +248,7 @@ def extract_session_data(request):
                         **greaterEqual(filter.field, filter.min),
                         **lessEqual(filter.field, filter.max)
                     )
-
-    filtered_count = results_query.count()
-    results_slice = results_query[session.start:session.end]
-    shown_count = results_slice.count()
-    results_list = [result_to_json(result, session.columns) for result in results_slice]
-
-    return {
-        "session":        session.toDict(),
-        "results":        results_list,
-        "filtered_count": filtered_count,  # count of rows before slicing
-        "shown_count":    shown_count
-    }
+    return results_query
 
 
 @method(POST)
@@ -304,10 +323,7 @@ def update_session_window(request):
 @csrf_exempt
 def export_selected_results(request):
     data = json.loads(request.body)
-    session_id = data.get('session_id')
     selected_ids = data.get('selected_ids')
-
-    session = acquire_session(session_id)
 
     if not selected_ids:
         raise ResponseError("No records provided for export")
@@ -320,7 +336,7 @@ def export_selected_results(request):
         )
 
     return xlsxResponse(
-        [format_result_for_export(result, session.columns) for result in results_query],
+        [format_result_for_export(result) for result in results_query],
         "Выгрузка результатов", "results_export.xlsx"
     )
 
@@ -329,14 +345,12 @@ def export_selected_results(request):
 @jsonResponse
 @csrf_exempt
 def group_data(request):  # REVIEW
-    """ Group competencies, motivators and values within session.
+    """Group competencies, motivators and values for selected results.
     """
     data = json.loads(request.body)
-    session_id = data.get('session_id')
     selected_ids = data.get('selected_ids')
     groupping_column = data.get('groupping_column')
-
-    session = acquire_session(session_id)
+    filters = parse_data_view_filters(data.get('filters', []))
 
     if not selected_ids:
         raise ResponseError("No records provided for groupping")
@@ -349,20 +363,7 @@ def group_data(request):  # REVIEW
             tRES.PARTICIPANT, tRES.CENTER, tRES.INSTITUTION,
             tRES.EDU_LEVEL, tRES.EDU_FORM, tRES.EDU_SPEC
         )
-    
-    for filter in session.filters:
-        match filter.type:
-            case DataViewFilter.CATEGORIAL:
-                if filter.field in RESULTS_FIELD_MAP:
-                    results_query = results_query.filter(
-                        **isIn(RESULTS_FIELD_MAP[filter.field], filter.categories)
-                    )
-            case DataViewFilter.NUMERIC:
-                if filter.field.startswith(('res_comp_', 'res_mot_', 'res_val_')):
-                    results_query = results_query.filter(
-                        **greaterEqual(filter.field, filter.min),
-                        **lessEqual(filter.field, filter.max)
-                    )
+    results_query = apply_data_view_filters(results_query, filters)
 
     grouped_data = {
         "competences": {},
@@ -416,7 +417,6 @@ def group_data(request):  # REVIEW
         }
 
     return {
-        "session":       session.toDict(),
         "groups":        groups,
         "grouped_data":  grouped_data
     }
@@ -596,9 +596,7 @@ def acquire_session(id: str) -> DataViewSession:
     return session
 
 
-def result_to_json(result, visible_columns=None):  
-    """ Format results data before dispatching it.
-    """
+def result_to_json(result):
     base_data = {
         "res_id": result.res_id,
         "participant": {
@@ -614,32 +612,8 @@ def result_to_json(result, visible_columns=None):
         "res_year":           result.res_year,
         "res_course_num":     result.res_course,                   # было res_course_num
         "res_potential":      result.res_potential,                # было res_high_potential
-        "res_report":         result.res_report,                   # было res_summary_report
+        "res_report":         result.res_report,                # было res_summary_report
     }
-
-    if visible_columns:
-        filtered_data = {}
-
-        for field in visible_columns:
-            if field in base_data:
-                filtered_data[field] = base_data[field]
-
-            elif field in COMP.list:
-                if 'competences' not in filtered_data:
-                    filtered_data['competences'] = {}
-                filtered_data['competences'][field] = getattr(result, field)
-
-            elif field in MOT.list:
-                if 'motivators' not in filtered_data:
-                    filtered_data['motivators'] = {}
-                filtered_data['motivators'][field] = getattr(result, field)
-
-            elif field in VAL.list:
-                if 'values' not in filtered_data:
-                    filtered_data['values'] = {}
-                filtered_data['values'][field] = getattr(result, field)
-
-        return filtered_data
 
     base_data['competences'] = {field: getattr(result, field) for field in COMP.list}
     base_data['motivators'] =  {field: getattr(result, field) for field in MOT.list}
@@ -648,9 +622,7 @@ def result_to_json(result, visible_columns=None):
     return base_data
 
 
-def format_result_for_export(result, visible_columns=None):  # REVIEW
-    """ Format results data before putting it into Excel.
-    """
+def format_result_for_export(result):
     row = {
         "ID результата":       result.res_id,
         "ID РСВ":              result.res_participant.part_rsv_id,     
@@ -672,9 +644,8 @@ def format_result_for_export(result, visible_columns=None):  # REVIEW
     all_fields.update(VAL.names)
 
     for field in all_fields.keys():
-        if visible_columns is None or field in visible_columns:
-            value = getattr(result, field)
-            row[all_fields[field]] = value if value is not None else ""
+        value = getattr(result, field)
+        row[all_fields[field]] = value if value is not None else ""
 
     return row
 

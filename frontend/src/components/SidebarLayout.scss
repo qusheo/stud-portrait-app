@@ -1,5 +1,105 @@
-/* Common style */
-$modeus-color: #238bc8;
+.Header {
+	cursor: default;
+	grid-area: header;
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	color: #fff;
+	padding: 10px 20px;
+	background-color: $default-blue;
+	font-size: 13px;
+	line-height: 1.5384616;
+	font-family: Century Gothic;
+	//font-family: Book Antiqua;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+
+	.left-side {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: left;
+		gap: 50px;
+
+		.logo-area {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			align-items: center;
+			justify-content: left;
+			gap: 5px;
+
+			img {
+				height: 30px;
+			}
+
+			.logo-title {
+				font-size: 20px; //16
+				font-weight: 500; //500
+				font-family: Franklin Gothic Medium;
+			}
+		}
+
+		.title {
+			font-size: 18px;
+			font-weight: 700;
+		}
+	}
+
+	.right-side {
+		align-items: center;
+		display: inline-flex;
+		width: 170px;
+		padding-right: 10px;
+		gap: 5px;
+		justify-content: space-between;
+		.user {
+			border: $default-blue-active 1px solid;
+			background-color: $default-blue-light;
+			padding: 8px;
+			border-radius: 10px;
+			align-items: center;
+			gap: 2px;
+			display: inline-flex;
+			gap: 5px;
+			justify-content: space-between;
+			span {
+				font-weight: 450;
+				font-size: 13px;
+			}
+			.user-name--button {
+				padding: 0;
+				border: 0;
+				background: transparent;
+				color: inherit;
+				font: inherit;
+				font-size: 13px;
+				font-weight: 550;
+				line-height: inherit;
+				cursor: pointer;
+
+				&:hover {
+					text-decoration: none;
+				}
+
+				&:focus-visible {
+					outline: 2px solid currentColor;
+					outline-offset: 3px;
+				}
+			}
+		}
+		.exit {
+			cursor: pointer;
+			color: #6e1c32;
+			font-weight: 520;
+			font-size: 14px;
+		}
+	}
+}
 
 .SidebarLayout {
     display: grid;
@@ -16,45 +116,8 @@ $modeus-color: #238bc8;
 
     transition: grid-template-columns 0.2s ease;
 
-    .Header {
-        cursor: default;
-        grid-area: header;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        .right-side {
-            align-items: center;
-            display: inline-flex;
-            width: 170px;
-            padding-right: 10px;
-            gap: 5px;
-            justify-content: space-between;
-            .user {
-                border: #3e76c3 1px solid;
-                background-color: rgb(109, 166, 219);
-                padding: 8px;
-                border-radius: 10px;
-                align-items: center;
-                gap: 2px;
-                display: inline-flex;
-                gap: 5px;
-                justify-content: space-between;
-                span {
-                    font-weight: 550;
-                    font-size: 13px;
-                }
-            }
-            .exit {
-                cursor: pointer;
-                color: #6e1c32;
-                font-weight: 520;
-                font-size: 14px;
-            }
-        }
-    }
-
     .Sidebar-scroll {
-        height: calc(100vh - 70px);
+        height: calc(100vh - 60px);
         width: 250px;
         overflow: auto;
     }
@@ -65,74 +128,16 @@ $modeus-color: #238bc8;
         position: sticky;
         top: 0;
         overflow-y: auto;
-        .Sidebar-item-active {
-            border-left: 6px solid #3e76c3;
-            margin-left: 4px;
-        }
-    }
-
-    .Content {
-        grid-area: content;
-        height: 97%;
-        overflow: auto;
-        padding: 20px;
-    }
-}
-
-/* Modeus style */
-.style--modeus {
-    .Header {
-        color: #fff;
-        padding: 10px 20px;
-        background-color: #238bc8;
-        font-size: 13px;
-        line-height: 1.5384616;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-
-        .left-side {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            justify-content: left;
-            gap: 50px;
-
-            .logo-area {
-                display: flex;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                align-items: center;
-                justify-content: left;
-                gap: 5px;
-
-                img {
-                    height: 30px;
-                }
-
-                .logo-title {
-                    font-size: 20px; //16
-                    font-weight: 500; //500
-                }
-            }
-
-            .title {
-                font-size: 18px;
-                font-weight: 600;
-            }
-        }
-    }
-
-    .Sidebar {
         max-width: 260px;
         min-width: 200px;
         color: #fff;
         font-size: 13px;
         line-height: 1.5384616;
+
+        .Sidebar-item-active {
+            border-left: 6px solid $default-blue-active;
+            margin-left: 4px;
+        }
 
         ul {
             margin: 0;
@@ -152,17 +157,17 @@ $modeus-color: #238bc8;
                     color: #1a365d;
                 }
 
-                $link-ident--modeus: 40px;
-                $cat-ident--modeus: 20px;
+                $link-indent: 40px;
+                $category-indent: 20px;
 
                 span {
-                    padding: 12px 10px 12px $cat-ident--modeus;
+                    padding: 12px 10px 12px $category-indent;
                     font-variant: small-caps;
                     cursor: pointer;
                 }
 
                 a {
-                    padding: 12px 10px 12px $link-ident--modeus;
+                    padding: 12px 10px 12px $link-indent;
                     text-decoration: none;
                     display: block;
                     transition:
@@ -179,6 +184,15 @@ $modeus-color: #238bc8;
             }
         }
     }
+
+    .Content {
+        grid-area: content;
+        height: 97%;
+        overflow: auto;
+        padding: 20px;
+        @include font-default;
+    }
+
 }
 
 .icon {
@@ -200,20 +214,40 @@ $modeus-color: #238bc8;
     display: flex;
     height: fit-content;
 
-    .SideBar-btn-container {
-        height: calc(100vh - 80px);
-        width: 100%;
+    &-closed{
+        border-radius: 10px;
+        transition: width 0.3s ease;
+        background-color: #f8f9fa;
+        border-right: 2px solid #c6cad9;
+        box-shadow: #c2c3ca 0px 0px 10px 0;
         display: flex;
-        justify-content: center;
-        align-items: top;
-        padding-top: 10px;
-        padding-right: 4px;
-        img {
-            height: 20px;
-            width: 20px;
+        height: fit-content;
+        margin: 8px;
+        .SideBar-btn-container {
+            padding-right: 0;
         }
+    }
+
+}
+.SideBar-btn-container {
+    height: calc(100vh - 80px);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: top;
+    padding-top: 10px;
+    padding-right: 4px;
+    img {
+        height: 20px;
+        width: 20px;
+        cursor: pointer;
     }
 }
 :root {
     scrollbar-color: #b4c5ddc2 white;
+    
+    .ant-select-clear{
+        top: 7px;
+        right: 8px;
+    }
 }

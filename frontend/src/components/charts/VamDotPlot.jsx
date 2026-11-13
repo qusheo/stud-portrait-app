@@ -49,6 +49,13 @@ const CHART_RIGHT_PAD = 100;
 const TOP_PAD = 36;
 const BOTTOM_PAD = 32;
 
+/**
+ * @description Точечная диаграмма Value-Added с доверительными интервалами.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} props.data Значения и доверительные интервалы по группам.
+ * @param {boolean} [props.aggregate=true] Объединяет данные по группам.
+ * @param {boolean} [props.shortLabels=false] Использует сокращённые подписи.
+ */
 const VamDotPlot = ({ data, aggregate = true, shortLabels = false }) => {
     const [hovered, setHovered] = useState(null);
     const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0, item: null });

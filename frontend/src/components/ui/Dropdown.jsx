@@ -9,6 +9,14 @@ export const DropdownContext = createContext({
     setOpen: undefined
 });
 
+/**
+ * @description Раскрывающееся меню с произвольным содержимым.
+ * @param {Object} props Параметры компонента.
+ * @param {*} props.children Содержимое меню.
+ * @param {string} props.label Подпись кнопки меню.
+ * @param {Object} [props.palette] Цветовая палитра кнопки.
+ * @param {boolean} [props.disabled=false] Отключает меню.
+ */
 function Dropdown({ children, label, palette = ADMIN_PALETTE.GRAY, disabled = false }) {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);

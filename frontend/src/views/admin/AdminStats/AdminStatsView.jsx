@@ -3,17 +3,15 @@ import Chart from 'react-apexcharts';
 import 'rc-slider/assets/index.css';
 
 import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-
 import Card from '@components/cards/Card.jsx';
 import TitledCard from '@components/cards/TitledCard.jsx';
 import ValueCard from '@components/cards/ValueCard.jsx';
 
 import Button from '@components/ui/Button.jsx';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
-import { ToastContainer, toast } from 'react-toastify';
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
 
@@ -208,7 +206,7 @@ function AdminStatsView() {
         return (
             <div className="AdminStatsView">
                 <div className="loading-content">
-                    <LoadingSpinner text="Загрузка статистики..." />
+                    <Loading title="Загрузка статистики..." />
                 </div>
             </div>
         );
@@ -547,7 +545,7 @@ function AdminStatsView() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="no-data">Нет данных о центрах компетенций</div>
+                                        <Empty title="Нет данных о центрах компетенций" />
                                     )}
                                 </div>
                             </Card>
@@ -577,7 +575,7 @@ function AdminStatsView() {
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="no-data">Нет данных об учебных заведениях</div>
+                                        <Empty title="Нет данных об учебных заведениях" />
                                     )}
                                 </div>
                             </Card>
@@ -696,15 +694,6 @@ function AdminStatsView() {
                     </div>
                 )}
             </div>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

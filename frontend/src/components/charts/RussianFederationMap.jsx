@@ -3,13 +3,27 @@ import { useEffect, useState, useMemo } from 'react';
 import EChartsReact from 'echarts-for-react';
 import * as echarts from 'echarts';
 
-import LoadingSpinner from '@ui/LoadingSpinner';
+import Loading from '@ui/Loading';
 
 import './RussianFederationMap.scss';
 
+/**
+ * @description Интерактивная карта регионов Российской Федерации.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.title Заголовок карты.
+ * @param {Array} [props.regionData=[]] Данные по регионам.
+ * @param {boolean} [props.loading=false] Показывает лоадер вместо карты.
+ * @param {Function} props.onRegionClick Обработчик выбора региона.
+ * @param {boolean} [props.showVisualMap=true] Показывает шкалу значений.
+ * @param {number} [props.min=0] Минимальное значение шкалы.
+ * @param {number} [props.max=100] Максимальное значение шкалы.
+ * @param {string} [props.highlightedRegion] Название выделенного региона.
+ * @param {string} [props.highlightColor='#ff4444'] Цвет выделенного региона.
+ */
 function RussianFederationMap({
     title,
     regionData = [],
+    loading = false,
     onRegionClick,
     showVisualMap = true,
     min = 0,
@@ -134,7 +148,7 @@ function RussianFederationMap({
                       outOfRange: {
                           color: ['#ccc']
                       },
-                      text: ['Высокий', 'Низкий'],
+                      text: ['Высокий', 'Базовый'],
                       textStyle: {
                           color: '#333'
                       },
@@ -211,8 +225,8 @@ function RussianFederationMap({
         chart.on('click', onChartClick);
     };
 
-    if (!ready) {
-        return <LoadingSpinner text="Загрузка карты" />;
+    if (loading || !ready) {
+        return <Loading type="default" title="Загрузка карты" />;
     }
 
     return (

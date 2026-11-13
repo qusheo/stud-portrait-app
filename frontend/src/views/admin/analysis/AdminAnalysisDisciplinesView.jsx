@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
 import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
@@ -13,9 +13,9 @@ import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Tabl
 import Button from '@components/ui/Button';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox';
 import Label from '@components/ui/Label';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
 import MultiSelect from '@components/ui/MultiSelect';
-import NoData from '@components/ui/NoData';
+import Empty from '@components/ui/Empty';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import SankeyDiagram from '@components/charts/SankeyDiagram';
@@ -151,7 +151,7 @@ function AdminAnalysisDisciplinesView() {
 
         try {
             const data = await AdminService.getAllDisciplinesImpact();
-            if (data.status === 'success') {
+            if (data.ok) {
                 setAllDisciplinesData(data);
             } else {
                 alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
@@ -178,7 +178,7 @@ function AdminAnalysisDisciplinesView() {
                 selectedDirections,
                 5
             );
-            if (data.status === 'success') {
+            if (data.ok) {
                 setDisciplineData(data.results);
             } else {
                 alert('Ошибка при загрузке данных: ' + (data.message || 'Неизвестная ошибка'));
@@ -197,7 +197,7 @@ function AdminAnalysisDisciplinesView() {
 
         try {
             const data = await AdminService.getDisciplineHeatmapData(selectedInstitutions, selectedDirections);
-            if (data.status === 'success') {
+            if (data.ok) {
                 setHeatmapData(data.data);
                 setHeatmapByDirection(data.data_by_direction || {});
                 setHeatmapDirections(data.directions || []);
@@ -215,13 +215,13 @@ function AdminAnalysisDisciplinesView() {
 
     const renderAllDisciplinesImpact = () => {
         if (!allDisciplinesData) {
-            return <NoData text="Нет данных для отображения" />;
+            return <Empty title="Нет данных для отображения" />;
         }
 
         const { impact_matrix, competencies_analyzed } = allDisciplinesData;
 
         if (!impact_matrix || impact_matrix.length === 0) {
-            return <NoData text="Нет данных о влиянии дисциплин" />;
+            return <Empty title="Нет данных о влиянии дисциплин" />;
         }
 
         // Группируем по компетенциям
@@ -323,7 +323,7 @@ function AdminAnalysisDisciplinesView() {
 
     const renderHeatmap = () => {
         if (!heatmapData || heatmapData.length === 0) {
-            return <NoData text="Нет данных для тепловой карты" />;
+            return <Empty title="Нет данных для тепловой карты" />;
         }
 
         const legend = (
@@ -437,7 +437,7 @@ function AdminAnalysisDisciplinesView() {
 
     const renderDisciplineImpact = () => {
         if (!disciplineData || disciplineData.length === 0) {
-            return <NoData text="Нет данных для анализа влияния" />;
+            return <Empty title="Нет данных для анализа влияния" />;
         }
 
         const TABLE_HEADER = (
@@ -458,12 +458,18 @@ function AdminAnalysisDisciplinesView() {
                 {disciplineData.map((compResult, idx) => {
                     const competency = compResult.results?.[0]?.competency;
                     return (
-                        <div key={idx} className="discipline-result-card">
+                        <div
+                            key={idx}
+                            className="discipline-result-card"
+                        >
                             <h5>📊 {COMPETENCIES_NAMES[competency] || competency || 'Без компетенции'}</h5>
 
                             {compResult.results && compResult.results.length > 0 ? (
                                 compResult.results.map((disc, didx) => (
-                                    <TitledCard key={didx} title={disc.discipline}>
+                                    <TitledCard
+                                        key={didx}
+                                        title={disc.discipline}
+                                    >
                                         <h6 style={{ margin: '0 0 6px', color: '#555', fontWeight: 500 }}>Все направления</h6>
                                         <Table>
                                             {TABLE_HEADER}
@@ -476,15 +482,20 @@ function AdminAnalysisDisciplinesView() {
                                                     📂 По направлениям ({Object.keys(disc.by_direction).length})
                                                 </summary>
                                                 {Object.entries(disc.by_direction).map(([direction, dirData]) => (
-                                                    <div key={direction} style={{ marginTop: 10 }}>
-                                                        <div style={{
-                                                            fontWeight: 500,
-                                                            fontSize: 13,
-                                                            color: '#333',
-                                                            marginBottom: 4,
-                                                            paddingLeft: 4,
-                                                            borderLeft: '3px solid #1565c0'
-                                                        }}>
+                                                    <div
+                                                        key={direction}
+                                                        style={{ marginTop: 10 }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                fontWeight: 500,
+                                                                fontSize: 13,
+                                                                color: '#333',
+                                                                marginBottom: 4,
+                                                                paddingLeft: 4,
+                                                                borderLeft: '3px solid #1565c0'
+                                                            }}
+                                                        >
                                                             {direction}
                                                         </div>
                                                         <Table>
@@ -498,7 +509,7 @@ function AdminAnalysisDisciplinesView() {
                                     </TitledCard>
                                 ))
                             ) : (
-                                <NoData text="Нет данных по этой компетенции" />
+                                <Empty title="Нет данных по этой компетенции" />
                             )}
                         </div>
                     );
@@ -594,9 +605,10 @@ function AdminAnalysisDisciplinesView() {
                 </FlexRow>
             </div>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Загрузка анализа дисциплин..."
+                title="Загрузка анализа дисциплин..."
             />
 
             {!loading && (disciplineData || heatmapData || allDisciplinesData) && (

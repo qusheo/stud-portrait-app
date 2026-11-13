@@ -1,41 +1,39 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 import { AdminService } from '@services';
 import { COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-
 import ValueCard from '@components/cards/ValueCard.jsx';
 
-import { ToastContainer, toast } from 'react-toastify';
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table.jsx';
 
 import Button from '@components/ui/Button.jsx';
 import ColorBox, { BOX_COLOR } from '@components/ui/ColorBox.jsx';
 import Label from '@components/ui/Label.jsx';
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 
 import './AdminCoursesView.scss';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 function AdminCoursesView() {
-    const [coursesData, setCoursesData] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [selectedRows, setSelectedRows] = useState(new Set());
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+	const [ coursesData, setCoursesData] = useState(null);
 
-    useEffect(() => {
-        fetchCoursesData();
-    }, []);
+    const { data: data, isPending: loading, refetch: refetch } = useQuery({
+        queryKey: ['admin', 'courses-data'],
+        queryFn: () => AdminService.getCourses(),
+        enabled: true,
+        ...defaultQueryOptions
+    });
 
-    const fetchCoursesData = async () => {
-        setLoading(true);
-        AdminService.getCourses()
-            .then(data => setCoursesData(data.courses))
-            .catch(error => console.error('Error fetching courses data:', error))
-            .finally(() => setLoading(false));
-    };
+	useEffect(() => 
+		setCoursesData(data?.courses)
+	,[data]);
 
     const handleSort = key => {
         let direction = 'asc';
@@ -141,11 +139,17 @@ function AdminCoursesView() {
     if (loading) {
         return (
             <div className="AdminCoursesView">
-                <LoadingSpinner text="Загрузка данных по курсам..." />
+                <Loading type="table" title="Загрузка данных по курсам..." />
             </div>
         );
     }
-
+    if (!coursesData || !coursesData.length) {
+        return (
+            <div className="AdminCoursesView">
+                <Empty type="table" title="Результаты образовательных курсов: нет результатов" />
+            </div>
+        );
+    }
     return (
         <div className="AdminCoursesView">
             <div className="courses-container">
@@ -158,7 +162,7 @@ function AdminCoursesView() {
                         </Label>
                         <Button
                             text="Обновить"
-                            onClick={fetchCoursesData}
+                            onClick={() => refetch()}
                             disabled={loading}
                             palette={ADMIN_PALETTE.CYAN}
                         />
@@ -180,14 +184,7 @@ function AdminCoursesView() {
                 {/* Таблица с курсами */}
                 <div className="table-scroll-container">
                     {!loading && coursesData.length === 0 ? (
-                        <div className="no-data">
-                            <div className="no-data-icon">📚</div>
-                            <div className="no-data-text">
-                                <strong>Нет данных по курсам</strong>
-                                <br />
-                                Загрузите данные через раздел "Загрузка данных"
-                            </div>
-                        </div>
+                        <Empty type="table" title="Нет данных по курсам. Загрузите данные через раздел «Загрузка данных»" />
                     ) : (
                         <Table>
                             <TableHeader>
@@ -258,7 +255,7 @@ function AdminCoursesView() {
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.RED} />
-                                <span>Низкий (1-29%)</span>
+                                <span>базовый (1-29%)</span>
                             </FlexRow>
                             <FlexRow>
                                 <ColorBox color={BOX_COLOR.YELLOW} />
@@ -276,15 +273,6 @@ function AdminCoursesView() {
                     </Label>
                 </FlexRow>
             </div>
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

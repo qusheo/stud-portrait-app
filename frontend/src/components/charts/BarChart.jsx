@@ -2,6 +2,16 @@ import Chart from 'react-apexcharts';
 import { CATEGORIES_DESCRIPTIONS } from '@utils/utilities';
 import './BarChart.scss';
 
+/**
+ * @description Столбчатая диаграмма с подсказками по категориям
+ * @param {Object} props Параметры компонента
+ * @param {string} props.title Заголовок диаграммы
+ * @param {string} props.seriesLabel Название серии данных
+ * @param {Array} props.seriesData Значения серии
+ * @param {Array} props.categories Категории оси X
+ * @param {Array} props.competencyKeys Ключи компетенций для подсказок
+ * @param {number} [props.height=450] Высота диаграммы
+ */
 function BarChart({ title, seriesLabel, seriesData, categories, competencyKeys, height = 450 }) {
     const getBarColor = value => {
         if (value < 400) return '#e0cf30ff';
@@ -107,7 +117,7 @@ function BarChart({ title, seriesLabel, seriesData, categories, competencyKeys, 
                 };
 
                 const value = series[seriesIndex][dataPointIndex];
-                const category = value < 400 ? 'низкий' : value < 600 ? 'средний' : 'высокий';
+                const category = value < 400 ? 'базовый' : value < 600 ? 'средний' : 'высокий';
                 const color = getBarColor(value);
                 const originalLabel = categories[dataPointIndex];
 

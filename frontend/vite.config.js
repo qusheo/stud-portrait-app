@@ -8,6 +8,16 @@ export default defineConfig({
         port: 3000,
         strictPort: true
     },
+    css: {
+        preprocessorOptions: {
+            scss: {
+                additionalData: '@use "src/views/styleVars" as *;\n',
+            },
+            sass: {
+                additionalData: '@use "src/views/styleVars" as *;\n',
+            },
+        },
+    },
     resolve: {
         alias: {
             '@components': path.resolve('src/components'),

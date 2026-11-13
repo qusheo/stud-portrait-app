@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import './DraggablePopover.scss';
 
+/**
+ * @description Перетаскиваемая всплывающая панель.
+ * @param {Object} props Параметры компонента.
+ * @param {boolean} props.open Управляет видимостью панели.
+ * @param {Function} props.onClose Обработчик закрытия панели.
+ * @param {*} props.children Содержимое панели.
+ * @param {Object} [props.initialPosition] Начальные координаты панели.
+ * @param {number} [props.width=400] Ширина панели.
+ * @param {number} [props.height=500] Высота панели.
+ * @param {Function} [props.onPositionChange] Обработчик изменения координат.
+ */
 export default function DraggablePopover({
     open,
     onClose,

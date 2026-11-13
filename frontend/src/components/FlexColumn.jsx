@@ -26,6 +26,17 @@ export const CONTENT = {
     STRETCH: 'stretch'
 };
 
+/**
+ * @description Flex-контейнер для вертикального размещения содержимого.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.className Дополнительный CSS-класс.
+ * @param {*} props.children Содержимое контейнера.
+ * @param {boolean} [props.reverse=false] Меняет направление элементов.
+ * @param {string} [props.wrap] Режим переноса элементов.
+ * @param {string} [props.justify] Выравнивание по основной оси.
+ * @param {string} [props.align] Выравнивание по поперечной оси.
+ * @param {string} [props.content] Выравнивание строк контейнера.
+ */
 function FlexColumn({
     className,
     children,

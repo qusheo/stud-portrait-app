@@ -18,6 +18,23 @@
         margin-top: 8px;
         border-top: 1px solid #e8ebef;
     }
+    .input_institute{
+        width: 480px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 0px 8px;
+        &_label {
+            font-size: 14px;
+            font-weight: 750;
+            color: $grey-800;
+            font-family: $font-gothic;
+        }
+        .itemOption__select{
+            width: 100%;
+        }
+    }
 }
 
 .searchItem {
@@ -54,8 +71,8 @@
         }
 
         input:checked + .searchItem__checkmark {
-            background: #1565c0;
-            border-color: #1565c0;
+            background: $blue-800;
+            border-color: $blue-800;
 
             &::after {
                 opacity: 1;
@@ -156,7 +173,7 @@
         }
 
         &:focus {
-            border-color: #1565c0;
+            border-color: $blue-800;
             box-shadow: 0 0 0 2px rgba(21, 101, 192, 0.08);
         }
     }

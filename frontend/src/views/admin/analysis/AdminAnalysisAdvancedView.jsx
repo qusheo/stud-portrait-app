@@ -13,8 +13,8 @@ import TitledCard from '@components/cards/TitledCard';
 import ValueCard from '@components/cards/ValueCard';
 
 import Button from '@components/ui/Button';
-import NoData from '@components/ui/NoData';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Empty from '@components/ui/Empty';
+import Loading from '@components/ui/Loading';
 import MultiSelect from '@components/ui/MultiSelect';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
@@ -188,7 +188,7 @@ function AdminAnalysisAdvancedView() {
         setLgmGrowersMap({});
         try {
             const data = await AdminService.postAnalyzeCohortLgm(lgmCompetency, instIds, dirIds, lgmGroupBy);
-            if (data.status === 'success') {
+            if (data.ok) {
                 setLgmCohortData(data);
             } else {
                 alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
@@ -218,7 +218,7 @@ function AdminAnalysisAdvancedView() {
         const load = async () => {
             try {
                 const data = await AdminService.postGetLgmGrowers(lgmCompetency, lgmGroupBy, groupId, instIds, dirIds);
-                if (data.status === 'success') {
+                if (data.ok) {
                     setLgmGrowersMap(prev => ({
                         ...prev,
                         [groupId]: {
@@ -258,7 +258,7 @@ function AdminAnalysisAdvancedView() {
                 const data = await (
                     resolvedType === 'year' ? AdminService.postGetCompetencyLevelFlowYearly : AdminService.postGetCompetencyLevelFlow
                 )(flowCompetency, selectedInstitutions, directionIds);
-                if (data.status === 'success') {
+                if (data.ok) {
                     if (!data.nodes || data.nodes.length === 0) {
                         alert('Нет данных для построения диаграммы Санки по выбранным фильтрам');
                         return;
@@ -298,7 +298,7 @@ function AdminAnalysisAdvancedView() {
                 filter_courses: selectedCourses,
                 filter_test_attempts: selectedTestAttempts
             });
-            if (data.status === 'success' && data.data) {
+            if (data.ok && data.data) {
                 const points = [];
                 data.data.forEach(group => {
                     group.courses.forEach(course => {
@@ -355,7 +355,7 @@ function AdminAnalysisAdvancedView() {
     // -------------------- Рендер LGM --------------------
     const renderLGMCohort = () => {
         if (!lgmCohortData || !lgmCohortData.data || lgmCohortData.data.length === 0) {
-            return <NoData text="Нет данных для отображения" />;
+            return <Empty title="Нет данных для отображения" />;
         }
         const { competency, group_by, data: groups, total_qualified_students } = lgmCohortData;
 
@@ -808,7 +808,7 @@ function AdminAnalysisAdvancedView() {
 
     // -------------------- Рендер потока уровней --------------------
     const renderFlowAnalysis = () => {
-        if (!flowData) return <NoData text="Нет данных. Нажмите 'Поток уровней' для загрузки." />;
+        if (!flowData) return <Empty title="Нет данных. Нажмите 'Поток уровней' для загрузки." />;
         return (
             <div className="flow-container">
                 <SankeyDiagram
@@ -843,7 +843,7 @@ function AdminAnalysisAdvancedView() {
     // -------------------- Рендер VAM --------------------
     const renderVAM = () => {
         if (!vamData || vamData.length === 0) {
-            return <NoData text="Нет данных для отображения. Нажмите 'Загрузить VAM' после выбора фильтров." />;
+            return <Empty title="Нет данных для отображения. Нажмите 'Загрузить VAM' после выбора фильтров." />;
         }
 
         const groupsMap = new Map();
@@ -1207,9 +1207,10 @@ function AdminAnalysisAdvancedView() {
                 )}
             </FlexRow>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Загрузка визуализации..."
+                title="Загрузка визуализации..."
             />
 
             {!loading && (

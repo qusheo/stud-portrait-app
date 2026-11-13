@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Загрузка графиков</title>
+  <desc id="desc">Минималистичный каркас столбчатого графика с плавной анимацией</desc>
+  <style>
+    .bar{animation:pulse 1.7s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+    .b2{animation-delay:.12s}.b3{animation-delay:.24s}.b4{animation-delay:.36s}.b5{animation-delay:.48s}.b6{animation-delay:.6s}
+    @keyframes pulse{0%,100%{opacity:.46;transform:scaleY(.95)}50%{opacity:.94;transform:scaleY(1)}}
+    @media (prefers-reduced-motion:reduce){.bar{animation:none;opacity:.7}}
+  </style>
+  <rect x="36" y="42" width="528" height="276" rx="12" fill="#fff" stroke="#DDE4EB" stroke-width="2"/>
+  <rect x="58" y="63" width="139" height="14" rx="7" fill="#CBD5E1"/>
+  <rect x="58" y="89" width="89" height="10" rx="5" fill="#E5EAF0"/>
+  <path d="M89 126H536 M89 174H536 M89 222H536 M89 270H536" stroke="#ECF0F4" stroke-width="2"/>
+  <path d="M89 116V270H536" stroke="#CDD6E0" stroke-width="2" stroke-linecap="round"/>
+  <g fill="#DBE4ED">
+    <rect class="bar" x="126" y="203" width="44" height="67" rx="5"/>
+    <rect class="bar b2" x="194" y="174" width="44" height="96" rx="5"/>
+    <rect class="bar b3" x="262" y="142" width="44" height="128" rx="5"/>
+    <rect class="bar b4" x="330" y="188" width="44" height="82" rx="5"/>
+    <rect class="bar b5" x="398" y="161" width="44" height="109" rx="5"/>
+    <rect class="bar b6" x="466" y="126" width="44" height="144" rx="5"/>
+  </g>
+  <g fill="#E5EAF0">
+    <rect x="136" y="283" width="24" height="8" rx="4"/>
+    <rect x="204" y="283" width="24" height="8" rx="4"/>
+    <rect x="272" y="283" width="24" height="8" rx="4"/>
+    <rect x="340" y="283" width="24" height="8" rx="4"/>
+    <rect x="408" y="283" width="24" height="8" rx="4"/>
+    <rect x="476" y="283" width="24" height="8" rx="4"/>
+  </g>
+</svg>

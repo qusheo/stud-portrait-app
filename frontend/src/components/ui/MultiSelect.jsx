@@ -5,6 +5,19 @@ import { ADMIN_PALETTE, unpackPaletteOptionsActivable } from './palette';
 
 import './MultiSelect.scss';
 
+/**
+ * @description Выпадающий список множественного выбора с поиском и счётчиками.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} [props.options=[]] Доступные варианты.
+ * @param {Array} [props.value=[]] Выбранные значения.
+ * @param {Function} props.onChange Обработчик изменения выбранных значений.
+ * @param {string} [props.placeholder='Выберите...'] Подпись до выбора.
+ * @param {string} [props.searchPlaceholder='Поиск...'] Подсказка в поле поиска.
+ * @param {string} [props.label=''] Подпись списка.
+ * @param {boolean} [props.withSearch=false] Включает поиск по вариантам.
+ * @param {boolean} [props.showCounts=false] Показывает количество элементов.
+ * @param {Object} [props.palette] Цветовая палитра списка.
+ */
 function MultiSelect({
     options = [], // Массив опций [{id, name, count}] или просто [strings]
     value = [], // Выбранные значения

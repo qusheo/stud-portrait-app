@@ -58,7 +58,7 @@ const EduProfilesComparison = () => {
             });
 
             {
-                if (result.status === 'success') {
+                if (result.ok) {
                     const specialties = result.data.specialties.map(s => ({
                         value: s.id,
                         label: s.name,
@@ -101,7 +101,7 @@ const EduProfilesComparison = () => {
         try {
             const result = await AdminService.getEducationProfilesComparison(filters);
             {
-                if (result.status === 'success') {
+                if (result.ok) {
                     setData(result.data);
                 } else {
                     console.error('Ошибка загрузки данных:', result.message);

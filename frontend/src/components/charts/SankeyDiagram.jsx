@@ -1,6 +1,17 @@
 import React from 'react';
 import { ResponsiveContainer, Sankey, Tooltip } from 'recharts';
 
+/**
+ * @description Диаграмма Санки для отображения потоков между узлами.
+ * @param {Object} props Параметры компонента.
+ * @param {Object} props.data Узлы и связи диаграммы.
+ * @param {string} props.title Заголовок диаграммы.
+ * @param {number} [props.height=500] Высота диаграммы.
+ * @param {number} [props.valueMultiplier=1] Множитель значений связей.
+ * @param {number} [props.minLinkWidth=2] Минимальная ширина связи.
+ * @param {boolean} [props.autoScale=true] Автоматически масштабирует значения.
+ * @param {string} [props.valueLabel='Effect Size'] Подпись значения в подсказке.
+ */
 const SankeyDiagram = ({
     data,
     title,

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Select from 'react-select';
 import {
     Cell,
@@ -15,19 +16,21 @@ import {
     ReferenceLine
 } from 'recharts';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import MotivatorStatistics from '@components/MotivatorStatistics.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
-import * as XLSX from 'xlsx';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
+import ExcelJS from 'exceljs';
 
 import './AdminMotivatorsView.scss';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 import { useAdminStore } from '@utils/store.jsx';
+import { defaultQueryOptions } from '@utils/queryConfig';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -139,7 +142,7 @@ function MotTable({ data, currentFilters }) {
     const [tableOpen, setTableOpen] = useState(false);
     const [selected, setSelected] = useState(['М', 'Д', 'Н']);
 
-    if (!data) return null;
+    if (!data) return <Empty type="table" />;
 
     const mot_demot = ['М', 'Д', 'Н'];
     const toggleChoice = mot_demot => {
@@ -147,7 +150,7 @@ function MotTable({ data, currentFilters }) {
             return prev.includes(mot_demot) ? prev.filter(c => c !== mot_demot) : [...prev, mot_demot];
         });
     };
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
         console.log(currentFilters);
         const excelData = [];
         if (!data || (!selected.includes('М') && !selected.includes('Д') && !selected.includes('Н'))) {
@@ -199,13 +202,14 @@ function MotTable({ data, currentFilters }) {
         });
 
         const header = `${currentFilters.institute ? `${currentFilters.institute}, ` : ''} ${currentFilters.specialty ? `${currentFilters.specialty}, ` : ''} ${currentFilters.year ? `${currentFilters.year} учебный год ` : ''}`;
-        const worksheet = XLSX.utils.aoa_to_sheet([[header]]);
-        XLSX.utils.sheet_add_json(worksheet, excelData, { origin: 'A2', skipHeader: false });
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Статистика Мотиваторов');
-
-        XLSX.writeFile(workbook, `Статистика_Мотиваторов${currentFilters.year ? `_${currentFilters.year}` : ''}.xlsx`);
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Статистика Мотиваторов');
+        worksheet.addRow([header]);
+        if (excelData.length) {
+            worksheet.addRow(Object.keys(excelData[0]));
+            excelData.forEach(row => worksheet.addRow(Object.values(row)));
+        }
+        await downloadExcelWorkbook(workbook, `Статистика_Мотиваторов${currentFilters.year ? `_${currentFilters.year}` : ''}.xlsx`);
     };
 
     return (
@@ -420,7 +424,7 @@ function MotivatorCharts({ chart_data, currentFilters }) {
 
     if (!chart_data || chart_data.length === 0) {
         console.log('MotivatorChart: нет данных');
-        return <div style={{ padding: 20, textAlign: 'center', color: '#888' }}>Нет данных для отображения</div>;
+        return <Empty type="charts" title="Нет данных для отображения" />;
     }
 
     return (
@@ -603,29 +607,21 @@ function MotivatorCharts({ chart_data, currentFilters }) {
 }
 
 function AdminMotivatorsView() {
-    const [MotivationData, setMotivationData] = useState(null);
-    const [loadingMotDash, setLoadingMotDash] = useState(false);
-    const [isError, setErrorStatus] = useState(false);
     const [filters, setFilters] = useState({ institute: '', specialty: '', year: '' });
     const savedY = useRef(0);
 
     const savedFilters = useAdminStore(state => state.savedFilters);
     const saveFilters = useAdminStore(state => state.saveFilters);
 
-    const loadMotivationCounts = async currentFilters => {
-        setLoadingMotDash(true);
-        setErrorStatus(false);
-        AdminService.getMotivationCounts(currentFilters.institute, currentFilters.specialty, currentFilters.year)
-            .then(data => setMotivationData(data))
-            .catch(err => {
-                console.error('Ошибка при загрузке мотиваторов:', err);
-                toast.error('Ошибка при загрузке мотиваторов');
-            })
-            .finally(() => setLoadingMotDash(false));
-    };
-    useEffect(() => {
-        loadMotivationCounts(filters);
-    }, [filters]);
+    const {
+        data: motivationData,
+        isPending: loadingMotDash,
+        error
+    } = useQuery({
+        queryKey: ['admin', 'motivators', filters],
+        queryFn: () => AdminService.getMotivationCounts(filters.institute, filters.specialty, filters.year),
+        ...defaultQueryOptions
+    });
 
     const updateFilter = (name, value) => {
         setFilters(prev => {
@@ -664,26 +660,21 @@ function AdminMotivatorsView() {
             </div>
             {loadingMotDash ? (
                 <div className="loading-content">
-                    <LoadingSpinner text="Загрузка диаграммы..." />
+                    <Loading type="charts" title="Загрузка диаграммы..." />
                 </div>
+            ) : error ? (
+                <div className="loading-content">
+					<Empty />
+				</div>
             ) : (
                 <>
                     <MotivatorCharts
-                        chart_data={MotivationData?.data}
+                        chart_data={motivationData?.data}
                         currentFilters={filters}
                     />
                     <MotivatorStatistics filters={filters} />
                 </>
             )}
-            <ToastContainer
-                position="bottom-right"
-                autoClose={2000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

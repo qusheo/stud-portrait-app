@@ -5,6 +5,13 @@ import LineCompetencyTooltip from './LineCompetencyTooltip';
 
 import './ResultTable.scss';
 
+/**
+ * @description Таблица результатов с подсказками по компетенциям.
+ * @param {Object} props Параметры компонента.
+ * @param {Array} props.data Строки таблицы.
+ * @param {Array} props.years Учебные годы в колонках.
+ * @param {string} props.title Заголовок таблицы.
+ */
 function ResultTable({ data, years, title }) {
     const [tooltipData, setTooltipData] = useState({
         isVisible: false,

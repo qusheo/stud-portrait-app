@@ -4,6 +4,12 @@ import { StudentService } from '@services';
 
 import './StudentComparisonStats.scss';
 
+/**
+ * @description Сравнение результатов студента с другими студентами.
+ * @param {Object} props Параметры компонента.
+ * @param {string|number} props.studentId Идентификатор студента.
+ * @param {string} props.year Учебный год.
+ */
 const StudentComparisonStats = ({ studentId, year }) => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -40,7 +46,7 @@ const StudentComparisonStats = ({ studentId, year }) => {
         if (percentile >= 75) return 'Высокий';
         if (percentile >= 50) return 'Выше среднего';
         if (percentile >= 25) return 'Ниже среднего';
-        return 'Низкий';
+        return 'базовый';
     };
 
     const renderComparisonCard = (item, type) => {

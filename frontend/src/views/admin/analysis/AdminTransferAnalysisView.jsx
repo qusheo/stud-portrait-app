@@ -12,8 +12,8 @@ import ValueCard from '@components/cards/ValueCard';
 
 import Button from '@components/ui/Button';
 import Select, { Option } from '@components/ui/Select';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
-import NoData from '@components/ui/NoData';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 
 import Table, { TableHeader, TableItem, TableRow } from '@components/tables/Table';
@@ -140,7 +140,7 @@ function AdminTransferAnalysisView() {
 
     // ── Рендер вкладки Санки ──────────────────────────────
     const renderSankey = () => {
-        if (!sankeyData) return <NoData text="Нет данных о переводах. Запустите анализ." />;
+        if (!sankeyData) return <Empty title="Нет данных о переводах. Запустите анализ." />;
         return (
             <>
                 <SankeyDiagram
@@ -168,7 +168,7 @@ function AdminTransferAnalysisView() {
                     />
                 </div>
             );
-        if (!students.length) return <NoData text="Нет студентов с переводами по заданным фильтрам." />;
+        if (!students.length) return <Empty title="Нет студентов с переводами по заданным фильтрам." />;
 
         return (
             <div className="students-list">
@@ -406,9 +406,10 @@ function AdminTransferAnalysisView() {
                 />
             </div>
 
-            <LoadingSpinner
+            <Loading
+                type="charts"
                 loading={loading}
-                text="Поиск студентов с переводами..."
+                title="Поиск студентов с переводами..."
             />
 
             {/* ── Сводка ── */}
@@ -520,9 +521,10 @@ function AdminTransferAnalysisView() {
                         />
                     </FlexRow>
 
-                    <LoadingSpinner
+                    <Loading
+                        type="table"
                         loading={loadingStudents}
-                        text="Загрузка студентов..."
+                        title="Загрузка студентов..."
                     />
 
                     {!loading && !loadingStudents && (

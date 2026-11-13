@@ -40,6 +40,17 @@ services:
       db:
         condition: service_healthy
 
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request;urllib.request.urlopen(''http://localhost:8000/portrait/health/'', timeout=5)"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
   frontend:
     build:
       context: ./frontend
@@ -52,7 +63,8 @@ services:
       - "80:80"
 
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
   redis:
     image: redis:7-alpine
     container_name: redis

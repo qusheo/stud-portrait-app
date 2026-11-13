@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AdminService } from '@services';
+import Loading from '@components/ui/Loading';
+import Empty from '@components/ui/Empty';
 
 /**
  * Покраска ячейки со значением корреляции:
@@ -58,7 +60,6 @@ export default function TopCorrelationsTable({ filters }) {
     }, [topN, sortBy, minN, filters?.institute, filters?.specialty, filters?.year]);
 
     const rows = data?.top || [];
-    if (error || loading) return <div></div>;
 
     return (
         <div
@@ -144,12 +145,10 @@ export default function TopCorrelationsTable({ filters }) {
             </div>
 
             {/* Состояния */}
-            {loading && <div style={{ padding: 20, color: '#64748b' }}>Загрузка рейтинга...</div>}
-            {error && !loading && <div style={{ padding: 20, color: '#b91c1c' }}>Ошибка: {error}</div>}
+            {loading && <Loading type="table" title="Загрузка рейтинга..." />}
+            {error && !loading && <Empty type="table" title={`Ошибка: ${error}`} />}
             {!loading && !error && rows.length === 0 && (
-                <div style={{ padding: 20, color: '#64748b' }}>
-                    Нет данных для выбранных фильтров. Попробуйте уменьшить «Минимум студентов».
-                </div>
+                <Empty type="table" title="Нет данных для выбранных фильтров. Попробуйте уменьшить «Минимум студентов»." />
             )}
 
             {/* Таблица */}

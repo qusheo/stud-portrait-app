@@ -1,0 +1,46 @@
+.student-interests {
+    &__description {
+        margin: 0 0 16px;
+        color: #667085;
+    }
+
+    &__counter {
+        margin: 12px 0;
+        font-size: 13px;
+        color: #667085;
+    }
+
+    &__list {
+        max-height: 440px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
+
+    &__category {
+        padding: 12px 0;
+        border-bottom: 1px solid #eaecf0;
+
+        h4 {
+            margin: 0 0 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    }
+
+    &__options {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 16px;
+
+        .ant-checkbox-wrapper {
+            margin: 0;
+            align-items: flex-start;
+        }
+    }
+
+    @media (max-width: 560px) {
+        &__options {
+            grid-template-columns: 1fr;
+        }
+    }
+}

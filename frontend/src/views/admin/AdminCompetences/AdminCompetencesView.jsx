@@ -1,18 +1,21 @@
-import { useState, useEffect, React, useRef, cloneElement } from 'react';
+import { useState, React, useRef, cloneElement, useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { PieChart, Pie, Tooltip as TooltipRecharts, Legend, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { BarChartByYears, CompRadar, CompetencyTable, CompetencyTable_course, CompetencyTrendLine } from './CompetencesCharts.jsx';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import CompetencySegmentation from './CompetencySegmentation';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 
-import LoadingSpinner from '@components/ui/LoadingSpinner.jsx';
+import Loading from '@components/ui/Loading.jsx';
+import Empty from '@components/ui/Empty.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { defaultQueryOptions } from '@utils/queryConfig';
 import { AdminService } from '@services';
 
 import './AdminCompetencesView.scss';
@@ -20,7 +23,7 @@ import TabButton from '@components/ui/TabButton';
 import Tooltip from '@components/ui/Tooltip.jsx';
 import DraggablePopover from '@components/ui/DraggablePopover.jsx';
 
-import { useAdminStore } from '@utils/store.jsx';
+import { useAdminStore, usePageStore } from '@utils/store.jsx';
 
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
@@ -86,7 +89,7 @@ const Stat = ({ label, value, prev = 0, suffix = '', isGrowth = false, isText = 
 };
 
 function BarChartWithTable({ data, year = '2025', yearsOptions = [], filters = {} }) {
-    if (!data) return;
+    if (!data) return <Empty type="charts" />;
 
     const years = [];
     const yearsMap = {};
@@ -261,10 +264,10 @@ function YearsSelect({ year, yearsOptions, onChange }) {
     );
 }
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
-    if (!data) return null;
+    if (!data || !data?.col2) return <Empty title="Нет данных для отображения" />;
     const year = data.year;
     const pieData = [
-        { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#1f66b6' },
+        { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#658ed0' },
         { 'name': 'Не прошли', 'value': data.col2.participated?.students_all - data.col2.participated?.amount_in, fill: 'transparent' }
     ];
     //col2 uni
@@ -365,8 +368,8 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                                             data={pieData}
                                             dataKey={'value'}
                                             nameKey={'name'}
-                                            innerRadius="80"
-                                            outerRadius="100"
+                                            innerRadius="75"
+                                            outerRadius="95"
                                             startAngle={90}
                                             endAngle={-270}
                                         ></Pie>
@@ -395,7 +398,7 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
 
                     {/* Правая колонка */}
                     <div className="col-right">
-                        <h4 className="text-xs uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
+                        <h4 className="text-s uppercase text-gray-400 font-bold mb-6">Компетенции</h4>
                         <div style={{ display: 'flex', whiteSpace: 'wrap', gap: '30px', maxWidth: '900px' }}>
                             <Stat
                                 label={`Наиболее развитая. Средний балл: ${data.col3.best.val}`}
@@ -431,90 +434,80 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
 }
 
 function AdminCompetencesView() {
-    const savedFilters = useAdminStore(state => state.savedFilters);
-    const saveFilters = useAdminStore(state => state.saveFilters); // данные хранилища
-    const [dashboardData, setDashboardData] = useState(null);
-    const [loadingDash, setLoadingDash] = useState(false);
+    const saveFilters = useAdminStore(state => state.saveFilters);
 
     const [filters_, setFilters_] = useState(() => {
         const saved = useAdminStore.getState().savedFilters?.Admin;
 
-        return saved && Object.keys(saved).length ? saved : { institute: '', specialty: '', year: '' };
+        return {
+            institute: saved?.institute ?? '',
+            specialty: saved?.specialty ?? '',
+            year: saved?.year ?? ''
+        };
     });
 
-    const [yearsCompetencyData, setYearsCompetencyData] = useState(null);
-    const [trendData, setTrendData] = useState(null);
-    const [loadingTrend, setLoadingTrend] = useState(false);
+    const setPageName = usePageStore(state => state.setPageName);
 
     const [activeTab, setActiveTab] = useState('dashboard');
-    const loadDashboardStats = async currentFilters => {
-        setLoadingDash(true);
-        try {
-            const data = await AdminService.getDashboardStats(currentFilters.institute, currentFilters.specialty, currentFilters.year);
+    const {
+        data: dashboardData,
+        isPending: loadingDash,
+        error: dashboardError,
+        refetch: refetchDashboard
+    } = useQuery({
+        queryKey: ['admin', 'stats', filters_],
+        queryFn: () => AdminService.getDashboardStats(filters_),
+        enabled: activeTab === 'dashboard',
+        ...defaultQueryOptions
+    });
+    const { data: yearsCompetencyResult } = useQuery({
+        queryKey: ['admin', 'competency-average-by-years', filters_.institute, filters_.specialty],
+        queryFn: () => AdminService.getCompetencyAverageByYears(filters_.institute, filters_.specialty),
+        enabled: activeTab === 'dashboard',
+        ...defaultQueryOptions
+    });
+    const { data: yearsOptions = [] } = useQuery({
+        queryKey: ['admin', 'available-years'],
+        queryFn: () => AdminService.getAvailableYears(),
+        ...defaultQueryOptions
+    });
+    const {
+        data: trendData,
+        isPending: loadingTrend
+    } = useQuery({
+        queryKey: ['admin', 'competency-trend', filters_.institute, filters_.specialty],
+        queryFn: () => AdminService.getCompetencyTrendByYear(filters_.institute, filters_.specialty),
+        enabled: activeTab === 'graphics' || activeTab === 'segmentation',
+        ...defaultQueryOptions
+    });
+    const yearsCompetencyData = yearsCompetencyResult?.data;
 
-            if (!data) return;
-            setDashboardData(data);
-        } finally {
-            setLoadingDash(false);
-        }
-    };
+    const updateFilter = useCallback((name, value) => {
+        setFilters_(prev => {
+            if (prev[name] === value) return prev;
 
-    const loadYearsCompetencyData = async currentFilters => {
-        const data = await AdminService.getCompetencyAverageByYears(currentFilters.institute, currentFilters.specialty);
-        setYearsCompetencyData(data?.data);
-    };
+            return {
+                ...prev,
+                [name]: value,
+                ...(name === 'institute' ? { specialty: '' } : {})
+            };
+        });
+    }, []);
 
-    const [yearsOptions, setYearsOptions] = useState([]);
-    const getYearsOptions = async () => {
-        const years = await AdminService.getAvailableYears();
-        setYearsOptions(years ?? []);
-    };
-    useEffect(() => {
-        getYearsOptions();
+    const resetFilters = useCallback(() => {
+        setFilters_({ institute: '', specialty: '', year: '' });
+    }, []);
+
+    const handleYearChange = useCallback(selectedYear => {
+        setFilters_(prev => {
+            if (prev.year === selectedYear) return prev;
+            return { ...prev, year: selectedYear };
+        });
     }, []);
 
     useEffect(() => {
-        if (activeTab !== 'dashboard') return;
-        loadDashboardStats(filters_);
-        loadYearsCompetencyData(filters_);
-    }, [filters_, activeTab]);
-
-    const updateFilter = (name, value) => {
-        setFilters_(prev => {
-            const updated = { ...prev, [name]: value };
-            if (name === 'institute') updated.specialty = '';
-
-            saveFilters('Admin', updated); // сохраняем фильтры в хранилище
-
-            return updated;
-        });
-    };
-    const resetFilters = () => {
-        setFilters_({ institute: '', specialty: '', year: '' });
-        saveFilters('Admin', { institute: '', specialty: '', year: '' });
-    };
-    const loadCompetencyTrend = async currentFilters => {
-        setLoadingTrend(true);
-        try {
-            const data = await AdminService.getCompetencyTrendByYear(currentFilters.institute, currentFilters.specialty);
-            setTrendData(data);
-        } catch (err) {
-            console.error('Ошибка при загрузке динамики:', err);
-        } finally {
-            setLoadingTrend(false);
-        }
-    };
-    useEffect(() => {
-        if (activeTab !== 'segmentation') return;
-        loadCompetencyTrend(filters_);
-    }, [filters_, activeTab]);
-
-    const handleYearChange = selectedYear => {
-        setFilters_(prev => {
-            const updated = { ...prev, year: selectedYear };
-            return updated;
-        });
-    };
+        saveFilters('Admin', filters_);
+    }, [filters_, saveFilters]);
 
     return (
         <div className="AdminCompetencesView">
@@ -551,8 +544,12 @@ function AdminCompetencesView() {
                 <>
                     {loadingDash ? (
                         <div className="loading-content">
-                            <LoadingSpinner text="Загрузка статистики..." />
+                            <Loading type="charts" title="Загрузка статистики..." />
                         </div>
+                    ) : dashboardError ? (
+						<div className="loading-content">
+                        	<Empty title="Не удалось загрузить статистику" />
+						</div>
                     ) : (
                         <>
                             <Dashboard
@@ -573,7 +570,9 @@ function AdminCompetencesView() {
             {activeTab === 'graphics' && (
                 <>
                     {loadingTrend ? (
-                        <LoadingSpinner text="Загрузка диаграммы..." />
+						<div className="loading-content">
+							<Loading type="charts" title="Загрузка..." />
+						</div>
                     ) : (
                         <CompetencyTrendLine
                             data={trendData}
@@ -583,18 +582,9 @@ function AdminCompetencesView() {
                 </>
             )}
             {activeTab === 'segmentation' && (
-                <>{loadingTrend ? <LoadingSpinner text="Загрузка диаграммы..." /> : <CompetencySegmentation filters={filters_} />}</>
+                <>{loadingTrend ? <div className="loading-content"><Loading type="charts" title="Загрузка диаграммы..." /></div> : <CompetencySegmentation filters={filters_} />}</>
             )}
 
-            <ToastContainer
-                position="bottom-right"
-                autoClose={3000}
-                hideProgressBar={true}
-                newestOnTop={false}
-                closeOnClick={true}
-                rtl={false}
-                theme="light"
-            />
         </div>
     );
 }

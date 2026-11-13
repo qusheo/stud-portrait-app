@@ -6,7 +6,7 @@ class BaseService {
             const response = await apiCall();
             const data = await response.json().catch(() => null);
 
-            if (!data || data.status === 'error') {
+            if (!data || data.ok === false || data.status === 'error') {
                 throw new Error(data?.message || errorMessage);
             }
             return data;

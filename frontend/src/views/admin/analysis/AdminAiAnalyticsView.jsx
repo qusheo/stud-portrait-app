@@ -7,7 +7,7 @@ import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@componen
 
 import MultiSelect from '@components/ui/MultiSelect';
 import Button from '@components/ui/Button';
-import LoadingSpinner from '@components/ui/LoadingSpinner';
+import Loading from '@components/ui/Loading';
 import { ADMIN_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
 
@@ -75,7 +75,7 @@ function AdminAiAnalyticsView() {
                 courses: selectedCourses,
                 competency: selectedCompetency
             });
-            if (data.status === 'success') {
+            if (data.ok) {
                 setSummary(data.summary);
             } else {
                 setSummary('❌ Ошибка: ' + (data.message || 'Неизвестная ошибка'));
@@ -175,9 +175,9 @@ function AdminAiAnalyticsView() {
                 />
             </div>
 
-            <LoadingSpinner
+            <Loading
                 loading={loading || generating}
-                text="Загрузка..."
+                title="Загрузка..."
             />
 
             {summary && (

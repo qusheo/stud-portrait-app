@@ -33,6 +33,13 @@ export const LABEL_PALETTE = {
     }
 };
 
+/**
+ * @description Текстовая метка с цветовым оформлением.
+ * @param {Object} props Параметры компонента.
+ * @param {string} props.text Текст метки.
+ * @param {*} props.children Дополнительное содержимое метки.
+ * @param {Object} [props.palette] Цветовая палитра метки.
+ */
 function Label({ text, children, palette = LABEL_PALETTE.GRAY }) {
     return (
         <span

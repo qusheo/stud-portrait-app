@@ -39,7 +39,7 @@ export const buildStudentColumns = () => {
     };
 
     const numberCol = {
-        id: '',
+        id: 'rowId',
         title: '№',
         width: 50,
         sortable: true,
@@ -58,9 +58,10 @@ export const buildStudentColumns = () => {
             width: getColumnWidth(id),
             sortable: true,
             filterable: id !== 'participant',
-            filterType: resultsColumns.has(id) ? 'number' : 'text',
+            filterType: id === 'rowId' || resultsColumns.has(id) ? 'number' : 'text',
             searchable: !!searchableCols.find(id_ => id === id_),
             tooltip: true,
+			contentType: resultsColumns.has(id) ? 'number' : 'text',
             clickable: id === 'participant',
             results: resultsColumns.has(id)
         }))

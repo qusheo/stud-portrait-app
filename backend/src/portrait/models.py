@@ -1,11 +1,5 @@
-# This is an auto-generated Django model module.
-# You'll have to do the following manually to clean this up:
-#   * Rearrange models' order
-#   * Make sure each model has one field with primary_key=True
-#   * Make sure each ForeignKey and OneToOneField has `on_delete` set to the desired behavior
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
-# Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.conf import settings
 
 class Academicperformances(models.Model):
     perf_id = models.AutoField(primary_key=True)
@@ -141,7 +135,7 @@ class Participants(models.Model):
     part_id = models.AutoField(primary_key=True)
     part_rsv_id = models.CharField(unique=True, max_length=512)
     part_course_num = models.IntegerField(blank=True, null=True)
-    part_gender = models.IntegerField(blank=True, null=True)
+    part_gender = models.CharField(max_length=16, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -239,6 +233,32 @@ class Specialties(models.Model):
         managed = False
         db_table = 'specialties'
 
+class Teacher(models.Model):
+    id = models.AutoField(primary_key=True)
+    source_row = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=512)
+    gender = models.CharField(max_length=16, blank=True, null=True)
+    position = models.CharField(max_length=512, blank=True, null=True)
+    disciplines = models.JSONField(default=list, blank=True)
+    institution = models.CharField(max_length=1024, blank=True, null=True)
+    edu_level = models.CharField(max_length=512, blank=True, null=True)
+    academic_degree = models.CharField(max_length=256, blank=True, null=True)
+    academic_title = models.CharField(max_length=256, blank=True, null=True)
+    qualification = models.CharField(max_length=512, blank=True, null=True)
+    experience = models.IntegerField(blank=True, null=True)
+    experience_text = models.CharField(max_length=512, blank=True, null=True)
+    education_details = models.JSONField(default=list, blank=True)
+    professional_development = models.JSONField(default=list, blank=True)
+    professional_retraining = models.JSONField(default=list, blank=True)
+    source_url = models.TextField(default='')
+    parsed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'teacher'
+
+    def __str__(self):
+        return self.name
+
 class Studyforms(models.Model):
     form_id = models.AutoField(primary_key=True)
     form_name = models.CharField(max_length=256)
@@ -305,6 +325,40 @@ class DisciplineCompetencyMapping(models.Model):
  
     def __str__(self) -> str:
         return f"{self.disc_name} → {self.rsv_competencies}"
+
+
+class User(models.Model):
+    class AccountType(models.TextChoices):
+        ADMIN = "admin", "Администратор"
+        CENTRE = "centre", "Центр"
+        INSTITUTION_ADMIN = "institution_admin", "Администратор учреждения"
+        TEACHER = "teacher", "Преподаватель"
+        STUDENT = "student", "Студент"
+
+    django_user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="portrait_account",
+    )
+    account_type = models.CharField(
+        max_length=32,
+        choices=AccountType.choices,
+        default=AccountType.ADMIN,
+    )
+    participant = models.OneToOneField(
+        "Participants",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="portrait_account",
+        db_column="participant_id",
+    )
+    
+    class Meta:
+        db_table = "portrait_user"
+
+    def __str__(self):
+        return self.django_user.get_username()
  
  
 class CurriculumParseLog(models.Model):

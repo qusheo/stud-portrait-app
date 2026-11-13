@@ -1,3 +1,57 @@
 .AdminTargetView {
     height: 100%;
+	&__content{
+		padding-top: 16px;
+		padding-bottom: 16px;
+		min-height: 100px;
+		width: 100%;
+		&_table{
+			height: calc(90vh - 122px);
+			width: 100%;
+		}
+	}
+    .studentSearch{
+        &__title{
+            width: 480px;
+            background-color: $grey-200;
+            border-radius: 10px;
+            padding: 12px 10px;
+            font-size: 18px;
+            font-weight: 750;
+            color: $grey-800;
+            font-family: $font-gothic;
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-bottom: 10px;
+            align-items: baseline;
+
+            &_hint{
+                font-size: 12px;
+                font-weight: 550;
+                color: $grey-600;
+            }
+        }
+    }
+	.hide-show{
+		&-container{
+			padding-bottom: 4px;
+			display: flex;  
+			justify-content: flex-end;
+			align-items: flex-end;
+		}
+		&-btn{
+			cursor: pointer;
+
+		}
+	}
+	.studentSearch__emptyResult{
+		display: flex;
+		width: 100%;
+		height: 100%;
+		justify-content: center;
+		align-items: center;
+		font-size: 14px;
+		color: $grey-600;
+	}
 }

@@ -255,13 +255,16 @@ def generate_docx_resume(request):
     return docxResponse(doc, f"Резюме_{student_name}.docx")
 
 
-@cached()
+
 @method(GET)
 @jsonResponse
 @csrf_exempt
 def get_student_resume_data(request):
     student_id = request.GET.get('student_id')
     year = request.GET.get('year')
+    if year in ('', 'null', 'undefined'):
+        year = None
+
     with_ai = request.GET.get('with_ai', 'true').lower() == 'true'
 
     if not student_id:
@@ -285,7 +288,20 @@ def get_student_resume_data(request):
     results = results.order_by(desc(tRES.YEAR), desc(tRES.COURSE_NUM))
 
     if not results.exists():
-        raise ResponseError("No results")
+        return {
+            'data': {
+            'has_data': False,
+            'message': 'У студента пока нет результатов тестирования',
+            'personal_info': {
+                'student_id': student_id,
+                'name': student_name,
+                'gender': participant.part_gender or '',
+                'rsv_id': participant.part_rsv_id
+            },
+            'competencies': [],
+            'year': year
+        }
+    }
 
     latest_result = results.first()
 

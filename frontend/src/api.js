@@ -1,6 +1,95 @@
 const HOST = import.meta.env.VITE_API_URL;
 
+/**
+ * @typedef {'medium' | 'high'} RequirementLevel
+ * @typedef {'competencies' | 'motivators' | 'values'} RequirementCategory
+ * @typedef {Object} StudentRequirementsInput
+ * @property {Partial<Record<RequirementCategory, Record<string, RequirementLevel>>>} [requirements]
+ * @property {number[]} [specialtyIds]
+ * @property {number[]} [courses]
+ * @property {number} [limit]
+ * @property {number} [offset]
+ */
+
+/**
+ * @typedef {Object} MatchingStudentsInput
+ * @property {number} studentId
+ * @property {boolean} [sameGroup]
+ * @property {number} [course]
+ * @property {boolean} [motivators]
+ * @property {boolean} [competences]
+ * @property {boolean} [values]
+ * @property {number} [amount]
+ */
+
 class Api {
+
+    // Получение CSRF-токена для безопасных POST-запросов
+async getCsrfToken() {
+    const response = await fetch(`${HOST}/portrait/auth/csrf/`, {
+        method: 'GET',
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        throw new Error('Не удалось получить CSRF-токен');
+    }
+
+    return response.json();
+}
+
+    // Вход в аккаунт
+    async postLogin(username, password) {
+        // Сначала получаем CSRF-токен
+        const csrfData = await this.getCsrfToken();
+
+        const response = await fetch(`${HOST}/portrait/auth/login/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfData.csrfToken
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        return response;
+    }
+
+    // Получение информации о текущем пользователе
+    getCurrentUser() {
+        return fetch(`${HOST}/portrait/auth/me/`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+    }
+
+    // Выход из аккаунта
+    postLogout() {
+        const csrfToken = this.getCookie('csrftoken');
+
+        return fetch(`${HOST}/portrait/auth/logout/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+    }
+
+    // Чтение cookie
+    getCookie(name) {
+        const cookie = document.cookie
+            .split('; ')
+            .find(item => item.startsWith(`${name}=`));
+
+        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : null;
+    }
+
+    getUserPermissions() {
+        return fetch(`${HOST}/portrait/user/permissions/`, { credentials: 'include' });
+    }
+
     getAuditSchema(tableName = null) {
         const params = new URLSearchParams();
         if (tableName) params.append('table_name', tableName);
@@ -96,11 +185,11 @@ class Api {
         return promise;
     }
 
-    postPortraitDataseshExtractData(sessionId) {
+    postPortraitDataseshExtractData(filters, start, end) {
         const promise = fetch(`${HOST}/portrait/datasesh/extract-data/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId })
+            body: JSON.stringify({ filters, start, end })
         });
         return promise;
     }
@@ -142,26 +231,23 @@ class Api {
         return promise;
     }
 
-    postPortraitDataseshExportSelected(sessionId, selectedIds) {
+    postPortraitDataseshExportSelected(selectedIds) {
         const promise = fetch(`${HOST}/portrait/datasesh/export-selected/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                session_id: sessionId,
-                selected_ids: selectedIds
-            })
+            body: JSON.stringify({ selected_ids: selectedIds })
         });
         return promise;
     }
 
-    postPortraitDataseshGroupSelected(sessionId, selectedIds, grouppingColumn) {
-        const promise = fetch(`${HOST}/portrait/group-data/`, {
+    postPortraitDataseshGroupSelected(selectedIds, grouppingColumn, filters) {
+        const promise = fetch(`${HOST}/portrait/datasesh/group-selected/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                session_id: sessionId,
                 selected_ids: selectedIds,
-                groupping_column: grouppingColumn
+                groupping_column: grouppingColumn,
+                filters: filters
             })
         });
         return promise;
@@ -185,8 +271,11 @@ class Api {
 
     getPortraitStudentResults(studentId) {
         const params = new URLSearchParams({ stud_id: studentId });
-        const promise = fetch(`${HOST}/portrait/student-results/?${params}`);
-        return promise;
+
+        return fetch(`${HOST}/portrait/student-results/?${params}`, {
+        method: 'GET',
+        credentials: 'include'
+    });
     }
 
     getPortraitGetInstitutionDirections(selectedInstitutions) {
@@ -437,6 +526,11 @@ class Api {
         return promise;
     }
 
+    getStudentInterests(){
+        const params = new URLSearchParams();
+        return fetch(`${HOST}/portrait/student-interests-options/?${params}`);
+    }
+
     getCompetencyAverageByYears(institute, specialty) {
         const params = new URLSearchParams();
         if (institute) params.append('institute', institute);
@@ -449,6 +543,11 @@ class Api {
         return fetch(`${HOST}/portrait/teachers/get_teachers_table/`);
     }
 
+    getTeacherById(teacherId) {
+        const params = new URLSearchParams({ teacher_id: String(teacherId) });
+        return fetch(`${HOST}/portrait/teachers/byId/?${params}`);
+    }
+
     getMatchingTeachersByStudent(studentId) {
         const params = new URLSearchParams({ student_id: studentId });
         return fetch(`${HOST}/portrait/matching/get_matching_teachers_by_student/?${params}`);
@@ -459,8 +558,14 @@ class Api {
         return fetch(`${HOST}/portrait/matching/get_match_groups/?${params}`);
     }
 
-    getMatchingStudents(studentId, amount = 1) {
-        const params = new URLSearchParams({ student_id: studentId, amount });
+    /** @param {MatchingStudentsInput} input */
+    getMatchingStudents({ studentId, amount = 1, sameGroup, course, motivators, competences, values }) {
+        const params = new URLSearchParams({ student_id: String(studentId), amount: String(amount) });
+        if (sameGroup !== undefined) params.set('sameGroup', String(sameGroup));
+        if (course !== undefined) params.set('course', String(course));
+        if (motivators !== undefined) params.set('motivators', String(motivators));
+        if (competences !== undefined) params.set('competences', String(competences));
+        if (values !== undefined) params.set('values', String(values));
         return fetch(`${HOST}/portrait/matching/get_matching_students/?${params}`);
     }
     getScoresResult(institute, specialty, year) {
@@ -567,21 +672,40 @@ class Api {
         return promise;
     }
 
+    /** @param {StudentRequirementsInput} [input={}] */
+    getStudentByRequirements(input = {}) {
+        return fetch(`${HOST}/portrait/students/by-requirements/`, {
+            method: 'POST',
+            body: JSON.stringify(input)
+        });
+    }
+
     getStudentPortrait(studentId) {
         const url = `${HOST}/portrait/students/portrait/?student_id=${studentId}`;
         const promise = fetch(url);
         return promise;
     }
 
+    getStudentById(studentId) {
+        const params = new URLSearchParams({ student_id: String(studentId) });
+        return fetch(`${HOST}/portrait/students/byId/?${params}`);
+    }
+
     /* *** GENDOX *** */
 
     getStudentResumeData(studentId, year) {
-        const params = new URLSearchParams();
-        params.append('student_id', studentId);
+    const params = new URLSearchParams();
+
+    params.append('student_id', studentId);
+
+    // Передаём учебный год только тогда, когда он действительно выбран
+    if (year !== null && year !== undefined && year !== '' && year !== 'null') {
         params.append('year', year);
-        params.append('with_ai', 'true');
-        const promise = fetch(`${HOST}/portrait/gendox/student-resume-data/?${params}`);
-        return promise;
+    }
+
+    params.append('with_ai', 'true');
+
+    return fetch(`${HOST}/portrait/gendox/student-resume-data/?${params}`);
     }
 
     windowGenerateDocxResume(studentId) {
@@ -608,5 +732,36 @@ class Api {
         const promise = fetch(`${HOST}/portrait/possible-duplicate-accounts/`);
         return promise;
     }
+	
+	getStudentInterests(studentId) {
+		const params = new URLSearchParams({ student_id: String(studentId) });
+		return fetch(`${HOST}/portrait/interests/get_student_interests/?${params}`, {
+			credentials: 'include',
+		});
+	}
+
+	async updateStudentInterests(studentId, changes) {
+    const numericStudentId = Number(studentId);
+
+    if (!Number.isInteger(numericStudentId) || numericStudentId <= 0) {
+        throw new Error('Некорректный ID студента');
+    }
+
+    const { csrfToken } = await this.getCsrfToken();
+
+    return fetch(`${HOST}/portrait/interests/update_student_interests/`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            student_id: numericStudentId,
+            changes,
+        }),
+    });
+    }
+
 }
 export default new Api();

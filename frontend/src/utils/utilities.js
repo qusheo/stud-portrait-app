@@ -1,45 +1,46 @@
 // utilities.js
 
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { Permission } from '../user/entities/permissions.ts';
 
 /** Link tree for admin navigation. */
 export const LINK_TREE = [
     {
         category: null,
         links: [
-            { title: 'Статистика тестирования', to: '/admin/stats' },
-            { title: 'География тестирования', to: '/admin/geography' }
+            { title: 'Статистика тестирования', to: '/admin/stats', permission: Permission.STATS },
+            { title: 'География тестирования', to: '/admin/geography', permission: Permission.GEOGRAPHY }
         ]
     },
     {
         category: 'Подбор',
         links: [
-            { title: 'Поиск под задачи', to: '/admin/search' },
-            { title: 'Подбор групп', to: '/admin/grouping' }
+            { title: 'Поиск под задачи', to: '/admin/search', permission: Permission.SEARCH },
+            { title: 'Подбор групп', to: '/admin/grouping', permission: Permission.GROUPING }
         ]
     },
     {
         category: 'Результаты',
         links: [
-            { title: 'Тестирование профилей', to: '/admin/results' },
-            { title: 'Образовательные курсы', to: '/admin/courses' },
-            { title: 'Мотиваторы', to: '/admin/motivators' },
-            { title: 'Компетенции', to: '/admin/competences' },
-            { title: 'Портрет студента', to: '/admin/student' },
-            { title: 'Преподаватели', to: '/admin/teachers' }
+            { title: 'Тестирование профилей', to: '/admin/results', permission: Permission.RESULTS },
+            { title: 'Образовательные курсы', to: '/admin/courses', permission: Permission.COURSES },
+            { title: 'Мотиваторы', to: '/admin/motivators', permission: Permission.MOTIVATORS },
+            { title: 'Компетенции', to: '/admin/competences', permission: Permission.COMPETENCES },
+            { title: 'Цифровой профиль', to: '/admin/portrait', permission: Permission.PORTRAIT },
+            { title: 'Преподаватели', to: '/admin/teachers', permission: Permission.TEACHERS }
         ]
     },
     {
         category: 'Анализ данных',
         links: [
-            { title: 'Анализ дисциплин', to: '/admin/analysis/disciplines' },
-            { title: 'Дисциплины и компетенции', to: '/admin/AP' },
-            { title: 'Визуализации', to: '/admin/analysis/advanced' },
-            { title: 'ИИ-аналитика', to: '/admin/analysis/ai-analytics' },
-            { title: 'Области образования', to: '/admin/analysis/edu-profiles' },
-            { title: 'Переведённые студенты', to: '/admin/analysis/transfered-students' },
-            { title: 'Аномальные студенты', to: '/admin/analysis/anomalous-students' },
-            { title: 'Дублирующиеся аккаунты', to: '/admin/analysis/dublicate-accounts' }
+            { title: 'Анализ дисциплин', to: '/admin/analysis/disciplines', permission: Permission.ANALYSIS_DISCIPLINES },
+            { title: 'Дисциплины и компетенции', to: '/admin/AP', permission: Permission.AP },
+            { title: 'Визуализации', to: '/admin/analysis/advanced', permission: Permission.ANALYSIS_ADVANCED },
+            //{ title: 'ИИ-аналитика', to: '/admin/analysis/ai-analytics', permission: Permission.AI_ANALYTICS },
+            //{ title: 'Области образования', to: '/admin/analysis/edu-profiles', permission: Permission.EDU_PROFILES },
+            //{ title: 'Переведённые студенты', to: '/admin/analysis/transfered-students', permission: Permission.TRANSFER_ANALYSIS },
+            //{ title: 'Аномальные студенты', to: '/admin/analysis/anomalous-students', permission: Permission.ANOMALOUS_STUDENTS },
+            //{ title: 'Дублирующиеся аккаунты', to: '/admin/analysis/dublicate-accounts', permission: Permission.DUPLICATE_ACCOUNTS }
         ]
     }
 ];
@@ -49,9 +50,9 @@ export const SUPER_LINK_TREE = [
     {
         category: 'Управление данными',
         links: [
-            { title: 'Аудит данных', to: '/super/audit' },
-            { title: 'Загрузка данных', to: '/super/upload' },
-            { title: 'SQL-запросник', to: '/super/sql' }
+            { title: 'Аудит данных', to: '/super/audit', permission: Permission.AUDIT },
+            { title: 'Загрузка данных', to: '/super/upload', permission: Permission.UPLOAD },
+            { title: 'SQL-запросник', to: '/super/sql', permission: Permission.SQL }
         ]
     }
 ];
@@ -318,43 +319,40 @@ export const Mapping = {
     ...Object.keys(VALUES_NAMES).map(o => ({ value: o, label: VALUES_NAMES[o] })),
     ...Object.keys(COURSES_NAMES).map(o => ({ value: o, label: COURSES_NAMES[o] }))
 };
-export function xlsxReadColumns(data) {
-    const workbook = XLSX.read(data, { type: 'array' });
+export async function excelReadColumns(data) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(data);
     const headers = {};
-    workbook.SheetNames.forEach(sheetName => {
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-        if (rows.length > 0) {
-            headers[sheetName] = rows[0].map(cell => (cell || '').toString().trim());
-        } else {
-            headers[sheetName] = [];
-        }
+    workbook.worksheets.forEach(worksheet => {
+        const headerRow = worksheet.getRow(1);
+        headers[worksheet.name] = Array.from({ length: headerRow.cellCount }, (_, index) =>
+            (headerRow.getCell(index + 1).text || '').trim()
+        );
     });
     return headers;
 }
 
-export function xlsxWriteFile(data, headers) {
-    // Создаем Workbook
-    const ws = XLSX.utils.aoa_to_sheet(data);
-
-    // Настройка ширины колонок
-    const colWidths = headers.map(header => ({ wch: Math.max(header.length, 15) }));
-    ws['!cols'] = colWidths;
-
-    // Стилизация заголовков (жирный шрифт)
+export async function excelWriteFile(data, headers) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('SQL_Result');
+    worksheet.addRows(data);
     headers.forEach((_, idx) => {
-        const cellRef = XLSX.utils.encode_cell({ r: 0, c: idx });
-        if (!ws[cellRef]) ws[cellRef] = {};
-        ws[cellRef].s = { font: { bold: true } };
+        worksheet.getColumn(idx + 1).width = Math.max(String(headers[idx]).length, 15);
+        worksheet.getRow(1).getCell(idx + 1).font = { bold: true };
     });
 
-    // Создаем Workbook и добавляем лист
-    const wb = XLSX.utils.book_new();
-    const sheetName = `SQL_Result_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}`;
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    await downloadExcelWorkbook(workbook, `query_result_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`);
+}
 
-    // Сохраняем файл
-    XLSX.writeFile(wb, `query_result_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.xlsx`);
+export async function downloadExcelWorkbook(workbook, filename) {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 /** Получить доступные профили на основе данных */

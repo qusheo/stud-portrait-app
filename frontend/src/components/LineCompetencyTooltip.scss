@@ -17,7 +17,7 @@
 
             strong {
                 font-size: 18px;
-                color: #1976d2;
+                color: $blue-700;
             }
         }
 
@@ -34,7 +34,7 @@
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: $box-shadow-soft;
     font-size: 12px;
 
     div {
