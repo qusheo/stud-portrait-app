@@ -1,0 +1,20 @@
+{
+  "file": "elibrary_sample.dump",
+  "sha256": "218e399f30737a0d4c100b0c20eca41d3936bd8c952020c1467dad4b25642ccb",
+  "bytes": 52431555,
+  "tables": {
+    "dataset_metadata": 28,
+    "teacher_directory": 1718,
+    "teacher_source_rows": 1718,
+    "publications": 41922,
+    "publication_authors": 79502,
+    "teacher_matches": 23626,
+    "card_metadata": 2478,
+    "card_authors": 5653,
+    "match_evidence": 2286,
+    "title_vector_models": 1,
+    "publication_title_vectors": 41922,
+    "detail_vector_models": 2,
+    "publication_detail_vectors": 3663
+  }
+}

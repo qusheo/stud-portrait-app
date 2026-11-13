@@ -224,6 +224,9 @@ CREATE TABLE students_amounts (
 );
 
 -- Шаблон загрузки данных администратором
+-- After restoring teacher_directory, apply sql/elibrary.sql for publications,
+-- author/teacher relations and separate title/abstract/keyword embeddings.
+-- This file recreates core tables; use sql/elibrary.sql alone on the supplied dump.
 CREATE TABLE DataUploadTemplate (
     template_id          INTEGER       PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     template_name        VARCHAR(256)  UNIQUE NOT NULL,

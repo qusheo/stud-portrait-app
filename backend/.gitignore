@@ -1,6 +1,7 @@
 .venv/
 venv/
 env/
+.elibrary/
 
 __pycache__/
 *.pyc
