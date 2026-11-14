@@ -266,10 +266,14 @@ function YearsSelect({ year, yearsOptions, onChange }) {
 function Dashboard({ data, filters, onYearChange, yearsOptions }) {
     if (!data || !data?.col2) return <Empty title="Нет данных для отображения" />;
     const year = data.year;
-    const pieData = [
-        { 'name': 'Прошли', 'value': data.col2.participated?.amount_in, fill: '#658ed0' },
-        { 'name': 'Не прошли', 'value': data.col2.participated?.students_all - data.col2.participated?.amount_in, fill: 'transparent' }
-    ];
+    const testedStudents = data.col2.participated?.amount_in ?? 0;
+    const studentsAll = data.col2.participated?.students_all;
+    const hasPopulation = Number.isFinite(studentsAll) && studentsAll > 0;
+    const coverage = hasPopulation ? testedStudents / studentsAll * 100 : null;
+    const pieData = hasPopulation ? [
+        { name: 'Прошли', value: testedStudents, fill: '#658ed0' },
+        { name: 'Не прошли', value: Math.max(studentsAll - testedStudents, 0), fill: 'transparent' }
+    ] : [];
     //col2 uni
     const col2_data = { 'header': 'Лидирующий ВУЗ', 'name': data.col2.uni_name, 'score': data.col2.uni_score };
 
@@ -360,11 +364,13 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                             )}
                             <div className="chart-wrapper">
                                 <ResponsiveContainer
+                                    debounce={100}
                                     width="100%"
                                     height="300"
                                 >
                                     <PieChart>
                                         <Pie
+                                            isAnimationActive={false}
                                             data={pieData}
                                             dataKey={'value'}
                                             nameKey={'name'}
@@ -377,18 +383,23 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                                 </ResponsiveContainer>
 
                                 <div className="absolute-center">
-                                    {data.col2.participated.students_all === 0 ? (
-                                        <p> Нет данных </p>
+                                    {!hasPopulation ? (
+                                        <p>Нет данных о численности</p>
                                     ) : (
                                         <>
                                             <h2>
                                                 {toFixed(
-                                                    (data.col2.participated?.amount_in / data.col2.participated?.students_all) * 100,
+                                                    coverage,
                                                     1
                                                 )}
                                                 %
                                             </h2>
                                             <p>Студентов прошли тестирование</p>
+                                            <p>{testedStudents} из {studentsAll}</p>
+                                            {filters?.specialty && <p>От общей численности вуза</p>}
+                                            {testedStudents > studentsAll && (
+                                                <p>Прошедших тестирование больше указанной численности</p>
+                                            )}
                                         </>
                                     )}
                                 </div>

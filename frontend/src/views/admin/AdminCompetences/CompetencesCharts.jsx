@@ -47,7 +47,7 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
     return (
         <>
             <div style={{ width: '100%', height: 400 }}>
-                <ResponsiveContainer>
+                <ResponsiveContainer debounce={100}>
                     <BarChart
                         data={data}
                         barGap={5}
@@ -97,6 +97,7 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
                         />
 
                         <Bar
+                            isAnimationActive={false}
                             name={range[1]}
                             dataKey={range[1]}
                             fill={colors[0]}
@@ -112,6 +113,7 @@ export function BarChartByYears({ data, range, colors = ['#658ed0', '#904acc'] }
                             />
                         </Bar>
                         <Bar
+                            isAnimationActive={false}
                             name={range[0]}
                             dataKey={range[0]}
                             fill={colors[1]}
@@ -502,6 +504,7 @@ export function CompRadar({ data }) {
                 style={{ flex: 1 }}
             >
                 <ResponsiveContainer
+                                    debounce={100}
                     width="110%"
                     height="100%"
                 >
@@ -529,6 +532,7 @@ export function CompRadar({ data }) {
                             course =>
                                 visibleCourses[course.key] && (
                                     <Radar
+                                        isAnimationActive={false}
                                         key={course.key}
                                         name={course.name}
                                         dataKey={course.key}
@@ -538,7 +542,7 @@ export function CompRadar({ data }) {
                                         strokeOpacity={getStrokeOpacity(course.key)}
                                         onMouseEnter={() => setHoveredCourse(course.key)}
                                         onMouseLeave={() => setHoveredCourse(null)}
-                                        animationDuration={400}
+                                        
                                     />
                                 )
                         )}
@@ -687,6 +691,7 @@ export function CompetencyTrendLine({ data, loading }) {
                 </div>
             </div>
             <ResponsiveContainer
+                                    debounce={100}
                 width="100%"
                 height={500}
             >
@@ -745,6 +750,7 @@ export function CompetencyTrendLine({ data, loading }) {
                         const color = TREND_COLORS[idx % TREND_COLORS.length];
                         return (
                             <Line
+                                isAnimationActive={false}
                                 key={trend.competency}
                                 // type="linear" — прямые отрезки между точками, без плавной кривой.
                                 // Это статистически корректно для категориальных значений (курсы 1-4).
