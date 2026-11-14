@@ -1,4 +1,4 @@
-﻿# Модуль загрузки данных
+# Модуль загрузки данных
 
 import openpyxl
 import openpyxl.utils
@@ -7,7 +7,7 @@ import json
 from django.db import transaction
 from django.utils import timezone
 
-from .common import *
+from .helpers.common import *
 
 @method(POST)
 @jsonResponse

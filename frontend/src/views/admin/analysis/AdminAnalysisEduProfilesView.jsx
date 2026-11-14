@@ -1,6 +1,6 @@
 import EduProfilesComparison from '@components/EduProfilesComparison';
 import { SidebarLayout, LAYOUT_STYLE, Header, Sidebar, Content } from '@components/SidebarLayout';
-import { LINK_TREE } from '@utils/utilities';
+import { LINK_TREE } from '@constants';
 
 import './AdminAnalysisEduProfilesView.scss';
 

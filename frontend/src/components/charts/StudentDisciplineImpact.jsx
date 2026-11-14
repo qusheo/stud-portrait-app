@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { StudentService } from '@services';
-import { COMPETENCIES_NAMES } from '@utils/utilities';
+import { COMPETENCIES_NAMES } from '@constants';
 
 /**
  * @description График влияния дисциплин на компетенции студента.

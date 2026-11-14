@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings('ignore')
 
-from .common import *
+from .helpers.common import *
 
 # ============================================================
 # VALUE-ADDED MODEL (VAM) - Персональный анализ студента

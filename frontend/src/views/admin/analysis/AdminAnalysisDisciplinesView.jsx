@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
+import { COMPETENCIES_NAMES, LINK_TREE } from '@constants';
 
 import FlexRow from '@components/FlexRow';
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';

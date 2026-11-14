@@ -1,4 +1,4 @@
-import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES } from '@constants';
 
 const BASE_COLUMNS_NAMES = {
     res_year: 'Учебный год',

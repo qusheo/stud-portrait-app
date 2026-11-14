@@ -7,7 +7,7 @@ import {
     INTEREST_CATEGORIES,
     INTEREST_CATEGORY_NAMES,
     INTEREST_NAMES,
-} from '@utils/studentInterests';
+} from '@constants';
 
 import './InterestsModal.scss';
 

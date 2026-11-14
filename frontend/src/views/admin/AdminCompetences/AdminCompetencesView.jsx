@@ -14,7 +14,7 @@ import Loading from '@components/ui/Loading.jsx';
 import Empty from '@components/ui/Empty.jsx';
 import FilterHeader from '@components/FilterHeader';
 
-import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@constants';
 import { defaultQueryOptions } from '@utils/queryConfig';
 import { AdminService } from '@services';
 

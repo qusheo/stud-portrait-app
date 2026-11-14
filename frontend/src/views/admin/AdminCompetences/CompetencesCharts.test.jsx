@@ -41,10 +41,12 @@ vi.mock('recharts', () => {
     };
 });
 
-vi.mock('@utils/utilities.js', () => ({
+vi.mock('@constants', () => ({
     COMPETENCIES_NAMES: { res_comp_info_analysis: 'Анализ информации' },
     MOTIVATORS_NAMES: {},
-    FIELD_NAMES: {},
+    FIELD_NAMES: {}
+}));
+vi.mock('@utils/utilities', () => ({
     downloadExcelWorkbook: vi.fn().mockResolvedValue(undefined)
 }));
 const trends = {

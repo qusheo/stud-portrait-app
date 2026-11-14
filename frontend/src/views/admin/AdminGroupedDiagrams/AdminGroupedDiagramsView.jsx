@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Chart from 'react-apexcharts';
 import { toast } from 'react-toastify';
 
-import { FIELD_NAMES, LINK_TREE } from '@utils/utilities.js';
+import { FIELD_NAMES, LINK_TREE } from '@constants';
 import { AdminService } from '@services';
 
 import FlexRow, { WRAP } from '@components/FlexRow';

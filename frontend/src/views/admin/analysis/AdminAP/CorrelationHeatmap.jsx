@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactApexChart from 'react-apexcharts';
-import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES } from '@constants';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';
 

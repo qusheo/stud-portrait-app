@@ -1,7 +1,8 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
-    testDir: './e2e',
+    testDir: './tests',
+    testIgnore: ['**/selenium/**'],
     timeout: 30_000,
     expect: { timeout: 10_000 },
     retries: process.env.CI ? 1 : 0,

@@ -20,7 +20,7 @@ vi.mock('@utils/store.jsx', () => {
     const usePageStore = selector => selector(pageState);
     return { useAdminStore, usePageStore };
 });
-vi.mock('@utils/utilities.js', () => ({ COMPETENCIES_NAMES: {}, MOTIVATORS_NAMES: {}, FIELD_NAMES: {} }));
+vi.mock('@constants', () => ({ COMPETENCIES_NAMES: {}, MOTIVATORS_NAMES: {}, FIELD_NAMES: {} }));
 vi.mock('@components/FilterHeader', () => ({
     default: ({ filters, onFilterChange, onResetFilters }) => (
         <div>

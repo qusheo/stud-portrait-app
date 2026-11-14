@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 import Api from '../../api';
-import { SUPER_LINK_TREE, excelWriteFile } from '@utils/utilities';
+import { SUPER_LINK_TREE } from '@constants';
+import { excelWriteFile } from '@utils/utilities';
 
 import FlexColumn from '@components/FlexColumn';
 import FlexRow from '@components/FlexRow';

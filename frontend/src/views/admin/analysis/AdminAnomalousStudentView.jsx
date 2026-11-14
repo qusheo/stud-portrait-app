@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
+import { COMPETENCIES_NAMES, LINK_TREE } from '@constants';
 
 import AiInsightPanel from '@components/AiInsightPanel';
 import FlexRow, { JUSTIFY, WRAP } from '@components/FlexRow';

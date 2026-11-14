@@ -2,16 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { StudentService } from '@services';
-import {
-    getAvailableProfiles,
-    getAvailableCategories,
-    getAvailableYears,
-    getCategoryDataForYear,
-    COMPETENCIES_NAMES,
-    MOTIVATORS_NAMES,
-    VALUES_NAMES,
-    COURSES_NAMES
-} from '@utils/utilities';
+import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES, COURSES_NAMES } from '@constants';
+import { getAvailableProfiles, getAvailableCategories, getAvailableYears, getCategoryDataForYear } from '@utils/utilities';
 
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import StudentComparisonStats from '@components/StudentComparisonStats';

@@ -5,11 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { StudentService } from '@services';
 import { toast } from 'react-toastify';
 import FlexRow, { WRAP } from '@components/FlexRow';
-import {
-    COMPETENCIES_NAMES,
-    VALUES_NAMES,
-    MOTIVATORS_NAMES
-} from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, VALUES_NAMES, MOTIVATORS_NAMES } from '@constants';
 import LoadingSpinner from '@components/ui/LoadingSpinner';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';

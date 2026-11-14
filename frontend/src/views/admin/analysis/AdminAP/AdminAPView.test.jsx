@@ -32,7 +32,7 @@ vi.mock('@services', () => ({ AdminService: service }));
 vi.mock('@utils/store', () => ({
     useAdminStore: selector => selector(storeState)
 }));
-vi.mock('@utils/utilities.js', () => ({
+vi.mock('@constants', () => ({
     COMPETENCIES_NAMES: { res_comp_info_analysis: 'Анализ информации' },
     COURSES_NAMES: {},
     LINK_TREE: []

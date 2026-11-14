@@ -14,7 +14,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 
-from ..constants import (
+from ...constants import (
     RsvCompetencies as COMP, RsvMotivators as MOT, RsvValues as VAL, RsvCourses as CUR,
     TableCompetenceCenters as tCENTER, TableInstitutions as tINST, TableEducationLevels as tLEVEL,
     TableEducationForms as tFORM, TableEducationSpecialties as tSPEC, TableEducationDisciplines as tDISC,
@@ -22,7 +22,7 @@ from ..constants import (
     TableCourseResult as tCOURSE, TableAcademicPerformances as tPERF, TableDataUploadTemplate as tTEMPL,
     CENTERS_REGIONS
 )
-from ..models import (
+from ...models import (
     Academicperformances as AcademicPerformances, Competencecenters as CompetenceCenters, Courseresults as Courseresults,
     Datauploadtemplate as DataUploadTemplate, Educationdisciplines as EducationDisciplines, Educationforms as EducationForms,
     Educationlevels as EducationLevels, Educationspecialties as EducationSpecialties, Institutions, Participants,

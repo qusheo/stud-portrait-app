@@ -1,5 +1,5 @@
 import Chart from 'react-apexcharts';
-import { CATEGORIES_DESCRIPTIONS } from '@utils/utilities';
+import { CATEGORIES_DESCRIPTIONS } from '@constants';
 import './BarChart.scss';
 
 /**

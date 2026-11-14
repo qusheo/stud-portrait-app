@@ -5,7 +5,7 @@ from django.db import connection, transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
-from .common import *
+from .helpers.common import *
 
 def can_access_student_interests(request, student_id: int) -> bool:
     # Пользователь должен быть авторизован

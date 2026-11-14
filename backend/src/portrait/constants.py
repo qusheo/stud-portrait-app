@@ -1,8 +1,4 @@
-﻿# Constant values for reusing.
-
-# ! ===================================================== RSV ====================================================== ! #
-
-class RsvCompetencies:
+﻿class RsvCompetencies:
     """ Tested RSV competencies mapped to their names.
     """
     INFO_ANALYSIS = 'res_comp_info_analysis'

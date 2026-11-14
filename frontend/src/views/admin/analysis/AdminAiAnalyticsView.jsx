@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { AdminService } from '@services';
-import { LINK_TREE, COMPETENCIES_NAMES } from '@utils/utilities';
+import { LINK_TREE, COMPETENCIES_NAMES } from '@constants';
 
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 

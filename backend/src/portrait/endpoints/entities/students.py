@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from ..common import *
+from ..helpers.common import *
 from ..student_interests import fetch_student_interests
 from portrait.models import User as PortraitUser
 

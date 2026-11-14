@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
-import { COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
+import { COMPETENCIES_NAMES, LINK_TREE } from '@constants';
 import { AdminService } from '@services';
 
 import FlexRow, { WRAP } from '@components/FlexRow';

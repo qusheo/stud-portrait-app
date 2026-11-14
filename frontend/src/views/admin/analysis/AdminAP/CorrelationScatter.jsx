@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ReactApexChart from 'react-apexcharts';
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES } from '@constants';
 import { defaultQueryOptions } from '@utils/queryConfig';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';

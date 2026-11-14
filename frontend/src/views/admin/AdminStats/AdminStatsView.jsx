@@ -13,7 +13,7 @@ import Empty from '@components/ui/Empty.jsx';
 import { ADMIN_PALETTE } from '@components/ui/palette.js';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@constants';
 
 import './AdminStatsView.scss';
 import TabButton from '@components/ui/TabButton';

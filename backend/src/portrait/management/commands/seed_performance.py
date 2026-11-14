@@ -1,6 +1,6 @@
 import random
 from django.core.management.base import BaseCommand
-from ...endpoints.common import *
+from ...endpoints.helpers.common import *
 
 COURSE_DISCIPLINES = {
     1: 'ПИР',

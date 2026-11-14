@@ -22,7 +22,8 @@ import MotivatorStatistics from '@components/MotivatorStatistics.jsx';
 import FilterHeader from '@components/FilterHeader';
 
 import { AdminService } from '@services';
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE, MOTIVATORS_NAMES } from '@constants';
+import { downloadExcelWorkbook } from '@utils/utilities';
 import ExcelJS from 'exceljs';
 
 import './AdminMotivatorsView.scss';

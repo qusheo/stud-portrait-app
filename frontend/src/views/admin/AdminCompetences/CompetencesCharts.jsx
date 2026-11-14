@@ -20,7 +20,8 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'r
 import ExcelJS from 'exceljs';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES } from '@constants';
+import { downloadExcelWorkbook } from '@utils/utilities';
 import { usePageStore } from '@utils/store';
 import { toast } from 'react-toastify';
 

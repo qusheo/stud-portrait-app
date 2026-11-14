@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { COMPETENCIES_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES } from '@constants';
 import { expandFilters } from './AdminResultsView.jsx';
 
 describe('Фильтры результатов', () => {

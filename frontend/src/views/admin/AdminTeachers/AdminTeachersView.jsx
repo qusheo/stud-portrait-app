@@ -2,7 +2,7 @@ import './AdminTeachersView.scss';
 
 import ExcelJS from 'exceljs';
 import { defaultQueryOptions } from '@utils/queryConfig';
-import { downloadExcelWorkbook } from '@utils/utilities.js';
+import { downloadExcelWorkbook } from '@utils/utilities';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState, useLayoutEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';

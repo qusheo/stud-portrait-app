@@ -1,7 +1,7 @@
 module.exports = {
     testEnvironment: 'node',
-    testMatch: ['**/test/selenium/**/*.test.js'],
+    testMatch: ['**/tests/selenium/**/*.test.js'],
     testTimeout: 120000, // 2 минуты
     verbose: true,
-    setupFilesAfterEnv: ['<rootDir>/test/selenium/setup.js']
+    setupFilesAfterEnv: ['<rootDir>/tests/selenium/setup.js']
 };

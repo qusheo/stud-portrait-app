@@ -24,6 +24,7 @@ export default defineConfig({
             '@icons': path.resolve('src/components/icons'),
             '@ui': path.resolve('src/components/ui'),
             '@services': path.resolve('src/services'),
+            '@constants': path.resolve('src/constants'),
             '@utils': path.resolve('src/utils')
         }
     },

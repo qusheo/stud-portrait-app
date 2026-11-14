@@ -1,7 +1,7 @@
 import { Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
 
-import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES } from '@constants';
 import Button from './Button.jsx';
 import './StudentModal.scss';
 

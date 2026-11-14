@@ -1,22 +1,79 @@
-export const TEACHER_FIELDS = {
-    "id": "ID",
-    "source_row": "Номер",
-    "name": "ФИО",
-    "gender": "Пол",
-    "position": "Должность",
-    "disciplines": "Дисциплины",
-    "institution": "Образовательная организация",
-    "edu_level": "Уровень образования",
-    "academic_degree": "Учёная степень",
-    "academic_title": "Учёное звание",
-    "qualification": "Квалификация",
-    "experience": "Стаж работы",
-    "experience_text": "Стаж работы (текст)",
-    "education_details": "Сведения об образовании",
-    "professional_development": "Повышение квалификации",
-    "professional_retraining": "Профессиональная переподготовка",
-}
+/* RSV (РСВ): компетенции, мотиваторы, ценности и образовательные курсы. */
 
+export const RESULT_PROFILES = {
+    competences: {
+        key: 'competences',
+        title: 'Компетенции',
+        categories: {
+            all_competences: {
+                key: 'all_competences',
+                title: 'Все компетенции',
+                fields: [
+                    { key: 'res_comp_info_analysis', label: 'Анализ информации' },
+                    { key: 'res_comp_planning', label: 'Планирование' },
+                    { key: 'res_comp_result_orientation', label: 'Ориентация на результат' },
+                    { key: 'res_comp_stress_resistance', label: 'Стрессоустойчивость' },
+                    { key: 'res_comp_partnership', label: 'Партнерство' },
+                    { key: 'res_comp_rules_compliance', label: 'Соблюдение правил' },
+                    { key: 'res_comp_self_development', label: 'Саморазвитие' },
+                    { key: 'res_comp_leadership', label: 'Лидерство' },
+                    { key: 'res_comp_emotional_intel', label: 'Эмоциональный интеллект' },
+                    { key: 'res_comp_client_focus', label: 'Клиентоориентированность' },
+                    { key: 'res_comp_communication', label: 'Коммуникация' },
+                    { key: 'res_comp_passive_vocab', label: 'Пассивный словарь' }
+                ]
+            }
+        }
+    },
+    motivators: {
+        key: 'motivators',
+        title: 'Мотиваторы',
+        categories: {
+            all_motivators: {
+                key: 'all_motivators',
+                title: 'Все мотиваторы',
+                fields: [
+                    { key: 'res_mot_autonomy', label: 'Автономия' },
+                    { key: 'res_mot_altruism', label: 'Альтруизм' },
+                    { key: 'res_mot_challenge', label: 'Вызов' },
+                    { key: 'res_mot_salary', label: 'Зарплата' },
+                    { key: 'res_mot_career', label: 'Карьера' },
+                    { key: 'res_mot_creativity', label: 'Креативность' },
+                    { key: 'res_mot_relationships', label: 'Отношения' },
+                    { key: 'res_mot_recognition', label: 'Признание' },
+                    { key: 'res_mot_affiliation', label: 'Принадлежность' },
+                    { key: 'res_mot_self_development', label: 'Саморазвитие' },
+                    { key: 'res_mot_purpose', label: 'Цель' },
+                    { key: 'res_mot_cooperation', label: 'Сотрудничество' },
+                    { key: 'res_mot_stability', label: 'Стабильность' },
+                    { key: 'res_mot_tradition', label: 'Традиции' },
+                    { key: 'res_mot_management', label: 'Управление' },
+                    { key: 'res_mot_work_conditions', label: 'Условия работы' }
+                ]
+            }
+        }
+    },
+    values: {
+        key: 'values',
+        title: 'Ценности',
+        categories: {
+            all_values: {
+                key: 'all_values',
+                title: 'Все ценности',
+                fields: [
+                    { key: 'res_val_honesty_justice', label: 'Честность и справедливость' },
+                    { key: 'res_val_humanism', label: 'Гуманизм' },
+                    { key: 'res_val_patriotism', label: 'Патриотизм' },
+                    { key: 'res_val_family', label: 'Семья' },
+                    { key: 'res_val_health', label: 'Здоровье' },
+                    { key: 'res_val_environment', label: 'Окружающая среда' }
+                ]
+            }
+        }
+    }
+};
+
+/* Компетенции */
 
 export const COMPETENCIES = {
     INFO_ANALYSIS: 'res_comp_info_analysis',
@@ -63,7 +120,7 @@ export const COMPETENCIES_DESCRIPTIONS = {
     res_comp_passive_vocab: 'Пассивный словарный запас'
 };
 
-/* RSV motivators */
+/* Мотиваторы */
 
 export const MOTIVATORS = {
     AUTONOMY: 'res_mot_autonomy',
@@ -122,7 +179,7 @@ export const MOTIVATORS_DESCRIPTIONS = {
     res_mot_work_conditions: 'Комфортные условия труда'
 };
 
-/* RSV values */
+/* Ценности */
 
 export const VALUES = {
     HONEST_JUST: 'res_val_honesty_justice',
@@ -151,28 +208,7 @@ export const VALUES_DESCRIPTIONS = {
     res_val_environment: 'Забота об окружающей среде и экологии'
 };
 
-export const FIELD_NAMES = {
-    // Основные поля
-    res_year: 'Учебный год',
-    participant: 'Имя участника',
-    part_gender: 'Пол',
-    center: 'Название ЦК',
-    institution: 'Учебное заведение',
-    edu_level: 'Уровень образования',
-    res_course_num: 'Номер курса',
-    study_form: 'Форма обучения',
-    specialty: 'Специальность',
-
-    ...COMPETENCIES_NAMES,
-    ...MOTIVATORS_NAMES,
-    ...VALUES_NAMES
-};
-
-export const CATEGORIES_DESCRIPTIONS = {
-    ...COMPETENCIES_DESCRIPTIONS,
-    ...MOTIVATORS_DESCRIPTIONS,
-    ...VALUES_DESCRIPTIONS
-};
+/* Курсы */
 
 export const COURSES_NAMES = {
     course_an_dec: 'Анализ информации для принятия решений',
@@ -197,11 +233,4 @@ export const COURSES_NAMES = {
     course_burnout: 'Эмоциональное выгорание',
     course_cross_cultural_comm: 'Межкультурные коммуникации',
     course_mentoring: 'Я — наставник'
-};
-
-export const Mapping = {
-    ...Object.keys(COMPETENCIES_NAMES).map(o => ({ value: o, label: COMPETENCIES_NAMES[o] })),
-    ...Object.keys(MOTIVATORS_NAMES).map(o => ({ value: o, label: MOTIVATORS_NAMES[o] })),
-    ...Object.keys(VALUES_NAMES).map(o => ({ value: o, label: VALUES_NAMES[o] })),
-    ...Object.keys(COURSES_NAMES).map(o => ({ value: o, label: COURSES_NAMES[o] }))
 };

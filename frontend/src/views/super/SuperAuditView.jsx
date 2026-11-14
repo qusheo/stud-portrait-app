@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import Api from '../../api';
-import { SUPER_LINK_TREE } from '@utils/utilities';
+import { SUPER_LINK_TREE } from '@constants';
 
 import FlexColumn from '@components/FlexColumn';
 import FlexRow from '@components/FlexRow';

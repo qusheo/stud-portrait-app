@@ -1,5 +1,5 @@
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
-import { LINK_TREE } from '@utils/utilities';
+import { LINK_TREE } from '@constants';
 
 import './AdminHelpView.scss';
 

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { defaultQueryOptions } from '@utils/queryConfig';
 
 import { AdminService } from '@services';
-import { COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
+import { COURSES_NAMES, LINK_TREE } from '@constants';
 
 import FlexRow, { WRAP } from '@components/FlexRow.jsx';
 import ValueCard from '@components/cards/ValueCard.jsx';

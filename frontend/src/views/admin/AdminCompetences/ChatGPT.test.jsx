@@ -17,7 +17,7 @@ vi.mock('@services', () => ({
     }
 }));
 
-vi.mock('@utils/utilities.js', () => ({
+vi.mock('@constants', () => ({
     COMPETENCIES_NAMES: {
         res_comp_planning: 'Планирование',
         res_comp_leadership: 'Лидерство'

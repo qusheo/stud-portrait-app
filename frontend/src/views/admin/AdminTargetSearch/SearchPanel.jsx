@@ -1,4 +1,4 @@
-import { MOTIVATORS_NAMES, COMPETENCIES_NAMES, VALUES_NAMES } from '@utils/utilities';
+import { MOTIVATORS_NAMES, COMPETENCIES_NAMES, VALUES_NAMES } from '@constants';
 import Button from '@ui/Button';
 import { useEffect, useState } from 'react';
 import { defaultQueryOptions } from '@utils/queryConfig';

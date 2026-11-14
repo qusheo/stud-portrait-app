@@ -13,7 +13,7 @@ from django.utils import timezone
 # Импорты моделей
 from ..models import *
 # Импорты утилит
-from ..endpoints.common import COMP, MOT, VAL, zeroIfNull, attrIfObj, join, isIn, desc
+from ..endpoints.helpers.common import COMP, MOT, VAL, zeroIfNull, attrIfObj, join, isIn, desc
 from ..endpoints.datanal import ValueAddedModel, LatentGrowthModel, DisciplineImpactAnalyzer
 
 

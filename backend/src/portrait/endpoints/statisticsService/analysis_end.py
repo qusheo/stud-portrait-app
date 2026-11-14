@@ -13,7 +13,7 @@ from scipy import stats
 
 import json
 
-from ..common import *
+from ..helpers.common import *
 from ..datanal import (
     ValueAddedModel,
     LatentGrowthModel,
@@ -1486,7 +1486,7 @@ def ai_analytics_summary(request):
     """
     try:
         import json
-        # COMP уже доступен из from .common import *
+        # COMP уже доступен из from .helpers.common import *
         # используем COMP.names для названий компетенций
 
         body = json.loads(request.body)

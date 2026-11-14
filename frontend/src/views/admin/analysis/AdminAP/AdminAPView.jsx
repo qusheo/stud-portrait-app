@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { AdminService } from '@services';
 
-import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, COURSES_NAMES, LINK_TREE } from '@constants';
 import FilterHeader from '@components/FilterHeader';
 import TabButton from '@components/ui/TabButton';
 

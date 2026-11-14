@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Dropdown, Tooltip } from '@ui';
-import logo from '../static/logo_white.png';
+import logo from '@icons/utmn/logo_white.png';
 
 import './SidebarLayout.scss';
 import { ChevronDown, ChevronUp, UserRound, LogOut } from 'lucide-react';
@@ -9,7 +9,7 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
-import { LINK_TREE } from '@utils/utilities.js';
+import { LINK_TREE } from '@constants';
 import { filterLinkTree } from '../user/entities/permissions.ts';
 import { ACCOUNT_TYPE_LABELS } from '../user/entities/accountType.ts';
 import { useUserStore } from '../user/store/userStore.js';

@@ -5,7 +5,7 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.shared import Pt, Inches, RGBColor, Cm
 
-from .common import *
+from .helpers.common import *
 from .genutils import *
 from ..mlmodel import MlModel
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ResponsiveContainer, LineChart, Legend, Line, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 import { AdminService } from '@services';
-import { COMPETENCIES, COMPETENCIES_NAMES, LINK_TREE } from '@utils/utilities';
+import { COMPETENCIES, COMPETENCIES_NAMES, LINK_TREE } from '@constants';
 
 import AiInsightPanel from '@components/AiInsightPanel';
 import FlexRow, { JUSTIFY, WRAP } from '@components/FlexRow';

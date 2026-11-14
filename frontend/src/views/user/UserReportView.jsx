@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { StudentService } from '@services';
-import { getAvailableProfiles, getAvailableCategories, prepareCategoryTableData, RESULT_PROFILES } from '@utils/utilities';
+import { RESULT_PROFILES } from '@constants';
+import { getAvailableProfiles, getAvailableCategories, prepareCategoryTableData } from '@utils/utilities';
 
 import ResultTable from '@components/ResultTable';
 import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';

@@ -5,7 +5,8 @@ import ExcelJS from 'exceljs';
 
 import { AdminService } from '@services';
 import { defaultQueryOptions } from '@utils/queryConfig';
-import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, VALUES_NAMES, downloadExcelWorkbook } from '@utils/utilities.js';
+import { COMPETENCIES_NAMES, FIELD_NAMES, MOTIVATORS_NAMES, VALUES_NAMES } from '@constants';
+import { downloadExcelWorkbook } from '@utils/utilities';
 import { useAdminStore } from '@utils/store.jsx';
 
 import FlexColumn from '@components/FlexColumn.jsx';
