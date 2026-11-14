@@ -1,6 +1,6 @@
 """Offline parsing, resumable browser collection and PostgreSQL import for eLIBRARY.
 
-See backend/ELIBRARY.md. Browser profile and downloaded HTML are private local data.
+See backend/docs/elibrary.md. Browser profile and downloaded HTML are private local data.
 """
 from __future__ import annotations
 
@@ -23,8 +23,9 @@ from urllib.parse import parse_qs, urlparse
 
 from bs4 import BeautifulSoup
 
-BACKEND = Path(__file__).resolve().parents[2]
+BACKEND = Path(__file__).resolve().parents[3]
 DEFAULT_WORK = BACKEND / '.elibrary'
+SQL = Path(__file__).resolve().parent / 'sql'
 BASE = 'https://www.elibrary.ru'
 
 
@@ -471,19 +472,29 @@ def collect(args):
             store.export(Path(args.work) / 'publications.jsonl')
 
 
+def resolve_dsn():
+    dsn = os.environ.get("ELIBRARY_DATABASE_URL")
+    if dsn:
+        return dsn
+    from dotenv import load_dotenv
+    here = Path(__file__).resolve()
+    load_dotenv(here.parents[2] / ".env")  # backend/.env (локальная разработка)
+    load_dotenv(here.parents[1] / ".env")  # backend/src/.env (контейнер)
+    return "dbname={} user={} password={} host={} port={}".format(
+        os.environ["DB_NAME"], os.environ["DB_USER"], os.environ["DB_PASSWORD"],
+        os.environ.get("DB_HOST", "localhost"), os.environ.get("DB_PORT", "5432"))
+
+
 def connect():
     import psycopg
-    dsn = os.environ.get('ELIBRARY_DATABASE_URL')
-    if not dsn:
-        raise ValueError('Задайте ELIBRARY_DATABASE_URL для отдельной базы сбора.')
-    return psycopg.connect(dsn)
+    return psycopg.connect(resolve_dsn())
 
 
 def import_db(args):
     from psycopg.types.json import Jsonb
     store = Store(args.work)
     with connect() as conn:
-        teachers = TeacherIndex(conn.execute('SELECT id,name FROM teacher_directory').fetchall())
+        teachers = TeacherIndex(conn.execute('SELECT id,name FROM teacher').fetchall())
         count = 0
         for (payload,) in store.db.execute('SELECT payload FROM items ORDER BY id'):
             data = json.loads(payload)
@@ -616,7 +627,7 @@ def main():
         collect(args)
     elif args.command == 'init-db':
         with connect() as conn:
-            conn.execute((BACKEND / 'sql/elibrary.sql').read_text(encoding='utf-8'))
+            conn.execute((SQL / 'elibrary.sql').read_text(encoding='utf-8'))
     elif args.command == 'import-db':
         import_db(args)
     elif args.command == 'embed':
@@ -628,7 +639,7 @@ def main():
             with conn.cursor() as cursor:
                 cursor.execute('''SELECT m.elibrary_id,m.author_order,a.name,m.teacher_id,t.name,a.affiliations,p.source_url
                     FROM elibrary_teacher_matches m JOIN elibrary_authors a USING(elibrary_id,author_order)
-                    JOIN teacher_directory t ON t.id=m.teacher_id JOIN elibrary_publications p USING(elibrary_id)
+                    JOIN teacher t ON t.id=m.teacher_id JOIN elibrary_publications p USING(elibrary_id)
                     WHERE m.status='candidate' ORDER BY m.elibrary_id,m.author_order,m.teacher_id''')
                 writer.writerows(cursor)
     elif args.command == 'export':
@@ -637,14 +648,14 @@ def main():
         # libpq reads PG* environment variables. Do not expose a DSN/password in argv.
         env = os.environ.copy()
         import psycopg
-        params = psycopg.conninfo.conninfo_to_dict(os.environ['ELIBRARY_DATABASE_URL'])
+        params = psycopg.conninfo.conninfo_to_dict(resolve_dsn())
         mapping = {'host': 'PGHOST', 'port': 'PGPORT', 'user': 'PGUSER', 'password': 'PGPASSWORD',
                    'dbname': 'PGDATABASE', 'sslmode': 'PGSSLMODE', 'sslrootcert': 'PGSSLROOTCERT'}
         for key, value in params.items():
             if key in mapping:
                 env[mapping[key]] = value
         subprocess.run([args.pg_dump, '--format=custom', '--no-owner', '--no-acl',
-                        '--table=public.teacher_directory*', '--table=public.elibrary_*',
+                        '--table=public.teacher*', '--table=public.elibrary_*',
                         '--file', str(args.output)], env=env, check=True)
 
 

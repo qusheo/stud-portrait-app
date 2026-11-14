@@ -1,4 +1,4 @@
--- Apply to a database containing teacher_directory from the supplied dump.
+-- Apply to a database containing teacher from the supplied dump.
 -- Additive migration: existing project tables are never dropped.
 BEGIN;
 CREATE TABLE IF NOT EXISTS elibrary_publications (
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS elibrary_authors (
 CREATE TABLE IF NOT EXISTS elibrary_teacher_matches (
     elibrary_id bigint NOT NULL,
     author_order integer NOT NULL,
-    teacher_id bigint NOT NULL REFERENCES teacher_directory(id),
+    teacher_id bigint NOT NULL REFERENCES teacher(id),
     method text NOT NULL CHECK (method IN ('full_name', 'initials', 'manual')),
     status text NOT NULL CHECK (status IN ('candidate', 'confirmed', 'rejected')),
     reviewed_at timestamptz,

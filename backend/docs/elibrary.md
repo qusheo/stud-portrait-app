@@ -1,90 +1,55 @@
 # eLIBRARY
 
-Модуль сопоставляет публикации eLIBRARY с существующим справочником преподавателей и формирует набор для PostgreSQL. Исходные ID преподавателей сохраняются.
+Модуль собирает публикации eLIBRARY и сопоставляет авторов с таблицей `teacher` приложения. Данные сразу загружаются в PostgreSQL; дампы и промежуточные SQLite-выборки не используются.
 
-## Структура
+Код: `src/portrait/elibrary/parse_elibrary.py`, схема: `src/portrait/elibrary/sql/elibrary.sql`, тесты: `src/portrait/elibrary/tests/`.
 
-```text
-src/tools/                 сбор, сопоставление, векторизация, экспорт и тесты
-sql/elibrary.sql           добавочная схема для базы приложения
-sql/elibrary_sample.sql    схема самостоятельного набора данных
-sql/elibrary_example_queries.sql  примеры запросов к набору
-data/elibrary/             версионируемый PostgreSQL dump и метаданные
-.elibrary/                 локальный кеш и профиль браузера; исключены из Git
-```
+## Установка
 
-Две SQL-схемы имеют разные назначения. `elibrary.sql` содержит таблицы `elibrary_*` для приложения. Готовый дамп использует отдельную схему `elibrary_sample` и не импортирует данные в таблицы приложения автоматически.
-
-## Установка и проверка
-
-Команды выполняются из `backend`, Python 3.14:
+Зависимости — общий `backend/requirements.txt` (включая playwright и psycopg). Команды выполняются из `backend`:
 
 ```text
 python -m venv .venv
-.venv/Scripts/python -m pip install -r requirements-elibrary.txt
-.venv/Scripts/python -m unittest discover -s src/tools -p "test_*.py"
+.venv/Scripts/python -m pip install -r requirements.txt
+.venv/Scripts/python -m pytest src/portrait/elibrary
 ```
 
-Для восстановления готового набора достаточно PostgreSQL; Python-зависимости сборщика не нужны.
+Браузерный профиль, cookies и скачанный HTML сохраняются локально в `backend/.elibrary/` (в Git не включаются).
 
-## Восстановление PostgreSQL
+## Подключение к базе
 
-Требуются PostgreSQL 18, `createdb` и `pg_restore` в PATH.
+Адрес базы берётся из `ELIBRARY_DATABASE_URL`, а если она не задана — из стандартных `DB_NAME`/`DB_USER`/`DB_PASSWORD`/`DB_HOST`/`DB_PORT` (загружаются из `backend/.env` или `backend/src/.env`, как в `studportrait/settings.py`). В базе должна быть таблица `teacher` (справочник преподавателей приложения).
+
+## Поток
 
 ```text
-createdb studportrait_elibrary_sample
-pg_restore --exit-on-error --no-owner --no-acl --dbname=studportrait_elibrary_sample data/elibrary/elibrary_sample.dump
-psql --dbname=studportrait_elibrary_sample --file=sql/elibrary_example_queries.sql
+# 1. Создать таблицы elibrary_* (однократно)
+python src/portrait/elibrary/parse_elibrary.py init-db
+
+# 2. Собрать карточки в локальный кеш (Brave, интерактивный вход)
+python src/portrait/elibrary/parse_elibrary.py collect --collection 1817422 --login
+python src/portrait/elibrary/parse_elibrary.py collect --collection 1817422 --resume
+
+# 3. Загрузить кеш в PostgreSQL и сопоставить авторов с teacher
+python src/portrait/elibrary/parse_elibrary.py import-db
+
+# 4. CSV кандидатов для ручной проверки
+python src/portrait/elibrary/parse_elibrary.py candidates matches.csv
+
+# 5. Опционально: эмбеддинги (локальная SentenceTransformer)
+python src/portrait/elibrary/parse_elibrary.py embed --model <путь или ID модели>
 ```
 
-Параметры подключения задаются через стандартные переменные окружения PostgreSQL. Пароли не сохраняются в репозитории.
-Восстановление выполняется в отдельную пустую базу. `create_database.sql` пересоздаёт таблицы приложения и не используется для установки этого набора.
+Повторный `import-db` обновляет изменённые карточки и заново матчит авторов: ручные решения (`method='manual'` или `reviewed_at IS NOT NULL`) не трогаются, но если изменился авторский состав у карточки с ручными решениями — импорт остановится с ошибкой, требуется проверка.
 
-## Данные
+Полное совпадение ФИО даёт `status='confirmed'`, совпадение по инициалам — `status='candidate'`. Кандидаты по инициалам не доказывают авторство; подтверждение личности выполняется вручную через `elibrary_teacher_matches`.
 
-`teacher_directory.id` — исходный ID преподавателя; `teacher_source_rows.payload` сохраняет все 18 полей исходного справочника.
-`publications.elibrary_id` — ID публикации eLIBRARY. `publication_authors` содержит авторов списка, `card_authors` — авторов подробной карточки.
-`teacher_matches` связывает преподавателей с авторами списка; `match_evidence` содержит основания сопоставления по карточкам.
-`card_metadata.payload` хранит аннотации, ключевые слова, рубрики, год и точную дату при наличии.
+Проверка без сети и базы: `parse <card.html>` и `listing <page.html>` разбирают сохранённые страницы.
 
-`initials_only` означает совпадение инициалов; `full_name_supported` — полное ФИО; `full_name_affiliation_supported` — полное ФИО и организация. Эти признаки не заменяют ручную проверку личности.
+## Структура данных
 
-## Векторы
+`elibrary_publications` — карточки публикаций (`raw_data` хранит исходный разбор), `elibrary_authors` — авторы с порядком и аффилиациями, `elibrary_collection_items` — принадлежность подборкам, `elibrary_teacher_matches` — связи автор→преподаватель с методом и статусом, `elibrary_embeddings` — вектора по полям title/abstract/keywords (`model` + `input_hash` делают пересчёт явным).
 
-Три отдельные TF-IDF-модели: название, аннотация, ключевые слова. Русский текст лемматизируется через pymorphy3; удаляются стоп-слова и служебные части речи, добавляются соседние биграммы. Многословные ключевые термины дополнительно сохраняются целиком. Английская морфология не нормализуется.
+## Ограничения
 
-Таблицы `publication_title_vectors` и `publication_detail_vectors` содержат разреженные массивы `indices` и `weights`; `*_vector_models` — словари и параметры. В PostgreSQL массивы сохранены как JSONB, расширение pgvector не требуется. Разные модели имеют разные словари; их координаты напрямую не сравниваются. Исходные тексты не изменяются.
-
-## Повторная обработка локального кеша
-
-```text
-python src/tools/refine_elibrary_matches.py --cards .elibrary/sample/enrichment/cards
-python src/tools/package_elibrary_sample.py --teacher-dump "PATH_TO_DATABASE.dump"
-```
-
-Команды требуют локального кеша и исходного справочника; сетевой сбор не запускают. Генерируемый комплект находится в `.elibrary/delivery/` и не является версионируемым дампом из `data/elibrary/`.
-
-## Сетевой сбор
-
-Требуется Brave и интерактивная авторизация в отдельном профиле.
-
-```text
-python src/tools/elibrary_lists.py --resume
-python src/tools/enrich_elibrary_batch.py --continuous --delay 5
-```
-
-Не запускаются при установке или восстановлении базы. CAPTCHA и повторный вход выполняются вручную; прогресс сохраняется локально. Профиль браузера, cookies, HTML и диагностические логи в Git не включаются.
-
-## Ограничения и проверки
-
-Интеграционная проверка дампа на PostgreSQL 18:
-
-```text
-python src/tools/verify_elibrary_postgres.py
-```
-
-Требуются зависимости из requirements-elibrary.txt, pg_restore в PATH и доступ к серверу через PGHOST/PGPORT/PGUSER/PGPASSWORD. Для Windows можно указать `--pg-bin "C:/Program Files/PostgreSQL/18/bin"`.
-Пользователь PostgreSQL должен иметь право создавать базы. Проверка создаёт уникальную временную базу, восстанавливает дамп, сверяет числа строк с manifest.json, ограничения, представления и числовые векторы, затем удаляет только созданную тестовую базу. Существующая база приложения не изменяется.
-
-Текущий набор содержит 41922 публикации и 2478 подробных карточек. Полнота каталога не доказана: ответы пагинации содержали повторяющиеся ID. Отсутствующие даты, аннотации и ключевые слова не генерируются.
-Проверены целостность SQLite, внешние ключи, нормализация векторов, SHA-256 и обратное чтение custom dump с полным сравнением данных. Восстановление финального дампа проверено на PostgreSQL 18.7: все количества строк, ограничения, представления и векторы прошли проверку. Отчёт: data/elibrary/postgresql_verification.json.
+Полнота каталога не гарантируется: пагинация eLIBRARY может возвращать повторяющиеся страницы. Отсутствующие даты, аннотации и ключевые слова не генерируются, а сохраняются как есть.

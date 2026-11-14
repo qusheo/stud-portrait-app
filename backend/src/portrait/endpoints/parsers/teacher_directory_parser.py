@@ -71,7 +71,7 @@ def _experience(text: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
-def parse_teacher_directory(html: bytes | str) -> list[TeacherRecord]:
+def parse_teacher(html: bytes | str) -> list[TeacherRecord]:
     soup = BeautifulSoup(html, "html.parser")
     table = next(
         (
