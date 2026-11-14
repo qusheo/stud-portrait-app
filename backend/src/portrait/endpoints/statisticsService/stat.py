@@ -1,12 +1,12 @@
 from collections import defaultdict
 import numpy as np
 import traceback
+from portrait.models import StudentsAmount
 
 from django.db.models import Avg, Count, Q, F, Sum
 from django.http import JsonResponse
 
 from ..common import *
-from portrait.models import StudentsAmount
 
 def get_year_metrics(year, filter):
     population_year = int(str(year).split("/")[-1])

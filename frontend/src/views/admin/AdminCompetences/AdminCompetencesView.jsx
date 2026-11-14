@@ -385,6 +385,8 @@ function Dashboard({ data, filters, onYearChange, yearsOptions }) {
                                 <div className="absolute-center">
                                     {!hasPopulation ? (
                                         <p>Нет данных о численности</p>
+                                    ) : coverage < 1 ? (
+                                        <p>&lt;1% студентов прошли тестирование</p>
                                     ) : (
                                         <>
                                             <h2>

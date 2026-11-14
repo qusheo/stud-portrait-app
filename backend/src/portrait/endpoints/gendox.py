@@ -1,3 +1,4 @@
+from .geography_population import get_population_summary, append_population_section
 from collections import defaultdict
 from datetime import datetime
 from docx import Document
@@ -393,6 +394,7 @@ def generate_geography_report(request):
     if year not in available_years:
         year = '2024/2025'
 
+    population_summary = get_population_summary(year)
     doc = Document()
 
     # Заголовок
@@ -623,6 +625,7 @@ def generate_geography_report(request):
     stats_paragraph.add_run(f'{len(institution_stats)}\n')
 
 
+    append_population_section(doc, population_summary)
     return docxResponse(doc, f"geography_report_{year}.docx")
 
 

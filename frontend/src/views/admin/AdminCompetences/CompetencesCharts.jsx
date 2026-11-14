@@ -750,7 +750,6 @@ export function CompetencyTrendLine({ data, loading }) {
                         const color = TREND_COLORS[idx % TREND_COLORS.length];
                         return (
                             <Line
-                                isAnimationActive={false}
                                 key={trend.competency}
                                 // type="linear" — прямые отрезки между точками, без плавной кривой.
                                 // Это статистически корректно для категориальных значений (курсы 1-4).
