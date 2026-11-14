@@ -25,6 +25,10 @@ import DraggablePopover from '@components/ui/DraggablePopover.jsx';
 
 import { useAdminStore, usePageStore } from '@utils/store.jsx';
 
+const p1 = ['#1A1004', '#43150A', '#414E15', '#6D1915', '#72762A', '#939A48', '#6B5725']; //
+const p2 = ['#0F0406', '#24050A', '#3E0712', '#301623', '#581A2B', '#63334A', '#946E82']; //
+const p3 = ['#562967', '#835BAE', '#B26F69', '#DEA558', '#B598D6', '#F5CC3A', '#FBE23C']; //
+
 const competencyLabels = {
     ...COMPETENCIES_NAMES,
     ...MOTIVATORS_NAMES
