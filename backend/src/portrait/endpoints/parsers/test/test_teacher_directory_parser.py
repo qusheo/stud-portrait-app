@@ -1,6 +1,6 @@
 import unittest
 
-from backend.src.portrait.endpoints.parsers.teacher_directory_parser import parse_teacher_directory
+from backend.src.portrait.endpoints.parsers.teacher_parser import parse_teacher
 
 
 HEADERS = [
@@ -29,7 +29,7 @@ class TeacherDirectoryParserTests(unittest.TestCase):
             "Не проходил(-а)", "менее 1 года", "",
         ]
         row = "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
-        record = parse_teacher_directory(page(row))[0]
+        record = parse_teacher(page(row))[0]
         self.assertEqual(record.name, "Иванова Анна Петровна")
         self.assertIsNone(record.gender)
         self.assertEqual(record.disciplines, ["Математика", "Физика"])
@@ -41,13 +41,13 @@ class TeacherDirectoryParserTests(unittest.TestCase):
 
     def test_rejects_wrong_table(self):
         with self.assertRaises(ValueError):
-            parse_teacher_directory("<table><tr><td>Other data</td></tr></table>")
+            parse_teacher("<table><tr><td>Other data</td></tr></table>")
 
     def test_keeps_duplicate_names_as_separate_rows(self):
         def row(number):
             cells = [str(number), "Иванова Анна Петровна"] + [""] * 9
             return "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
-        records = parse_teacher_directory(page(row(1) + row(2)))
+        records = parse_teacher(page(row(1) + row(2)))
         self.assertEqual([record.source_row for record in records], [1, 2])
 
 

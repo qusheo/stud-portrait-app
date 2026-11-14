@@ -1,6 +1,6 @@
 """Import the saved official UTMN staff page into the teachers table.
 
-Usage: python backend/tools/import_teacher_directory.py path/to/saved-page.html
+Usage: python backend/tools/import_teacher.py path/to/saved-page.html
 """
 
 import argparse
@@ -18,7 +18,7 @@ import django  # noqa: E402
 django.setup()
 
 from portrait.models import Teacher  # noqa: E402
-from ..teacher_directory_parser import parse_teacher_directory  # noqa: E402
+from ..teacher_parser import parse_teacher  # noqa: E402
 
 
 def main() -> None:
@@ -28,7 +28,7 @@ def main() -> None:
     parser.add_argument("--min-rows", type=int, default=1000)
     args = parser.parse_args()
 
-    records = parse_teacher_directory(args.html.read_bytes())
+    records = parse_teacher(args.html.read_bytes())
     print(f"Parsed {len(records)} teacher rows ({len({r.name for r in records})} distinct names)")
     if len(records) < args.min_rows:
         parser.error(f"Expected at least {args.min_rows} rows; refusing a partial import")
