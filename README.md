@@ -105,6 +105,10 @@ sudo service redis-server stop
 
 2. Excecute SQL code from 'backend\create_database.sql' in your database query tool.
 
+3. Run `python backend/src/manage.py migrate` to create and update application tables.
+
+To import the saved UTMN staff page, run `python backend/src/manage.py import_teachers "path/to/teachers.html"`.
+
 Надо два env -> в frontend/
 -> в backend/src
 

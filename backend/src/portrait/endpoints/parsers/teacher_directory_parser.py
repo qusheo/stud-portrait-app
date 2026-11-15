@@ -18,13 +18,12 @@ class TeacherRecord:
     position: str
     disciplines: list[str]
     institution: str
-    edu_level: str
+    education_type: str
+    direction: str
     academic_degree: str
     academic_title: str
     qualification: str
     experience: int | None
-    experience_text: str
-    education_details: list[str]
     professional_development: list[str]
     professional_retraining: list[str]
 
@@ -69,6 +68,34 @@ def _experience(text: str) -> int | None:
         return 0
     match = re.search(r"\b(\d+)\s*(?:год|года|лет)\b", lower)
     return int(match.group(1)) if match else None
+
+
+def _gender(name: str) -> str | None:
+    parts = name.split()
+    if len(parts) >= 3:
+        patronymic = parts[2].casefold()
+        if patronymic.endswith(('вич', 'ич')):
+            return 'Мужской'
+        if patronymic.endswith(('вна', 'ична')):
+            return 'Женский'
+    if parts:
+        surname = parts[0].casefold()
+        if surname.endswith(('ова', 'ева', 'ина', 'ская', 'цкая')):
+            return 'Женский'
+        if surname.endswith(('ов', 'ев', 'ин', 'ский', 'цкий')):
+            return 'Мужской'
+    return None
+
+
+def _nullable_title(value: str) -> str | None:
+    value = value.strip()
+    return None if not value or value.casefold().startswith(('нет', 'отсутствует', 'не имеет', 'не присвоено', 'без учен')) else value
+
+
+def _education_type(value: str) -> str:
+    lower = value.casefold()
+    types = [label for fragment, label in [('бакалавр', 'Бакалавриат'), ('магистр', 'Магистратура'), ('специалитет', 'Специалитет'), ('аспирантур', 'Аспирантура')] if fragment in lower]
+    return ', '.join(types) if types else value
 
 
 def parse_teacher(html: bytes | str) -> list[TeacherRecord]:
@@ -117,17 +144,16 @@ def parse_teacher(html: bytes | str) -> list[TeacherRecord]:
         records.append(TeacherRecord(
             source_row=source_row,
             name=_text(name),
-            gender=None,
+            gender=_gender(_text(name)),
             position=_text(position),
             disciplines=_items(disciplines),
             institution=INSTITUTION,
-            edu_level=education_parts[0] if education_parts else "",
-            academic_degree=_text(degree),
-            academic_title=_text(title),
+            education_type=_education_type(education_parts[0]) if education_parts else "",
+            direction=' '.join(education_parts[1:-1]) if len(education_parts) > 2 else (education_parts[1] if len(education_parts) == 2 else ''),
+            academic_degree=_nullable_title(_text(degree)),
+            academic_title=_nullable_title(_text(title)),
             qualification=education_parts[-1] if len(education_parts) >= 3 else "",
             experience=_experience(_text(experience)),
-            experience_text=_text(experience),
-            education_details=education_parts,
             professional_development=_courses(development),
             professional_retraining=_courses(retraining),
         ))

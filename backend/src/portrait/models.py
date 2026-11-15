@@ -239,15 +239,10 @@ class Teacher(models.Model):
     name = models.CharField(max_length=512)
     gender = models.CharField(max_length=16, blank=True, null=True)
     position = models.CharField(max_length=512, blank=True, null=True)
-    disciplines = models.JSONField(default=list, blank=True)
-    institution = models.CharField(max_length=1024, blank=True, null=True)
-    edu_level = models.CharField(max_length=512, blank=True, null=True)
+    institution = models.ForeignKey(Institutions, on_delete=models.PROTECT, db_column='institution_id', related_name='teachers')
     academic_degree = models.CharField(max_length=256, blank=True, null=True)
     academic_title = models.CharField(max_length=256, blank=True, null=True)
-    qualification = models.CharField(max_length=512, blank=True, null=True)
     experience = models.IntegerField(blank=True, null=True)
-    experience_text = models.CharField(max_length=512, blank=True, null=True)
-    education_details = models.JSONField(default=list, blank=True)
     professional_development = models.JSONField(default=list, blank=True)
     professional_retraining = models.JSONField(default=list, blank=True)
     source_url = models.TextField(default='')
@@ -258,6 +253,28 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class TeacherEducation(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='educations')
+    education_type = models.CharField(max_length=512)
+    direction = models.TextField(blank=True)
+    qualification = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'teacher_education'
+        constraints = [models.UniqueConstraint(fields=['teacher', 'education_type', 'direction', 'qualification'], name='unique_teacher_education')]
+
+
+class TeacherDiscipline(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='discipline_rows')
+    name = models.TextField()
+
+    class Meta:
+        db_table = 'teacher_discipline'
+        constraints = [models.UniqueConstraint(fields=['teacher', 'name'], name='unique_teacher_discipline')]
 
 class Studyforms(models.Model):
     form_id = models.AutoField(primary_key=True)

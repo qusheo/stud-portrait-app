@@ -1,6 +1,6 @@
 import unittest
 
-from backend.src.portrait.endpoints.parsers.teacher_parser import parse_teacher
+from portrait.endpoints.parsers.teacher_directory_parser import _education_type, _gender, _nullable_title, parse_teacher
 
 
 HEADERS = [
@@ -18,7 +18,7 @@ def page(rows):
 
 
 class TeacherDirectoryParserTests(unittest.TestCase):
-    def test_extracts_columns_and_does_not_infer_gender(self):
+    def test_extracts_columns_and_infers_gender(self):
         cells = [
             "1", "Иванова Анна Петровна", "Доцент",
             "<div class='showpart-container-list'>Математика;<br>Физика;</div>"
@@ -31,9 +31,9 @@ class TeacherDirectoryParserTests(unittest.TestCase):
         row = "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
         record = parse_teacher(page(row))[0]
         self.assertEqual(record.name, "Иванова Анна Петровна")
-        self.assertIsNone(record.gender)
+        self.assertEqual(record.gender, "Женский")
         self.assertEqual(record.disciplines, ["Математика", "Физика"])
-        self.assertEqual(record.edu_level, "Высшее образование")
+        self.assertEqual(record.education_type, "Высшее образование")
         self.assertEqual(record.qualification, "Математик")
         self.assertEqual(record.professional_development, ["2024 Курс А", "2025 Курс Б"])
         self.assertEqual(record.professional_retraining, [])
@@ -42,6 +42,15 @@ class TeacherDirectoryParserTests(unittest.TestCase):
     def test_rejects_wrong_table(self):
         with self.assertRaises(ValueError):
             parse_teacher("<table><tr><td>Other data</td></tr></table>")
+
+    def test_gender_requires_a_recognized_ending(self):
+        self.assertEqual(_gender('Иванов Иван Петрович'), 'Мужской')
+        self.assertEqual(_gender('Иванова Анна Петровна'), 'Женский')
+        self.assertIsNone(_gender('Ли Алексей'))
+
+    def test_education_and_missing_titles(self):
+        self.assertEqual(_education_type('Высшее образование - магистратура'), 'Магистратура')
+        self.assertIsNone(_nullable_title('Отсутствует'))
 
     def test_keeps_duplicate_names_as_separate_rows(self):
         def row(number):

@@ -10,7 +10,6 @@ export const BASE_COLUMNS_NAMES = {
     academic_title: 'Учёное звание',
     qualification: 'Квалификация',
     experience: 'Стаж работы',
-    experience_text: 'Стаж работы (текст)',
     education_details: 'Сведения об образовании',
     professional_development: 'Повышение квалификации',
     professional_retraining: 'Профессиональная переподготовка'
@@ -27,7 +26,6 @@ const columnOrder = [
     'academic_title',
     'qualification',
     'experience',
-    'experience_text',
     'education_details',
     'professional_development',
     'professional_retraining'

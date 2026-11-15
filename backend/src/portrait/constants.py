@@ -343,7 +343,6 @@ TEACHER_FIELDS = {
     "academic_title": "Учёное звание",
     "qualification": "Квалификация",
     "experience": "Стаж работы",
-    "experience_text": "Стаж работы (текст)",
     "education_details": "Сведения об образовании",
     "professional_development": "Повышение квалификации",
     "professional_retraining": "Профессиональная переподготовка",
