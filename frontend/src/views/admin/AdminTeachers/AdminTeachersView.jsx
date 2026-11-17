@@ -16,24 +16,28 @@ import Loading from '@components/ui/Loading.jsx';
 import { AutocompleteInput, Button } from '../../../components/index.js';
 import { toast } from 'react-toastify';
 
-// education_details: [тип образования, направление, ..., степень]
-const EDUCATION_DETAILS_LABELS = ['Тип образования', 'Направление', 'Степень'];
+const EDUCATION_DETAILS_LABELS = {
+    education_type: 'Тип образования',
+    direction: 'Направление',
+    qualification: 'Квалификация'
+};
 
 const formatEducationDetails = details => {
     if (!Array.isArray(details) || details.length === 0) return '—';
     return details.length >= 2 ? details[1] : details[0];
 };
 
-const educationDetailsItems = details => {
-    const lastIndex = details.length - 1;
-    return details.map((item, index) => {
-        const label =
-            index === 0
-                ? EDUCATION_DETAILS_LABELS[0]
-                : index === lastIndex && lastIndex > 1
-                    ? EDUCATION_DETAILS_LABELS[2]
-                    : EDUCATION_DETAILS_LABELS[1];
-        return `${label}: ${item}`;
+const educationDetailsItems = teacher => {
+    const educations = Array.isArray(teacher.education) && teacher.education.length
+        ? teacher.education
+        : (Array.isArray(teacher.educationDetails) ? teacher.educationDetails : []);
+    return educations.map(item => {
+        if (typeof item === 'string') return item;
+        const parts = Object.entries(EDUCATION_DETAILS_LABELS)
+            .map(([key, label]) => [label, (item[key] ?? '').toString().trim()])
+            .filter(([, value]) => value.length > 0)
+            .map(([label, value]) => `${label}: ${value}`);
+        return parts.length > 0 ? parts.join('; ') : '—';
     });
 };
 
@@ -96,7 +100,7 @@ function AdminTeachersView() {
         } else if (column.id === 'disciplines') {
             showListModal(teacher.disciplines, event);
         } else if (column.id === 'education_details') {
-            showListModal(educationDetailsItems(teacher.educationDetails), event);
+            showListModal(educationDetailsItems(teacher), event);
         } else if (column.id === 'professional_development') {
             showListModal(teacher.professionalDevelopment, event);
         } else if (column.id === 'professional_retraining') {
@@ -130,7 +134,7 @@ function AdminTeachersView() {
             case 'disciplines':
                 return Array.isArray(teacher.disciplines) ? teacher.disciplines.join('; ') : (teacher.disciplines ?? '');
             case 'education_details':
-                return educationDetailsItems(teacher.educationDetails).join('; ');
+                return educationDetailsItems(teacher).join('; ');
             case 'professional_development':
                 return teacher.professionalDevelopment.join('; ');
             case 'professional_retraining':

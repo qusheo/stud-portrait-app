@@ -32,8 +32,8 @@ const columnOrder = [
 ];
 
 const searchableCols = ['name', 'institution', 'position', 'disciplines'];
-const numberCols = ['id', 'source_row', 'experience'];
-const jsonCols = ['disciplines', 'education_details', 'professional_development', 'professional_retraining'];
+const numberCols = ['id', 'source_row', 'experience', 'professional_development', 'professional_retraining'];
+const jsonCols = ['disciplines', 'education_details'];
 
 const getFilterType = id => {
     return id === 'disciplines' || id === 'education_details' ? 'combined' : numberCols.includes(id) || jsonCols.includes(id) ? 'number' : 'text';
