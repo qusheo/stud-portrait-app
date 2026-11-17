@@ -1,62 +1,88 @@
 from collections import defaultdict
 import numpy as np
 import traceback
-
-from django.db.models import Avg, Count, Q, F
+from django.db.models import Avg, Count, Q, F, Sum
 from django.http import JsonResponse
 
 from ..helpers.common import *
 
-def get_year_metrics(year, filter):
-    res_queryset = Results.objects.filter(res_year=year, **filter)
-    max_mot={"name": "-", "count": 0}
-    max_demot={"name": "-", "count": 0}
-    if not res_queryset.exists():
-        return {
-            "total_avg": 0,
-            "course_percent": 0,
-            "all_comps": {f: 0 for f in COMP.list},
-            "motivator": max_mot,
-            "demotivator" : max_demot,
-            "participated" : {"amount_in": 0, "students_all": 0}
-        }
-    avgs = res_queryset.aggregate(**{f'avg_{f}': Avg(f) for f in COMP.list})
-    
-    valid_values = [v for v in avgs.values() if v is not None]
-    total_avg = sum(valid_values) / len(COMP.list) if valid_values else 0
+def get_year_metrics(year, filters):
+    qs = Results.objects.filter(res_year=year, **filters)
 
-    participant_ids = list(res_queryset.values_list('res_participant_id', flat=True).distinct())
-    total_students = res_queryset.values('res_participant').distinct().count()
-    students_with_courses = Courseresults.objects.filter(
-        course_participant__in=participant_ids 
-    ).count()
-    
-    for f in MOT.list: ## мотиваторы
-        all = res_queryset.values(f).count()
-        cnt_high = res_queryset.filter(**{f"{f}__gte": 600}).count() / all if all!=0 else 0
-        cnt_high = round(cnt_high *10000)/100
-        if cnt_high>max_mot["count"]: 
-            max_mot["count"]= cnt_high
-            max_mot["name"]=f
-        
-        cnt_low = res_queryset.filter(**{f"{f}__lt": 400}).count() / all if all!=0 else 0
-        cnt_low = round(cnt_low *10000)/100
-        if cnt_low>max_demot["count"]: 
-            max_demot["count"]=cnt_low
-            max_demot["name"]=f
-    
-    course_percent = (students_with_courses / total_students * 100) if total_students > 0 else 0
-    students_uni = total_students * 1.2  # тут должны быть обучающиеся в унике вообще
-    return {
-        "total_avg": round(total_avg, 2),
-        "course_percent": round(course_percent, 1),
-        "all_comps": {f: round(avgs.get(f'avg_{f}') or 0, 2) for f in COMP.list},
-        "motivator": max_mot,
-        "demotivator" : max_demot,
-        "participated" : {"amount_in": total_students, "students_all": students_uni}
+    fields = list(MOT.list)
+
+    aggregations = {
+        'total': Count('pk'),
+        'students': Count('res_participant_id', distinct=True),
     }
 
+    for field in COMP.list:
+        aggregations[f'avg_{field}'] = Avg(field)
 
+    for i, field in enumerate(fields):
+        aggregations[f'high_{i}'] = Count(
+            'pk', filter=Q(**{f'{field}__gte': 600})
+        )
+        aggregations[f'low_{i}'] = Count(
+            'pk', filter=Q(**{f'{field}__lt': 400})
+        )
+
+    data = qs.aggregate(**aggregations)
+
+    total = data['total']
+    total_students = data['students']
+
+    max_mot = {'name': '-', 'count': 0}
+    max_demot = {'name': '-', 'count': 0}
+
+    if total:
+        for i, field in enumerate(fields):
+            high = round(data[f'high_{i}'] / total * 100, 2)
+            low = round(data[f'low_{i}'] / total * 100, 2)
+
+            if high > max_mot['count']:
+                max_mot = {'name': field, 'count': high}
+
+            if low > max_demot['count']:
+                max_demot = {'name': field, 'count': low}
+
+    avgs = {
+        field: data[f'avg_{field}']
+        for field in COMP.list
+    }
+
+    valid_values = [v for v in avgs.values() if v is not None]
+    total_avg = (
+        sum(valid_values) / len(COMP.list)
+        if valid_values else 0
+    )
+
+    students_with_courses = 0
+
+    if total_students:
+        students_with_courses = Courseresults.objects.filter(
+            course_participant_id__in=qs.values('res_participant_id')
+        ).count()
+
+    course_percent = (
+        students_with_courses / total_students * 100
+        if total_students else 0
+    )
+
+    return {
+        'total_avg': round(total_avg, 2),
+        'course_percent': round(course_percent, 1),
+        'all_comps': {
+            field: round(avgs[field] or 0, 2)
+            for field in COMP.list
+        },
+        'motivator': max_mot,
+        'demotivator': max_demot,
+        'participated': {
+            'amount_in': total_students,
+            'students_all': total_students * 1.2
+        }
+    }
 
 def filter_options(request): 
     try:
@@ -142,21 +168,47 @@ def get_dashboard_stats(request):
         if curr_data and prev_data:
             growth = ((curr_data['total_avg'] - prev_data['total_avg']) / prev_data['total_avg']) * 100 if prev_data['total_avg']!=0 else 0
 
-        unis = Results.objects.filter(res_year=curr_year)         \
-            .values_list('res_institution__inst_name', flat=True) \
-            .distinct()
+        aggregations = {}
+
+        for i, field in enumerate(COMP.list):
+            valid = ~Q(**{field: 0})
+            aggregations[f'sum_{i}'] = Sum(field, filter=valid)
+            aggregations[f'count_{i}'] = Count(field, filter=valid)
+
+        uni_stats = (
+            Results.objects
+            .filter(res_year=curr_year)
+            .values('res_institution__inst_name')
+            .annotate(**aggregations)
+        )
 
         rate_list = []
-        for uni in unis:
-            rows_data = Results.objects                                     \
-                .filter(res_year=curr_year, res_institution__inst_name=uni) \
-                .values_list(*COMP.list)
-            rows = np.array([np.array([np.nan if i is None or i == 0 else i for i in row]) for row in rows_data]).astype(float)
-            avg = np.mean(np.delete(rows, np.where(np.isnan(rows))))
-            rate_list.append({'uni_name': uni, 'overall_avg': round(avg,3)})
-        rate_list = sorted(
-            rate_list,
-            key=lambda x: (x['overall_avg'] is None, -(x['overall_avg'] or 0))
+
+        for uni in uni_stats:
+            total_sum = sum(
+                uni[f'sum_{i}'] or 0
+                for i in range(len(COMP.list))
+            )
+            total_count = sum(
+                uni[f'count_{i}']
+                for i in range(len(COMP.list))
+            )
+
+            avg = (
+                round(float(total_sum / total_count), 3)
+                if total_count else None
+            )
+
+            rate_list.append({
+                'uni_name': uni['res_institution__inst_name'],
+                'overall_avg': avg
+            })
+
+        rate_list.sort(
+            key=lambda x: (
+                x['overall_avg'] is None,
+                -(x['overall_avg'] or 0)
+            )
         )
         if inst:  # место выбранного в %
             place = [i for i, item in enumerate(rate_list) if item['uni_name'] == inst]
@@ -251,6 +303,7 @@ def get_dashboard_stats(request):
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
 
+
 def get_competency_average_by_years(request):
     try:
         inst = request.GET.get('institute')
@@ -260,38 +313,61 @@ def get_competency_average_by_years(request):
         if inst: base_filter['res_institution__inst_name'] = inst
         if spec: base_filter['res_edu_specialty__spec_name'] = spec
 
-        years = Results.objects.filter(**base_filter).values_list('res_year', flat=True).distinct()
+        grouped = (
+            Results.objects
+            .filter(**base_filter)
+            .values('res_year')
+            .annotate(**{
+                field: Avg(field)
+                for field in COMP.list
+            })
+            .order_by('res_year')
+        )
+
         years_data = []
-        for year in sorted(years):
-            year_metrics = get_year_metrics(year, base_filter)
-            for k, v in year_metrics['all_comps'].items():
-                years_data.append({"year": year, "name": k, "average": v})
-        return JsonResponse({"ok": True, "data": years_data})
+
+        for data in grouped:
+            year = data['res_year']
+
+            for field in COMP.list:
+                years_data.append({
+                    'year': year,
+                    'name': field,
+                    'average': round(data[field] or 0, 2)
+                })
+
+        return JsonResponse({'ok': True, 'data': years_data})
+
     except Exception as e:
-        print(traceback.format_exc())
-        return JsonResponse({"ok": False, "message": str(e)}, status=500)
+        traceback.print_exc()
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
-def get_competency_stats_courses(filter):
+
+def get_competency_stats_courses(filters):
     courses = [1, 2, 3, 4]
-    results = {}
-    main = Results.objects.filter(**filter)
-    for course in courses:
-        qs = main.filter(res_course=course)
-        if qs.exists():
-            avgs = qs.aggregate(**{field: Avg(field) for field in COMP.list})
-            results[course] = avgs
-        else:
-            results[course] = {f: 0 for f in COMP.list}
-    
-    chart_data = []
-    for field in COMP.list:
-        row = {"name": field}
-        for course in courses:
-            val = results[course].get(field) or 0
-            row[f"course_{course}"] = round(float(val), 2)
-        chart_data.append(row)
-    return chart_data
 
+    grouped = (
+        Results.objects
+        .filter(res_course__in=courses, **filters)
+        .values('res_course')
+        .annotate(**{
+            field: Avg(field)
+            for field in COMP.list
+        })
+    )
+    course_data = { row['res_course']: row for row in grouped }
+    chart_data = []
+
+    for field in COMP.list:
+        row = {'name': field}
+
+        for course in courses:
+            value = course_data.get(course, {}).get(field) or 0
+            row[f'course_{course}'] = round(float(value), 2)
+
+        chart_data.append(row)
+
+    return chart_data
 
 
 def get_motivation_counts(request):
@@ -304,47 +380,65 @@ def get_motivation_counts(request):
         if inst: base_filter['res_institution__inst_name'] = inst
         if spec: base_filter['res_edu_specialty__spec_name'] = spec
         if year: base_filter['res_year'] = year
-        
+
         courses = [1, 2, 3, 4]
-        results = {}
+        fields = list(MOT.list)
+
+        aggregations = {'total': Count('pk')}
+        for i, field in enumerate(fields):
+            aggregations[f'low_{i}'] = Count(
+                'pk', filter=Q(**{f'{field}__lt': 400})
+            )
+            aggregations[f'high_{i}'] = Count(
+                'pk', filter=Q(**{f'{field}__gte': 600})
+            )
+
+        grouped = Results.objects.filter(
+            res_course__in=courses, **base_filter
+        ).values('res_course').annotate(**aggregations)
+
+        course_data = {row['res_course']: row for row in grouped}
+
+        totals = {
+            'total': sum(row['total'] for row in course_data.values()),
+            'low': [0] * len(fields),
+            'high': [0] * len(fields)
+        }
+
         bar_data = []
-        
-        for field in MOT.list:
-            row = {"name": field}
-            cnt_all_all = 0
-            cnt_low_all = 0
-            cnt_high_all = 0
-            cnt_mid_all = 0
+
+        for i, field in enumerate(fields):
+            row = {'name': field}
 
             for course in courses:
-                results[course] = {'low': {f: 0 for f in MOT.list},
-                                'high': {f: 0 for f in MOT.list},
-                                'mid': {f: 0 for f in MOT.list}}
-                                
-                cnt_all = Results.objects.filter(res_course=course, **base_filter)
-                cnt_low = cnt_all.filter(**{f"{field}__lt": 400}).count() 
-                cnt_high = cnt_all.filter(**{f"{field}__gte": 600}).count() 
-                cnt_mid = cnt_all.count() - cnt_low - cnt_high
+                data = course_data.get(course, {})
+                total = data.get('total', 0)
+                low = data.get(f'low_{i}', 0)
+                high = data.get(f'high_{i}', 0)
+                mid = total - low - high
 
-                cnt_all_all += cnt_all.count() 
-                cnt_low_all += cnt_low
-                cnt_high_all += cnt_high
-                cnt_mid_all += cnt_mid
+                totals['low'][i] += low
+                totals['high'][i] += high
 
-                row[f"course_{course}_high"] = cnt_low / cnt_all.count() if (cnt_all.count() != 0) else 0
-                row[f"course_{course}_low"] = cnt_high / cnt_all.count() if (cnt_all.count() != 0) else 0
-                row[f"course_{course}_mid"] = cnt_mid / cnt_all.count() if cnt_all.count() != 0 else 0
-            
-            row["all_high"] = cnt_high_all / cnt_all_all if cnt_all_all != 0 else 0
-            row["all_low"] = cnt_low_all / cnt_all_all if cnt_all_all != 0 else 0
-            row["all_mid"] = cnt_mid_all / cnt_all_all if cnt_all_all != 0 else 0
+                row[f'course_{course}_high'] = high / total if total else 0
+                row[f'course_{course}_low'] = low / total if total else 0
+                row[f'course_{course}_mid'] = mid / total if total else 0
+
+            total = totals['total']
+            low = totals['low'][i]
+            high = totals['high'][i]
+
+            row['all_high'] = high / total if total else 0
+            row['all_low'] = low / total if total else 0
+            row['all_mid'] = (total - low - high) / total if total else 0
+
             bar_data.append(row)
 
-        response_data = {"ok": True, "data": bar_data}
-        return JsonResponse(response_data)
-    except Exception as e:
-        return JsonResponse({"ok": False, "message": str(e)}, status=500)
+        return JsonResponse({'ok': True, 'data': bar_data})
 
+    except Exception as e:
+        traceback.print_exc()
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
 
 scores = {
     'неудовл.': 2,
@@ -431,76 +525,7 @@ def get_scores_result(request):
         traceback.print_exc()
         return JsonResponse({"ok": False, "message": str(e)}, status=500)
 
-
-
-def calc_boxplot(values, ids):
-    vals_with_ids = [
-        (v, i) for v, i in zip(values, ids)
-        if v is not None and v > 0 and (v < 300 or v > 700)
-    ]
-    if not vals_with_ids:
-        return None, []
-
-    arr = np.array([v for v, _ in vals_with_ids])
-    q1  = np.percentile(arr, 25)
-    q3  = np.percentile(arr, 75)
-    iqr = q3 - q1
-    lo  = q1 - 1.5 * iqr
-    hi  = q3 + 1.5 * iqr
-
-    non_outliers = arr[(arr >= lo) & (arr <= hi)]
-    outliers = [
-        {'y': int(v), 'id': pid}
-        for v, pid in vals_with_ids
-        if v < lo or v > hi
-    ]
-
-    return [
-        int(np.min(non_outliers)) if len(non_outliers) > 0 else int(np.min(arr)),
-        int(q1),
-        int(np.percentile(arr, 50)),
-        int(q3),
-        int(np.max(non_outliers)) if len(non_outliers) > 0 else int(np.max(arr)),
-    ], outliers
-
-
-
-def get_data_boxplot(request):
-    try:
-        inst = request.GET.get('institute')
-        spec = request.GET.get('specialty')
-        year = request.GET.get('year')
-
-        base_filter = {}
-        if inst: base_filter['res_institution__inst_name'] = inst
-        if spec: base_filter['res_edu_specialty__spec_name'] = spec
-        if year: base_filter['res_year'] = year
-        
-        data_all = list(  
-            Results.objects.filter(**base_filter)
-            .values('res_participant_id', *COMP.list) 
-        )
-        data = []
-        for f in COMP.list:
-            values = [row[f] for row in data_all]
-            ids    = [row['res_participant_id'] for row in data_all]
-            box, outliers = calc_boxplot(values, ids)
-            if box:
-                data.append({
-                    'comp': f,
-                    'box': box,  # min, q1, median, q3, max
-                    'out': outliers  # выбросы
-                })
-        response_data = {"ok": True, "data": data}
-        return JsonResponse(response_data) 
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({"ok": False, "message": str(e)}, status=500)
-
-
-
-def get_grades_competency_correlation_v0(request):  # review need for this?
+def get_grades_competency_correlation_v0(request): 
     try:
         # 1. Чтение фильтров из запроса
         inst = request.GET.get('institute')
