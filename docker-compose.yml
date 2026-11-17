@@ -1,14 +1,17 @@
-version: "3.8"
 services:
   db:
     image: postgres:18
     container_name: postgres
     restart: unless-stopped
 
+    # DB_PASSWORD и прочие DB_* берутся из env-файла бэкенда
+    env_file: ./backend/.env
+
     environment:
       POSTGRES_DB: studportrait
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Нужен только при первичной инициализации
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-}
 
     volumes:
       - postgres_data:/var/lib/postgresql
@@ -25,15 +28,16 @@ services:
 
     restart: unless-stopped
 
+    # DB_NAME/DB_USER/DB_PASSWORD берутся из env-файла бэкенда,
+    # ниже переопределяются только переменные, специфичные для контейнера.
+    env_file: ./backend/.env
+
     environment:
       DJANGO_SETTINGS_MODULE: studportrait.settings
       PYTHONUNBUFFERED: "1"
 
       DB_HOST: pgbouncer
       DB_PORT: "5432"
-      DB_NAME: studportrait
-      DB_USER: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
       DB_CONN_MAX_AGE: "60"
       REDIS_URL: redis://redis:6379/1
       USE_REDIS_CACHE: "1"
@@ -59,7 +63,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: ${VITE_API_URL}
+        VITE_API_URL: ${VITE_API_URL:-}
 
     restart: unless-stopped
 
@@ -69,21 +73,26 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+
   pgbouncer:
     image: edoburu/pgbouncer:latest
     container_name: pgbouncer
     restart: unless-stopped
 
+    # Свой entrypoint: образ пишет пароль в userlist как md5-хэш, а Postgres 18
+    # принимает только SCRAM. Здесь userlist с plaintext — pgbouncer сам делает SCRAM.
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    volumes:
+      - ./backend/pgbouncer/entrypoint.sh:/entrypoint.sh:ro
+
+    # DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD берутся из env-файла бэкенда.
+    env_file: ./backend/.env
+
     environment:
       DB_HOST: db
-      DB_PORT: "5432"
-      DB_USER: postgres
-      DB_PASSWORD: ${DB_PASSWORD}
       POOL_MODE: transaction
       MAX_CLIENT_CONN: "1000"
       DEFAULT_POOL_SIZE: "25"
-      SERVER_RESET_QUERY: DISCARD ALL
-      ADMIN_USERS: postgres
 
     depends_on:
       db:
