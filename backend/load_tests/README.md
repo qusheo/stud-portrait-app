@@ -51,3 +51,13 @@ run.bat
 ```
 
 Результаты прогонов (`.log`) сохраняются в `load_tests/results` и не добавляются в Git.
+
+## Поиск точки деградации (stress)
+
+`stress_shape.py` — ступенчатый профиль нагрузки: 10 → 25 → 50 → 100 → 200 → 400 пользователей, по 150 секунд на ступень, разгон 10 пользователей в секунду. Подключается вторым файлом к сценариям:
+
+```cmd
+.venv\Scripts\python -m locust -f load_tests\scenarios_locustfile.py,load_tests\stress_shape.py --host http://localhost:8000 --headless --csv=load_tests\results\stress --html=load_tests\results\stress.html
+```
+
+Точку деградации смотрят по `stress_stats_history.csv`: ступень, на которой p95 начинает расти непропорционально нагрузке или появляются ошибки, — предел текущей конфигурации сервера. Шаги и длительность меняются в `StepLoadShape`.

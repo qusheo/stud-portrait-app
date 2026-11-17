@@ -29,16 +29,20 @@ services:
       DJANGO_SETTINGS_MODULE: studportrait.settings
       PYTHONUNBUFFERED: "1"
 
-      DB_HOST: db
+      DB_HOST: pgbouncer
       DB_PORT: "5432"
       DB_NAME: studportrait
       DB_USER: postgres
       DB_PASSWORD: ${DB_PASSWORD}
+      DB_CONN_MAX_AGE: "60"
       REDIS_URL: redis://redis:6379/1
+      USE_REDIS_CACHE: "1"
 
     depends_on:
       db:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
 
     healthcheck:
       test:
@@ -60,11 +64,31 @@ services:
     restart: unless-stopped
 
     ports:
-      - "80:80"
+      - "8080:80"
 
     depends_on:
       backend:
         condition: service_healthy
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: pgbouncer
+    restart: unless-stopped
+
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: "1000"
+      DEFAULT_POOL_SIZE: "25"
+      SERVER_RESET_QUERY: DISCARD ALL
+      ADMIN_USERS: postgres
+
+    depends_on:
+      db:
+        condition: service_healthy
+
   redis:
     image: redis:7-alpine
     container_name: redis

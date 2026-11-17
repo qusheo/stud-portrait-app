@@ -1,20 +1,15 @@
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    libpq-dev \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y gcc g++ libpq-dev postgresql-client && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir \
-    torch==2.8.0+cpu \
-    --index-url https://download.pytorch.org/whl/cpu
-    
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Кэш pip монтируется в BuildKit-кэш: wheel torch (~200 МБ) и зависимости
+# не качаются заново при каждой пересборке.
+RUN --mount=type=cache,target=/root/.cache/pip pip install torch==2.8.0+cpu --index-url https://download.pytorch.org/whl/cpu
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
 COPY . .
 

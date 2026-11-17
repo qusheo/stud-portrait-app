@@ -69,6 +69,22 @@ class Migration(migrations.Migration):
     dependencies = [('portrait', '0012_teacher_table_and_seed')]
 
     operations = [
+        # Таблица institutions управляется вне Django (managed = False) и на части
+        # стендов создана без PRIMARY KEY, без которого FK ниже не создаётся.
+        migrations.RunSQL(
+            """
+            DO $$
+            BEGIN
+                IF NOT EXISTS (
+                    SELECT 1 FROM pg_constraint
+                    WHERE conrelid = 'institutions'::regclass AND contype = 'p'
+                ) THEN
+                    ALTER TABLE institutions ADD PRIMARY KEY (inst_id);
+                END IF;
+            END $$;
+            """,
+            reverse_sql=migrations.RunSQL.noop,
+        ),
         migrations.CreateModel(
             name='TeacherEducation',
             fields=[
