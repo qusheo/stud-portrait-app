@@ -25,7 +25,10 @@ function UserReportView() {
     useEffect(() => {
         const fetchData = async () => {
             StudentService.getStudentResults(studentId)
-                .then(data => setStudResults({ student: data.student, results: data.results }))
+                .then(data => {
+                    console.log('Ответ student-results:', data);
+                    setStudResults({ student: data.student, results: data.results });
+                })
                 .catch(error => console.error(error))
                 .finally(() => setLoading(false));
         };
@@ -89,36 +92,28 @@ function UserReportView() {
 
     return (
         <div className="UserReportView">
-            <SidebarLayout style={LAYOUT_STYLE.NORMAL}>
-                <Header
-                    title="Результаты"
-                    name={`${studResults?.student?.stud_name}`}
-                />
-                <Sidebar links={linkList} />
-                <Content>
-                    <Title title={reportTitle} />
-                    <div className="report-container">
-                        {loading ? (
-                            <Loading type="table" title="Загрузка данных..." />
-                        ) : tablesData.length > 0 ? (
-                            tablesData.map((table, index) => (
-                                <div
-                                    key={index}
-                                    className="category-table-section"
-                                >
-                                    <Subtitle text={table.title} />
-                                    <ResultTable
-                                        data={table.tableData}
-                                        years={table.years}
-                                    />
-                                </div>
-                            ))
-                        ) : (
-                            <Empty type="table" title="Нет данных для отображения" />
-                        )}
-                    </div>
-                </Content>
-            </SidebarLayout>
+            <Title title={reportTitle || 'Результаты'} />
+
+            <div className="report-container">
+                {loading ? (
+                    <Loading type="table" title="Загрузка данных..." />
+                ) : tablesData.length > 0 ? (
+                    tablesData.map((table, index) => (
+                        <div
+                            key={index}
+                            className="category-table-section"
+                        >
+                            <Subtitle text={table.title} />
+                            <ResultTable
+                                data={table.tableData}
+                                years={table.years}
+                            />
+                        </div>
+                    ))
+                ) : (
+                    <Empty type="table" title="Нет данных для отображения" />
+                )}
+            </div>
         </div>
     );
 }

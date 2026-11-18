@@ -9,7 +9,12 @@ import { useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ToggleLeft from '@icons/toggle_left.png';
 import ToggleRight from '@icons/toggle_right.png';
-import { LINK_TREE } from '@constants';
+import {
+    LINK_TREE,
+    SUPER_LINK_TREE,
+    STUDENT_LINK_TREE,
+    TEACHER_LINK_TREE
+} from '../constants/linkTree.js';
 import { filterLinkTree } from '../user/entities/permissions.ts';
 import { ACCOUNT_TYPE_LABELS } from '../user/entities/accountType.ts';
 import { useUserStore } from '../user/store/userStore.js';
@@ -27,9 +32,43 @@ export const LAYOUT_STYLE = {
  * @param {boolean} [props.sidebar=true] Показывает боковую панель.
  */
 export function SidebarLayout({ style = LAYOUT_STYLE.NORMAL, sidebar = true }) {
+    const location = useLocation();
+    const accountType = useUserStore(state => state.accountType);
+    const userId = useUserStore(state => state.userId);
+    const participantId = useUserStore(state => state.participantId);
+
+    let linkTree = LINK_TREE;
+
+    if (location.pathname.startsWith('/super')) {
+        linkTree = SUPER_LINK_TREE;
+    } else if (accountType === 'student') {
+        linkTree = STUDENT_LINK_TREE.map(category => ({
+            ...category,
+            links: category.links.map(link => {
+                const reportRoutes = {
+                    '/user/competences': `/user/${participantId}/report/competences`,
+                    '/user/motivators': `/user/${participantId}/report/motivators`,
+                    '/user/values': `/user/${participantId}/report/values`
+                };
+
+                if (link.to === '/user/profile') {
+                    return { ...link, to: `/user/${participantId}` };
+                }
+
+                if (reportRoutes[link.to]) {
+                    return { ...link, to: reportRoutes[link.to] };
+                }
+
+                return link;
+            })
+        }));
+    } else if (accountType === 'teacher') {
+        linkTree = TEACHER_LINK_TREE;
+    }
+
     return (
         <div className={`SidebarLayout style--${style}`}>
-            {sidebar && <Sidebar linkTree={LINK_TREE} />}
+            {sidebar && <Sidebar linkTree={linkTree} />}
             <Content />
         </div>
     );
@@ -121,6 +160,7 @@ export function Sidebar({ links, linkTree }) {
     const permissions = useUserStore(state => state.permissions);
     const accountType = useUserStore(state => state.accountType);
     const userId = useUserStore(state => state.userId);
+    const participantId = useUserStore(state => state.participantId);
     const isAuthenticated = useUserStore(state => state.isAuthenticated);
     const visibleLinkTree = React.useMemo(() => (linkTree ? filterLinkTree(linkTree, permissions) : null), [linkTree, permissions]);
 
@@ -141,12 +181,14 @@ export function Sidebar({ links, linkTree }) {
     }
 
     function onAccountClick() {
-        if (!isAuthenticated || !userId) {
+        const profileId = accountType === 'student' ? participantId : userId;
+
+        if (!isAuthenticated || !profileId) {
             toast.error('Не выполнен вход в аккаунт');
             return;
         }
 
-        navigate(`/user/${userId}`);
+        navigate(`/user/${profileId}`);
     }
     if (!isOpen) {
         return (

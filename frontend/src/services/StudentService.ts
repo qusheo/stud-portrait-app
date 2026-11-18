@@ -52,8 +52,11 @@ class StudentService extends BaseService {
     /**
      * Получение списка студентов
      */
-    getStudentsList(search: string = '', limit: number = 50) {
-        return this.request(() => Api.getStudentsList(search, limit), 'Ошибка загрузки студентов');
+    getStudentsList(search = '', limit = 50, studentId = null) {
+    return this.request(
+        () => Api.getStudentsList(search, limit, studentId),
+        'Ошибка загрузки списка студентов'
+    );
     }
 
     /**

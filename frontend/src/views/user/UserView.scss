@@ -2,10 +2,13 @@
     &-body {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        margin: auto;
-        padding: 10px;
+        justify-content: flex-start;
+        align-items: stretch;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 10px 12px;
     }
     .Header {
         cursor: default;

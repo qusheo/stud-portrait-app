@@ -663,13 +663,16 @@ async getCsrfToken() {
         return promise;
     }
 
-    getStudentsList(search = '', limit = 50) {
-        const params = new URLSearchParams();
-        if (search) params.append('search', search);
-        params.append('limit', limit);
-        const url = `${HOST}/portrait/students/list/?${params.toString()}`;
-        const promise = fetch(url);
-        return promise;
+    getStudentsList(search = '', limit = 50, studentId = null) {
+    const params = new URLSearchParams();
+
+    if (search) params.append('search', search);
+    if (studentId !== null) params.append('student_id', studentId);
+
+    params.append('limit', limit);
+
+    const url = `${HOST}/portrait/students/list/?${params.toString()}`;
+    return fetch(url);
     }
 
     /** @param {StudentRequirementsInput} [input={}] */
