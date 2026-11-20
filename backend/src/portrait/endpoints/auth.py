@@ -198,30 +198,59 @@ def logout_view(request):
     })
 
 
+
 @require_GET
 def get_user_permissions(request):
-    """Возвращает текущую роль, права и ID связанного участника."""
     if not request.user.is_authenticated:
         return JsonResponse({
             "ok": False,
-            "is_authenticated": False,
-            "message": "Требуется авторизация",
+            "error": "Пользователь не авторизован"
         }, status=401)
 
     account_type = get_account_type(request.user)
-
     if account_type is None:
         return JsonResponse({
             "ok": False,
-            "is_authenticated": True,
-            "message": "Для учётной записи не настроена роль StudPortrait",
+            "error": "Неизвестный тип учётной записи"
         }, status=403)
 
-    permissions = dict.fromkeys(
-        ACCESS_PERMISSION_KEYS,
-        account_type == PortraitUser.AccountType.ADMIN,
-    )
+    permissions = dict.fromkeys(ACCESS_PERMISSION_KEYS, False)
 
+    # Администратор и ЦК имеют полный административный доступ.
+    if account_type in (
+        PortraitUser.AccountType.ADMIN,
+        PortraitUser.AccountType.CENTRE,
+    ):
+        permissions = dict.fromkeys(ACCESS_PERMISSION_KEYS, True)
+
+    # АУП получает аналитические права, но не служебные разделы.
+    elif account_type == PortraitUser.AccountType.INSTITUTION_ADMIN:
+        institution_admin_permissions = (
+            "canViewStats",
+            "canViewGeography",
+            "canViewSearch",
+            "canViewGrouping",
+            "canViewResults",
+            "canViewCourses",
+            "canViewMotivators",
+            "canViewCompetences",
+            "canViewPortrait",
+            "canViewTeachers",
+            "canViewAnalysisDisciplines",
+            "canViewAP",
+            "canViewAnalysisAdvanced",
+            "canViewAiAnalytics",
+            "canViewEduProfiles",
+            "canViewTransferAnalysis",
+            "canViewAnomalousStudents",
+            "canViewDuplicateAccounts",
+            "canViewHelp",
+        )
+        permissions.update(
+            dict.fromkeys(institution_admin_permissions, True)
+        )
+
+    # Все роли могут открывать собственный профиль и собственный отчёт.
     permissions.update({
         "canViewOwnPortrait": True,
         "canViewOwnReport": True,

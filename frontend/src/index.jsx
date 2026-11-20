@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
@@ -39,7 +40,7 @@ import UserReportView from './views/user/UserReportView';
 import SuperAuditView from './views/super/SuperAuditView';
 import SuperSqlView from './views/super/SuperSqlView';
 import SuperUploadView from './views/super/SuperUploadView';
-import { SidebarLayout, Content } from '@components/SidebarLayout';
+import { SidebarLayout } from '@components/SidebarLayout';
 import PermissionGuard from './user/components/PermissionGuard.jsx';
 import { Permission } from './user/entities/permissions.ts';
 import reportWebVitals from './reportWebVitals';
@@ -84,7 +85,8 @@ const router = createBrowserRouter([
                         path: '/admin/analysis/edu-profiles',
                         element: <AdminAnalysisEduProfilesView />,
                         handle: { permission: Permission.EDU_PROFILES }
-                    },/* 
+                    },
+                    /*
                     {
                         path: '/admin/analysis/transfered-students',
                         element: <AdminTransferAnalysisView />,
@@ -99,7 +101,8 @@ const router = createBrowserRouter([
                         path: '/admin/analysis/anomalous-students',
                         element: <AdminAnomalousStudentView />,
                         handle: { permission: Permission.ANOMALOUS_STUDENTS }
-                    }, */
+                    },
+                    */
                     { path: '/admin/courses', element: <AdminCoursesView />, handle: { permission: Permission.COURSES } },
                     { path: '/admin/grouping', element: <AdminGroupedDiagramsView />, handle: { permission: Permission.GROUPING } },
                     { path: '/admin/competences', element: <AdminCompetencesView />, handle: { permission: Permission.COMPETENCES } },
@@ -107,14 +110,11 @@ const router = createBrowserRouter([
                     { path: '/admin/AP', element: <AdminAPView />, handle: { permission: Permission.AP } },
                     { path: '/admin/portrait', element: <AdminPortraitView />, handle: { permission: Permission.PORTRAIT } },
                     { path: '/admin/teachers', element: <AdminTeachersView />, handle: { permission: Permission.TEACHERS } },
+
                     { path: '/super/audit', element: <SuperAuditView />, handle: { permission: Permission.AUDIT } },
                     { path: '/super/upload', element: <SuperUploadView />, handle: { permission: Permission.UPLOAD } },
-                    { path: '/super/sql', element: <SuperSqlView />, handle: { permission: Permission.SQL } }
-                ]
-            },
-            {
-                element: <Content />,
-                children: [
+                    { path: '/super/sql', element: <SuperSqlView />, handle: { permission: Permission.SQL } },
+
                     { path: '/user/:userId', element: <UserView />, handle: { permission: Permission.OWN_PORTRAIT } },
                     {
                         path: '/user/:userId/report/:reportType',
@@ -131,8 +131,10 @@ const PageTitle = () => {
     const pageName = usePageStore(state => state.pageName);
     document.title = `${pageName ?? 'StudPortrait'}`;
     return;
-}
+};
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>

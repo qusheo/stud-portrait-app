@@ -134,11 +134,13 @@ def get_students_list(request):
     try:
         search = request.GET.get('search', '').strip()
         limit = int(request.GET.get('limit', 50))
+        student_id = request.GET.get('student_id')
 
         queryset = ParticipantsWithNames.objects.select_related(
             'part_institution', 'part_spec'
         )
-
+        if student_id:
+            queryset = queryset.filter(part_id=student_id)
         if search:
             search_filter = (
                 Q(student_name__icontains=search) |

@@ -53,3 +53,65 @@ export const SUPER_LINK_TREE = [
         ]
     }
 ];
+
+/** Link tree for student navigation. */
+export const STUDENT_LINK_TREE = [
+    {
+        category: 'Мой профиль',
+        links: [
+            { title: 'Личные данные', to: '/user/profile' },
+            { title: 'Компетенции', to: '/user/competences' },
+            { title: 'Мотиваторы', to: '/user/motivators' },
+            { title: 'Ценности', to: '/user/values' },
+            { title: 'Образование', to: '/user/education' }
+        ]
+    },
+    {
+        category: 'Подбор',
+        links: [
+            { title: 'Подбор студентов', to: '/user/matching/students' },
+            { title: 'Подбор преподавателя', to: '/user/matching/teachers' }
+        ]
+    },
+    {
+        category: 'Проекты',
+        links: [
+            { title: 'Каталог проектов', to: '/user/projects' },
+            { title: 'Мои проекты', to: '/user/projects/my' },
+            { title: 'Создать проект', to: '/user/projects/create' }
+        ]
+    },
+    {
+        category: 'Другие профили',
+        links: [
+            { title: 'Студенты', to: '/user/students' },
+            { title: 'Преподаватели', to: '/user/teachers' }
+        ]
+    }
+];
+
+/** Link tree for teacher navigation. */
+export const TEACHER_LINK_TREE = [
+    {
+        category: 'Мой профиль',
+        links: [
+            { title: 'Личные данные', to: '/teacher/profile' },
+            { title: 'Компетенции', to: '/teacher/competences' },
+            { title: 'Мотиваторы', to: '/teacher/motivators' },
+            { title: 'Образование', to: '/teacher/education' }
+        ]
+    },
+    {
+        category: 'Проекты',
+        links: [
+            { title: 'Мои проекты', to: '/teacher/projects' },
+            { title: 'Создать проект', to: '/teacher/projects/create' }
+        ]
+    },
+    {
+        category: 'Подбор',
+        links: [
+            { title: 'Подбор студентов', to: '/teacher/matching/students' }
+        ]
+    }
+];

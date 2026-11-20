@@ -1,20 +1,20 @@
+
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useUserStore } from '../../user/store/userStore.js';
 
 import { StudentService } from '@services';
 import { COMPETENCIES_NAMES, MOTIVATORS_NAMES, VALUES_NAMES, COURSES_NAMES } from '@constants';
 import { getAvailableProfiles, getAvailableCategories, getAvailableYears, getCategoryDataForYear } from '@utils/utilities';
 
-import { Content, Header, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
+import { Content, LAYOUT_STYLE, Sidebar, SidebarLayout } from '@components/SidebarLayout';
 import StudentComparisonStats from '@components/StudentComparisonStats';
 import StudentInterestsModal from './components/InterestsModal';
 import Button from '@components/ui/Button';
 import { STUDENT_PALETTE } from '@components/ui/palette';
 import Select, { Option } from '@components/ui/Select';
-import TabButton from '@components/ui/TabButton';
 import Loading from '@components/ui/Loading';
 import Empty from '@components/ui/Empty';
-import FlexRow, { ALIGN, JUSTIFY, WRAP } from '@components/FlexRow.jsx';
 import { toast } from 'react-toastify';
 
 import ChartSwitcher from '@components/charts/ChartSwitcher';
@@ -27,12 +27,15 @@ import './UserView.scss';
 
 function UserView() {
     const { userId: studentId } = useParams();
+    const participantId = useUserStore(state => state.participantId);
+    const isOwnProfile = Number(studentId) === Number(participantId);
     const [studResults, setStudResults] = useState();
+    const [publicStudent, setPublicStudent] = useState(null);
     const [chartsData, setChartsData] = useState([]);
     const [availableYears, setAvailableYears] = useState([]);
     const [selectedYear, setSelectedYear] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('personal');
+    const [activeTab] = useState('personal');
 
     const [analyticsData, setAnalyticsData] = useState(null);
     const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -52,7 +55,7 @@ function UserView() {
     const [skills, setSkills] = useState('');
     const [saving, setSaving] = useState(false);
 
-	const [interestsModalOpen, setInterestsModalOpen] = useState(false);
+    const [interestsModalOpen, setInterestsModalOpen] = useState(false);
 
     useEffect(() => {
         if (showAnalytics && selectedYear) {
@@ -62,26 +65,49 @@ function UserView() {
 
     useEffect(() => {
         const fetchData = async () => {
-            StudentService.getStudentResults(studentId)
-                .then(data => {
-                    setStudResults({ student: data.student, results: data.results });
+            setLoading(true);
+
+            try {
+                // Загружаем общедоступные сведения о студенте по точному ID.
+                const publicResponse = await StudentService.getStudentsList(
+                    '',
+                    1,
+                    studentId
+                );
+
+                setPublicStudent(publicResponse.data?.[0] || null);
+
+                // Приватные результаты загружаем только владельцу профиля.
+                if (isOwnProfile) {
+                    const data = await StudentService.getStudentResults(studentId);
+
+                    setStudResults({
+                        student: data.student,
+                        results: data.results
+                    });
+
                     prepareLgmData(data.results);
-                    // Если в базе есть поля interests и skills, они подтянутся сюда
+
                     if (data.student) {
                         setInterests(data.student.interests || '');
                         setSkills(data.student.skills || '');
                     }
-                })
-                .catch(error => console.error(error))
-                .finally(() => setLoading(false));
+                } else {
+                    setStudResults(null);
+                    setInterests('');
+                    setSkills('');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки профиля студента:', error);
+            } finally {
+                setLoading(false);
+            }
         };
+
         if (studentId) {
             fetchData();
-            StudentService.getStudentById(studentId).catch(error =>
-                console.error('Ошибка загрузки дополнительных данных студента:', error)
-            );
         }
-    }, [studentId]);
+    }, [studentId, isOwnProfile]);
 
     useEffect(() => {
         const defineAvailableData = () => {
@@ -109,7 +135,8 @@ function UserView() {
     }, [selectedYear, studResults]);
 
     const loadComparisonStats = async () => {
-        if (!studentId || !selectedYear) return;
+        if (!isOwnProfile || !studentId || !selectedYear) return;
+
         setLoadingComparison(true);
         StudentService.getStudentComparisonStats(studentId, selectedYear)
             .then(data => setComparisonStats(data.data))
@@ -118,10 +145,10 @@ function UserView() {
     };
 
     useEffect(() => {
-        if (selectedYear) {
+        if (isOwnProfile && selectedYear) {
             loadComparisonStats();
         }
-    }, [selectedYear]);
+    }, [selectedYear, isOwnProfile]);
 
     const updateChartsData = year => {
         if (!studResults?.results?.length || !year) return;
@@ -227,7 +254,7 @@ function UserView() {
     const handleSaveProfile = async () => {
         setSaving(true);
         try {
-            await new Promise(resolve => setTimeout(resolve, 600)); 
+            await new Promise(resolve => setTimeout(resolve, 600));
             toast.success('Данные сохранены (тестовая заглушка)!');
             setIsEditing(false);
             setStudResults(prev => ({
@@ -265,42 +292,43 @@ function UserView() {
     const motCharts = chartsData.filter(c => c.profile.key === 'motivators');
     const valCharts = chartsData.filter(c => c.profile.key === 'values');
 
+    const profileStudent = isOwnProfile
+        ? {
+            name: studResults?.student?.stud_name,
+            id: studResults?.student?.stud_id,
+            institution: studResults?.student?.institution,
+            specialty: studResults?.student?.specialty,
+            course: studResults?.student?.course,
+            eduLevel: studResults?.student?.edu_level
+        }
+        : {
+            name: publicStudent?.name,
+            id: publicStudent?.id,
+            institution: publicStudent?.institution,
+            specialty: publicStudent?.specialty,
+            course: publicStudent?.course,
+            eduLevel: null
+        };
+
+    
     return (
         <div className="UserView">
-            <Header
-                title="Профиль Студента"
-                name={`${studResults?.student?.stud_name}`}
-            />
             <div className="UserView-body">
-                <FlexRow margin="0 0 24px 0" wrap={WRAP.DO} className="tabs-row">
-                    <TabButton text="Мои данные" onClick={() => setActiveTab('personal')} isActive={activeTab === 'personal'} />
-                    <TabButton text="Компетенции" onClick={() => setActiveTab('competences')} isActive={activeTab === 'competences'} />
-                    <TabButton text="Мотиваторы" onClick={() => setActiveTab('motivators')} isActive={activeTab === 'motivators'} />
-                    <TabButton text="Ценности" onClick={() => setActiveTab('values')} isActive={activeTab === 'values'} />
-                    <TabButton text="Образование" onClick={() => setActiveTab('education')} isActive={activeTab === 'education'} />
-                </FlexRow>
-
-                {activeTab === 'personal' && (
+                {loading ? (
+                    <Loading type="charts" title="Загрузка профиля..." />
+                ) : (
                     <div className="personal-tab">
-                        <div className="main-controls" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            {availableYears.length > 0 && (
-                                <div className="year-selector">
-                                    <span className="year-label" style={{ marginRight: '10px' }}>Год данных:</span>
-                                    <Select initValue={selectedYear} onChange={setSelectedYear}>
-                                        {availableYears.map(year => (
-                                            <Option value={year} label={year} key={year} />
-                                        ))}
-                                    </Select>
+                        <div className="main-controls">
+                            {isOwnProfile && (
+                                <div className="action-buttons">
+                                    <Button
+                                        text={resumeGenerating ? 'Загрузка...' : 'Скачать резюме DOCX'}
+                                        onClick={generateDocxResume}
+                                        disabled={resumeGenerating}
+                                        palette={STUDENT_PALETTE.GREEN}
+                                    />
                                 </div>
                             )}
-                            <div className="action-buttons">
-                                <Button
-                                    text={resumeGenerating ? 'Загрузка...' : 'Скачать резюме DOCX'}
-                                    onClick={generateDocxResume}
-                                    disabled={resumeGenerating}
-                                    palette={STUDENT_PALETTE.GREEN}
-                                />
-                            </div>
                         </div>
 
                         <div className="layout-grid-personal">
@@ -309,324 +337,123 @@ function UserView() {
                                     <div className="profile-header">
                                         <div className="avatar">
                                             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                                                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                                                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                                                <path d="M6 12v5c3 3 9 3 12 0v-5" />
                                             </svg>
                                         </div>
                                         <div className="profile-title">
-                                            <h3>{studResults?.student?.stud_name || 'Имя не указано'}</h3>
-                                            <p>{studResults?.student?.specialty || 'Направление не указано'}</p>
+                                            <h3>{profileStudent.name || 'Имя не указано'}</h3>
+                                            <p>{profileStudent.specialty || 'Направление не указано'}</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="profile-info-grid">
                                         <div className="info-item">
                                             <span className="info-label">ID студента:</span>
-                                            <span className="info-value">{studResults?.student?.stud_id || 'Нет данных'}</span>
+                                            <span className="info-value">{profileStudent.id || 'Нет данных'}</span>
                                         </div>
-                                        {studResults?.student?.institution && (
+
+                                        {profileStudent.institution && (
                                             <div className="info-item">
                                                 <span className="info-label">Вуз:</span>
-                                                <span className="info-value">{studResults.student.institution}</span>
+                                                <span className="info-value">{profileStudent.institution}</span>
                                             </div>
                                         )}
-                                        {studResults?.student?.course && (
+
+                                        {profileStudent.course && (
                                             <div className="info-item">
                                                 <span className="info-label">Курс:</span>
-                                                <span className="info-value">{studResults.student.course}</span>
+                                                <span className="info-value">{profileStudent.course}</span>
                                             </div>
                                         )}
-                                        {studResults?.student?.edu_level && (
+
+                                        {profileStudent.eduLevel && (
                                             <div className="info-item">
                                                 <span className="info-label">Уровень образования:</span>
-                                                <span className="info-value">{studResults.student.edu_level}</span>
+                                                <span className="info-value">{profileStudent.eduLevel}</span>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Редактируемый блок */}
-                                    <div className="editable-section">
-                                        <div className="edit-header">
-                                            <h4>Интересы</h4>
-                                        </div>
-										
-										<Button onClick={() => setInterestsModalOpen(true)} text={'Изменить интересы'}/>
+                                    {isOwnProfile && (
+                                        <div className="editable-section">
+                                            <div className="edit-header">
+                                                <h4>Интересы</h4>
+                                            </div>
 
-                                        <p className="read-only-text">{interests || 'Нет данных об интересах'}</p>
-
-                                        <div className="edit-header" style={{ marginTop: '15px' }}>
-                                            <h4>Навыки</h4>
-                                        </div>
-                                        {isEditing ? (
-                                            <textarea 
-                                                className="edit-textarea" 
-                                                value={skills} 
-                                                onChange={(e) => setSkills(e.target.value)}
-                                                placeholder="Введите ваши навыки..."
+                                            <Button
+                                                onClick={() => setInterestsModalOpen(true)}
+                                                text="Изменить интересы"
                                             />
-                                        ) : (
-                                            <p className="read-only-text">{skills || 'Нет данных о навыках'}</p>
-                                        )}
-                                        
-                                        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+
+                                            <p className="read-only-text">
+                                                {interests || 'Нет данных об интересах'}
+                                            </p>
+
+                                            <div className="edit-header" style={{ marginTop: '15px' }}>
+                                                <h4>Навыки</h4>
+                                            </div>
+
                                             {isEditing ? (
-                                                <>
-                                                    <Button text="Отмена" onClick={() => setIsEditing(false)} palette={STUDENT_PALETTE.RED} />
-                                                    <Button text={saving ? 'Сохранение...' : 'Сохранить'} onClick={handleSaveProfile} disabled={saving} palette={STUDENT_PALETTE.GREEN} />
-                                                </>
+                                                <textarea
+                                                    className="edit-textarea"
+                                                    value={skills}
+                                                    onChange={e => setSkills(e.target.value)}
+                                                    placeholder="Введите ваши навыки..."
+                                                />
                                             ) : (
-                                                <Button text="Редактировать" onClick={() => setIsEditing(true)} palette={STUDENT_PALETTE.BLUE} />
+                                                <p className="read-only-text">
+                                                    {skills || 'Нет данных о навыках'}
+                                                </p>
                                             )}
+
+                                            <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                                                {isEditing ? (
+                                                    <>
+                                                        <Button
+                                                            text="Отмена"
+                                                            onClick={() => setIsEditing(false)}
+                                                            palette={STUDENT_PALETTE.RED}
+                                                        />
+                                                        <Button
+                                                            text={saving ? 'Сохранение...' : 'Сохранить'}
+                                                            onClick={handleSaveProfile}
+                                                            disabled={saving}
+                                                            palette={STUDENT_PALETTE.GREEN}
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <Button
+                                                        text="Редактировать"
+                                                        onClick={() => setIsEditing(true)}
+                                                        palette={STUDENT_PALETTE.BLUE}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
+
                             <div className="col-right">
-                                <div className="dashboard-card" style={{ background: '#fff', padding: '24px', borderRadius: '12px', border: '1px solid #f1f5f9' }}>
-                                    <h3 className="card-title" style={{ margin: '0 0 20px 0', fontSize: '18px', color: '#1e293b', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>Дополнительная информация</h3>
+                                <div className="dashboard-card">
+                                    <h3 className="card-title">Дополнительная информация</h3>
                                     <Empty title="Здесь будет ваша активность" />
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
-
-                {activeTab === 'competences' && (
-                    <div className="competences-tab">
-                        <div className="action-buttons" style={{ marginBottom: '20px' }}>
-                            <Button
-                                text={analyticsLoading ? 'Загрузка...' : showAnalytics ? 'Скрыть аналитику' : 'Показать аналитику'}
-                                onClick={toggleAnalytics}
-                                disabled={analyticsLoading}
-                                palette={STUDENT_PALETTE.BLUE}
-                            />
-                        </div>
-
-                        {showAnalytics && analyticsData && (
-                            <div className="analytics-section">
-                                <div className="analytics-header">
-                                    <h2>Аналитика надпрофессиональных компетенций</h2>
-                                    <p className="analytics-description">Анализ результатов тестирования с рекомендациями по развитию</p>
-                                </div>
-
-                                {analyticsData.general_interpretation && (
-                                    <div className="general-interpretation">
-                                        <p>{analyticsData.general_interpretation}</p>
-                                    </div>
-                                )}
-
-                                <div className="analytics-cards-grid">
-                                    {analyticsData.competencies?.map(comp => {
-                                        if (!comp.ai) return null;
-                                        return (
-                                            <div key={comp.field} className="analytics-card">
-                                                <div className="analytics-card-header">
-                                                    <div className="competency-title">
-                                                        <h3>{comp.name}</h3>
-                                                    </div>
-                                                    <div className="score-badge">{comp.score}/800</div>
-                                                </div>
-                                                <div className="progress-bar">
-                                                    <div className="progress-fill" style={{ width: `${comp.percentage}%`, backgroundColor: comp.ai.color }}></div>
-                                                </div>
-                                                <div className="level-indicator" style={{ color: comp.ai.color }}>
-                                                    <strong>{comp.ai.level.toUpperCase()}</strong> уровень
-                                                    <span className="percentile">({comp.ai.percentile}-й процентиль)</span>
-                                                </div>
-                                                <div className="interpretation">
-                                                    <p>{comp.ai.interpretation}</p>
-                                                </div>
-                                                {comp.ai.recommendations && comp.ai.recommendations.length > 0 && (
-                                                    <div className="recommendations">
-                                                        <strong>Рекомендации:</strong>
-                                                        <ul>
-                                                            {comp.ai.recommendations.map((rec, idx) => (
-                                                                <li key={idx}>{rec}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="charts-grid">
-                            {loading ? (
-                                <Loading type="charts" title="Загрузка данных..." />
-                            ) : compCharts.length > 0 ? (
-                                compCharts.map((chart, index) => (
-                                    <div key={index} className="chart-card">
-                                        <div className="chart-header">
-                                            <h3>{chart.title}</h3>
-                                            {chart.year && <span className="chart-year">{chart.year}</span>}
-                                        </div>
-                                        <div className="chart-container">
-                                            <ChartSwitcher
-                                                seriesLabel={`${chart.year} год`}
-                                                seriesData={chart.data}
-                                                categories={chart.labels}
-                                                competencyKeys={chart.competencyKeys}
-                                            />
-                                        </div>
-                                    </div>
-                                ))
-                            ) : null}
-                            
-                            {competencyData.length > 0 && (
-                                <div className="planetary-chart-card">
-                                    <PlanetaryChart
-                                        title="Карта компетенций"
-                                        items={competencyData}
-                                        type="competency"
-                                        height={500}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        <StudentComparisonStats studentId={studentId} year={selectedYear} />
-
-                        <div className="student-vam-section">
-                            <h3>Value-Added (индивидуальный анализ)</h3>
-                            <div className="vam-controls">
-                                <label>Компетенция:</label>
-                                <Select initValue={vamCompetency} onChange={setVamCompetency}>
-                                    {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                        <Option value={key} label={name} key={key} />
-                                    ))}
-                                </Select>
-                            </div>
-                            <StudentVamChart studentId={studentId} competency={vamCompetency} />
-                        </div>
-
-                        <div className="student-lgm-section">
-                            <h3>Динамика развития компетенций (LGM)</h3>
-                            <div className="lgm-controls">
-                                <label>Компетенция:</label>
-                                <Select initValue={lgmCompetency} onChange={setLgmCompetency}>
-                                    {Object.entries(COMPETENCIES_NAMES).map(([key, name]) => (
-                                        <Option value={key} label={name} key={key} />
-                                    ))}
-                                </Select>
-                            </div>
-                            {lgmData.length === 0 ? (
-                                <Empty type="charts" title="Нет данных для отображения" />
-                            ) : (
-                                <StudentLgmChart
-                                    data={lgmData}
-                                    competency={lgmCompetency}
-                                    competencyLabel={COMPETENCIES_NAMES[lgmCompetency]}
-                                />
-                            )}
-                        </div>
-
-                        <div className="student-discipline-impact-section">
-                            <h3>Влияние дисциплин на ваши компетенции</h3>
-                            <StudentDisciplineImpact studentId={studentId} />
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'motivators' && (
-                    <div className="motivators-tab">
-                        <div className="charts-grid">
-                            {motCharts.map((chart, index) => (
-                                <div key={index} className="chart-card">
-                                    <div className="chart-header">
-                                        <h3>{chart.title}</h3>
-                                        {chart.year && <span className="chart-year">{chart.year}</span>}
-                                    </div>
-                                    <div className="chart-container">
-                                        <ChartSwitcher
-                                            seriesLabel={`${chart.year} год`}
-                                            seriesData={chart.data}
-                                            categories={chart.labels}
-                                            competencyKeys={chart.competencyKeys}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-
-                            {motivatorData.length > 0 ? (
-                                <div className="planetary-chart-card">
-                                    <PlanetaryChart
-                                        title="Карта мотиваторов"
-                                        items={motivatorData}
-                                        type="motivator"
-                                        height={500}
-                                    />
-                                </div>
-                            ) : motCharts.length === 0 && (
-                                <Empty type="charts" title="Нет данных по мотиваторам за выбранный год" />
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'values' && (
-                    <div className="values-tab">
-                        <div className="charts-grid">
-                            {valCharts.map((chart, index) => (
-                                <div key={index} className="chart-card">
-                                    <div className="chart-header">
-                                        <h3>{chart.title}</h3>
-                                        {chart.year && <span className="chart-year">{chart.year}</span>}
-                                    </div>
-                                    <div className="chart-container">
-                                        <ChartSwitcher
-                                            seriesLabel={`${chart.year} год`}
-                                            seriesData={chart.data}
-                                            categories={chart.labels}
-                                            competencyKeys={chart.competencyKeys}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-
-                            {valuesData.length > 0 ? (
-                                <div className="planetary-chart-card">
-                                    <PlanetaryChart
-                                        title="Карта ценностей"
-                                        items={valuesData}
-                                        type="value"
-                                        height={500}
-                                    />
-                                </div>
-                            ) : valCharts.length === 0 && (
-                                <Empty type="charts" title="Нет данных по ценностям за выбранный год" />
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'education' && (
-                    <div className="education-tab">
-                        {coursesData.length > 0 ? (
-                            <div className="charts-grid">
-                                <div className="planetary-chart-card">
-                                    <PlanetaryChart
-                                        title="Образовательные курсы"
-                                        items={coursesData}
-                                        type="course"
-                                        height={500}
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <Empty type="books" title="Нет данных об образовательных курсах" />
-                        )}
-                    </div>
-                )}
             </div>
-			<StudentInterestsModal
-				open={interestsModalOpen}
-				studentId={studentId}
-				onClose={() => setInterestsModalOpen(false)}
-			/>
-        </div>
+
+            {isOwnProfile && (
+                <StudentInterestsModal
+                    open={interestsModalOpen}
+                    studentId={studentId}
+                    onClose={() => setInterestsModalOpen(false)}
+                />
+            )}
+            </div>
     );
 }
 
