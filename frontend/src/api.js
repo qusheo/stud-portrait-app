@@ -526,7 +526,7 @@ async getCsrfToken() {
         return promise;
     }
 
-    getStudentInterests(){
+    getStudentInterestsOptions(){
         const params = new URLSearchParams();
         return fetch(`${HOST}/portrait/student-interests-options/?${params}`);
     }

@@ -168,7 +168,7 @@ class AdminService extends BaseService {
     }
 
     getStudentSearchOptions() {
-        return this.request(() => Api.getStudentInterests());
+        return this.request(() => Api.getStudentInterestsOptions());
     }
 
     postDataseshNew() {
