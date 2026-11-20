@@ -40,7 +40,7 @@ function AdminTargetSearchView() {
 	const { data: rows, isLoading: loading = false } = useQuery({
 		queryKey: ['admin', 'student-search', searchInput],
 		queryFn: async () => (await StudentService.getStudentByRequirements(searchInput))?.data?.students,
-		enabled: startSearch,
+		enabled: startSearch && searchInput,
 		...defaultQueryOptions
 	});
     function onApply(params) {

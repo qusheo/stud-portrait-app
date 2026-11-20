@@ -81,6 +81,9 @@ DATABASES = {
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
         "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
+        # PgBouncer в режиме transaction не поддерживает именованные серверные
+        # курсоры (Django queryset.iterator()) — включается там, где есть pgbouncer.
+        "DISABLE_SERVER_SIDE_CURSORS": os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS", "0") == "1",
         "OPTIONS": {
             "sslmode": os.getenv("DB_SSLMODE", "disable"),
         },

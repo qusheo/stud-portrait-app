@@ -39,6 +39,7 @@ services:
       DB_HOST: pgbouncer
       DB_PORT: "5432"
       DB_CONN_MAX_AGE: "60"
+      DB_DISABLE_SERVER_SIDE_CURSORS: "1"
       REDIS_URL: redis://redis:6379/1
       USE_REDIS_CACHE: "1"
 
@@ -91,7 +92,7 @@ services:
     environment:
       DB_HOST: db
       POOL_MODE: transaction
-      MAX_CLIENT_CONN: "1000"
+      MAX_CLIENT_CONN: "3000"
       DEFAULT_POOL_SIZE: "25"
 
     depends_on:
