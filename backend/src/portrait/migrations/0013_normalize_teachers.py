@@ -20,15 +20,15 @@ def gender_from_name(name):
     if len(parts) >= 3:
         patronymic = parts[2].casefold()
         if patronymic.endswith(('вич', 'ич')):
-            return 'Мужской'
+            return 'М'
         if patronymic.endswith(('вна', 'ична')):
-            return 'Женский'
+            return 'Ж'
     if parts:
         surname = parts[0].casefold()
         if surname.endswith(('ова', 'ева', 'ина', 'ская', 'цкая')):
-            return 'Женский'
+            return 'Ж'
         if surname.endswith(('ов', 'ев', 'ин', 'ский', 'цкий')):
-            return 'Мужской'
+            return 'М'
     return None
 
 

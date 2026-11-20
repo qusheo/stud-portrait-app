@@ -31,7 +31,7 @@ class TeacherDirectoryParserTests(unittest.TestCase):
         row = "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
         record = parse_teacher(page(row))[0]
         self.assertEqual(record.name, "Иванова Анна Петровна")
-        self.assertEqual(record.gender, "Женский")
+        self.assertEqual(record.gender, "Ж")
         self.assertEqual(record.disciplines, ["Математика", "Физика"])
         self.assertEqual(record.education_type, "Высшее образование")
         self.assertEqual(record.qualification, "Математик")
@@ -44,8 +44,8 @@ class TeacherDirectoryParserTests(unittest.TestCase):
             parse_teacher("<table><tr><td>Other data</td></tr></table>")
 
     def test_gender_requires_a_recognized_ending(self):
-        self.assertEqual(_gender('Иванов Иван Петрович'), 'Мужской')
-        self.assertEqual(_gender('Иванова Анна Петровна'), 'Женский')
+        self.assertEqual(_gender('Иванов Иван Петрович'), 'М')
+        self.assertEqual(_gender('Иванова Анна Петровна'), 'Ж')
         self.assertIsNone(_gender('Ли Алексей'))
 
     def test_education_and_missing_titles(self):

@@ -14,22 +14,23 @@ def serialize_teacher(teacher):
         for item in teacher.educations.all()
     ]
     first = educations[0] if educations else {}
+    institution = teacher.institution.inst_name if teacher.institution_id else ''
     return {
         'id': teacher.id,
         'source_row': teacher.source_row,
         'name': teacher.name,
-        'gender': teacher.gender,
+        'gender': teacher.gender or '',
         'position': teacher.position or '',
         'disciplines': [item.name for item in teacher.discipline_rows.all()],
-        'institution': teacher.institution.inst_name,
+        'institution': institution,
         'institution_id': teacher.institution_id,
         'edu_level': first.get('education_type', ''),
-        'academic_degree': teacher.academic_degree,
-        'academic_title': teacher.academic_title,
+        'academic_degree': teacher.academic_degree or '',
+        'academic_title': teacher.academic_title or '',
         'qualification': first.get('qualification', ''),
         'experience': teacher.experience,
         'education': educations,
-        'education_details': [first['education_type'], first['direction'], first['qualification']] if first else [],
+        'education_details': [value for value in (first.get('education_type'), first.get('direction'), first.get('qualification')) if value] if first else [],
         'professional_development': teacher.professional_development or [],
         'professional_retraining': teacher.professional_retraining or [],
     }
@@ -51,5 +52,5 @@ def get_teacher_by_id(request):
     if teacher is None:
         return JsonResponse({'ok': False, 'message': 'Teacher not found'}, status=404)
     data = serialize_teacher(teacher)
-    data.update(teacher_id=teacher.id, transfer=[], duplicate_account=[], repeated_year=None, expelled=None, interests=[])
+    data.update(teacher_id=teacher.id, interests=[])
     return JsonResponse({'ok': True, 'data': data})

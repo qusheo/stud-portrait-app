@@ -321,13 +321,52 @@ class TestFilterOptions(BaseTestCase):
         fetch_interests.assert_called_once_with(participant.part_id)
 
     def test_teacher_by_id(self):
-        response = self.client.get(reverse('teacher_by_id'), {'teacher_id': 1})
+        institution = Institutions.objects.create(inst_name='Тестовый университет')
+        teacher = Teacher.objects.create(
+            source_row=1,
+            name='Иванова Анна Петровна',
+            gender='Ж',
+            position='Доцент',
+            institution=institution,
+            academic_degree='Кандидат физико-математических наук',
+            academic_title='Доцент',
+            experience=10,
+        )
+        TeacherEducation.objects.create(
+            teacher=teacher,
+            education_type='Высшее образование',
+            direction='Математика',
+            qualification='Математик',
+        )
+        TeacherDiscipline.objects.create(teacher=teacher, name='Алгебра')
+
+        response = self.client.get(reverse('teacher_by_id'), {'teacher_id': teacher.id})
 
         self.assertEqual(response.status_code, 200)
         data = response.json()['data']
-        self.assertEqual(data['teacher_id'], 1)
-        self.assertEqual(data['education'], [])
+        self.assertEqual(data['teacher_id'], teacher.id)
+        self.assertEqual(data['name'], 'Иванова Анна Петровна')
+        self.assertEqual(data['institution'], 'Тестовый университет')
+        self.assertEqual(data['disciplines'], ['Алгебра'])
+        self.assertEqual(data['education'], [{
+            'education_type': 'Высшее образование',
+            'direction': 'Математика',
+            'qualification': 'Математик',
+        }])
+        self.assertEqual(data['education_details'], ['Высшее образование', 'Математика', 'Математик'])
         self.assertEqual(data['interests'], [])
+
+    def test_teacher_by_id_not_found(self):
+        response = self.client.get(reverse('teacher_by_id'), {'teacher_id': 999999})
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(response.json()['ok'])
+
+    def test_teacher_by_id_invalid_param(self):
+        response = self.client.get(reverse('teacher_by_id'), {'teacher_id': 'abc'})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()['ok'])
 
 
 # ============================================================
