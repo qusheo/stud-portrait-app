@@ -86,6 +86,7 @@ function GroupCard({ group }) {
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Средние оценки по дисциплинам</div>
                 {group.avg_grades && group.avg_grades.length > 0 ? (
                     <ResponsiveContainer
+                                    debounce={100}
                         width="100%"
                         height={Math.max(180, group.avg_grades.length * 28)}
                     >
@@ -125,6 +126,7 @@ function GroupCard({ group }) {
                                 }}
                             />
                             <Bar
+                                isAnimationActive={false}
                                 dataKey="avg"
                                 radius={[0, 4, 4, 0]}
                                 barSize={14}

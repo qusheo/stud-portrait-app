@@ -1,6 +1,7 @@
 from collections import defaultdict
 import numpy as np
 import traceback
+from portrait.models import StudentsAmount
 from django.db.models import Avg, Count, Q, F, Sum
 from django.http import JsonResponse
 
@@ -8,6 +9,23 @@ from ..helpers.common import *
 
 def get_year_metrics(year, filters):
     qs = Results.objects.filter(res_year=year, **filters)
+
+    try:
+        population_year = int(str(year).split('/')[-1])
+    except (TypeError, ValueError):
+        population_year = None
+
+    population = (
+        StudentsAmount.objects.filter(year=population_year)
+        if population_year is not None
+        else StudentsAmount.objects.none()
+    )
+    institution_name = filters.get('res_institution__inst_name')
+    if institution_name:
+        population = population.filter(institution__inst_name=institution_name)
+    students_uni = (
+        population.aggregate(total=Sum('amount_of_students'))['total'] or 0
+    )
 
     fields = list(MOT.list)
 
@@ -80,7 +98,7 @@ def get_year_metrics(year, filters):
         'demotivator': max_demot,
         'participated': {
             'amount_in': total_students,
-            'students_all': total_students * 1.2
+            'students_all': students_uni
         }
     }
 

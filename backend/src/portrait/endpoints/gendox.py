@@ -1,3 +1,4 @@
+from .geography_population import get_population_summary, append_population_section
 from collections import defaultdict
 from datetime import datetime
 from docx import Document
@@ -393,6 +394,7 @@ def generate_geography_report(request):
     if year not in available_years:
         year = '2024/2025'
 
+    population_summary = get_population_summary(year)
     doc = Document()
 
     # Заголовок
@@ -412,8 +414,9 @@ def generate_geography_report(request):
     # Получаем данные по центрам
     results = Results.objects        \
         .filter(**{tRES.YEAR: year}) \
-        .select_related(tRES.CENTER)
+        .select_related(tRES.CENTER, 'res_participant', 'res_institution', 'res_edu_specialty')
 
+    results = list(results)
     center_counts = defaultdict(int)
     for result in results:
         if result.res_center:
@@ -427,7 +430,7 @@ def generate_geography_report(request):
     for center_name, count in center_counts.items():
         region = CENTERS_REGIONS.get(center_name)
         if region:
-            region_stats[region] += count
+            region_stats[region] += 1
             if region not in center_region_map:
                 center_region_map[region] = []
             center_region_map[region].append(center_name)
@@ -467,18 +470,18 @@ def generate_geography_report(request):
     # ========== 2. СТАТИСТИКА ПО ГОДАМ ==========
     doc.add_heading('2. Динамика по годам', level=1)
 
-    yearly_stats = []
-    for yr in available_years:
-        yr_results = Results.objects.filter(**{tRES.YEAR: yr})
-        yr_centers = set()
-        for res in yr_results:
-            if res.res_center:
-                yr_centers.add(res.res_center.center_name)
-        yearly_stats.append({
-            'year': yr,
-            'total_results': yr_results.count(),
-            'unique_centers': len(yr_centers)
-        })
+    from django.db.models import Count
+    yearly_counts = {
+        row['res_year']: row
+        for row in Results.objects.filter(res_year__in=available_years).values('res_year').annotate(
+            total_results=Count('pk'), unique_centers=Count('res_center', distinct=True)
+        )
+    }
+    yearly_stats = [
+        {'year': yr, 'total_results': yearly_counts.get(yr, {}).get('total_results', 0),
+         'unique_centers': yearly_counts.get(yr, {}).get('unique_centers', 0)}
+        for yr in available_years
+    ]
 
     # Таблица динамики
     doc.add_heading('Динамика тестирования по годам:', level=2)
@@ -514,22 +517,16 @@ def generate_geography_report(request):
 
     # Получаем данные о студентах
     students_data = []
-    for result in results:
+    seen_participants = set()
+    # Select one result per participant; repeated test records are not new students.
+    for result in sorted(results, key=lambda row: row.res_id, reverse=True):
         participant = result.res_participant
-        if participant:
-            # Ищем маппинг для получения ФИО
-            try:
-                mapping = StudentMapping.objects.get(mapping_rsv=participant.part_rsv_id)
-                student_name = mapping.mapping_stud_name
-            except StudentMapping.DoesNotExist:
-                student_name = participant.part_rsv_id
-                
+        if participant and participant.part_id not in seen_participants:
+            seen_participants.add(participant.part_id)
             students_data.append({
                 'student_id': participant.part_id,
-                'rsv_id': participant.part_rsv_id,
-                'name': student_name,
                 'institution': result.res_institution.inst_name if result.res_institution else None,
-                'specialty': result.res_edu_specialty.edu_spec_name if result.res_edu_specialty else None,
+                'specialty': result.res_edu_specialty.spec_name if result.res_edu_specialty else None,
                 'course': participant.part_course_num or result.res_course
             })
 
@@ -627,6 +624,8 @@ def generate_geography_report(request):
     stats_paragraph.add_run(f'• Всего учебных заведений: ').bold = True
     stats_paragraph.add_run(f'{len(institution_stats)}\n')
 
+
+    append_population_section(doc, population_summary)
     return docxResponse(doc, f"geography_report_{year}.docx")
 
 

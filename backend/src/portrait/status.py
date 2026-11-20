@@ -13,5 +13,5 @@ def maintenance(request, exception=None):
             "error": "service_unavailable",
             "message": "Сервис временно недоступен"
         },
-        status=503
+        status=503      
     )
