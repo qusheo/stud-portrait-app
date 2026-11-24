@@ -98,6 +98,28 @@ describe('FilterHeader', () => {
         expect(onFilterChange).toHaveBeenCalledWith('institute', '');
     });
 
+    it('передаёт выбор и очистку специальности и учебного года родителю', async () => {
+        const onFilterChange = vi.fn();
+        renderWithQueryClient(
+            <FilterHeader
+                filters={emptyFilters}
+                onFilterChange={onFilterChange}
+                onResetFilters={vi.fn()}
+            />
+        );
+
+        await screen.findByRole('option', { name: 'Направление 1' });
+        fireEvent.change(screen.getByRole('combobox', { name: 'specialty' }), { target: { value: 'spec-1' } });
+        fireEvent.change(screen.getByRole('combobox', { name: 'year' }), { target: { value: '2023/2024' } });
+        fireEvent.change(screen.getByRole('combobox', { name: 'specialty' }), { target: { value: '' } });
+        fireEvent.change(screen.getByRole('combobox', { name: 'year' }), { target: { value: '' } });
+
+        expect(onFilterChange).toHaveBeenNthCalledWith(1, 'specialty', 'spec-1');
+        expect(onFilterChange).toHaveBeenNthCalledWith(2, 'year', '2023/2024');
+        expect(onFilterChange).toHaveBeenNthCalledWith(3, 'specialty', '');
+        expect(onFilterChange).toHaveBeenNthCalledWith(4, 'year', '');
+    });
+
     it('загружает направления для выбранного ВУЗа', async () => {
         getFilterOptions.mockImplementation(async institute => ({
             data: institute ? { specialties: [{ value: 'spec-2', label: 'Направление 2' }] } : allOptions
@@ -111,6 +133,62 @@ describe('FilterHeader', () => {
         );
         await waitFor(() => expect(getFilterOptions).toHaveBeenCalledWith('uni-1'));
         expect(await screen.findByRole('option', { name: 'Направление 2' })).toBeInTheDocument();
+    });
+
+    it('запрашивает направления заново после смены ВУЗа', async () => {
+        getFilterOptions.mockImplementation(async institute => ({
+            data: institute
+                ? {
+                      specialties: [
+                          { value: `spec-${institute.slice(-1)}`, label: `Направление ${institute.slice(-1)}` }
+                      ]
+                  }
+                : allOptions
+        }));
+        const onFilterChange = vi.fn();
+        const { rerender } = renderWithQueryClient(
+            <FilterHeader
+                filters={{ ...emptyFilters, institute: 'uni-1' }}
+                onFilterChange={onFilterChange}
+                onResetFilters={vi.fn()}
+            />
+        );
+
+        await screen.findByRole('option', { name: 'Направление 1' });
+        fireEvent.change(screen.getByRole('combobox', { name: 'institute' }), { target: { value: 'uni-2' } });
+        expect(onFilterChange).toHaveBeenCalledWith('institute', 'uni-2');
+
+        rerender(
+            <FilterHeader
+                filters={{ ...emptyFilters, institute: 'uni-2' }}
+                onFilterChange={onFilterChange}
+                onResetFilters={vi.fn()}
+            />
+        );
+
+        expect(await screen.findByRole('option', { name: 'Направление 2' })).toBeInTheDocument();
+        expect(getFilterOptions).toHaveBeenCalledWith('uni-2');
+    });
+
+    it('сохраняет выбранную специальность, если она есть в загруженных вариантах ВУЗа', async () => {
+        getFilterOptions.mockImplementation(async institute => ({
+            data: institute
+                ? { specialties: [{ value: 'spec-1', label: 'Направление 1' }] }
+                : allOptions
+        }));
+        const onFilterChange = vi.fn();
+        renderWithQueryClient(
+            <FilterHeader
+                filters={{ institute: 'uni-1', specialty: 'spec-1', year: '' }}
+                onFilterChange={onFilterChange}
+                onResetFilters={vi.fn()}
+            />
+        );
+
+        await screen.findByRole('option', { name: 'Направление 1' });
+
+        expect(screen.getByRole('combobox', { name: 'specialty' })).toHaveValue('spec-1');
+        expect(onFilterChange).not.toHaveBeenCalledWith('specialty', '');
     });
 
     it('сбрасывает недоступное направление при смене ВУЗа', async () => {
@@ -170,5 +248,21 @@ describe('FilterHeader', () => {
         await waitFor(() => expect(getFilterOptions).toHaveBeenCalled());
         expect(screen.getByRole('combobox', { name: 'institute' }).options).toHaveLength(1);
     });
-    
+
+    it('скрывает фильтр учебного года, если showYearsSelect выключен', async () => {
+        renderWithQueryClient(
+            <FilterHeader
+                filters={emptyFilters}
+                onFilterChange={vi.fn()}
+                onResetFilters={vi.fn()}
+                showYearsSelect={false}
+            />
+        );
+
+        await screen.findByRole('option', { name: 'ВУЗ 1' });
+
+        expect(screen.queryByRole('combobox', { name: 'year' })).not.toBeInTheDocument();
+        expect(screen.getByRole('combobox', { name: 'institute' })).toBeInTheDocument();
+        expect(screen.getByRole('combobox', { name: 'specialty' })).toBeInTheDocument();
+    });
 });
