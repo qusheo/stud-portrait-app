@@ -76,11 +76,6 @@ class StudPortraitUser(HttpUser):
             f"/portrait/competency-average-by-years/?competency={COMPETENCY}",
             name="LT-01/comp-avg-by-years",
         )
-        self.client.post(
-            "/portrait/get-boxplot-data/",
-            json={"competency": COMPETENCY, "group_by": "auto"},
-            name="LT-01/boxplot",
-        )
 
     @tag("LT-02", "LT-09")
     @task(10)
