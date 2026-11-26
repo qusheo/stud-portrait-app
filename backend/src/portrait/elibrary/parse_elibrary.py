@@ -490,6 +490,11 @@ def connect():
     return psycopg.connect(resolve_dsn())
 
 
+def match_card_author(index, author):
+    """Prefer the expanded name; do not fall back to initials after a full-name mismatch."""
+    return index.match(author.get('full_name') or author['name'])
+
+
 def import_db(args):
     from psycopg.types.json import Jsonb
     store = Store(args.work)
@@ -537,7 +542,7 @@ def import_db(args):
                         (item_id, number, author['name'], author['elibrary_author_id'], Jsonb(author['affiliations'])))
                     conn.execute('DELETE FROM elibrary_teacher_matches WHERE elibrary_id=%s AND author_order=%s '
                                  'AND method<>\'manual\' AND reviewed_at IS NULL AND status<>\'rejected\'', (item_id, number))
-                    for tid, method, status in teachers.match(author['name']):
+                    for tid, method, status in match_card_author(teachers, author):
                         conn.execute('''INSERT INTO elibrary_teacher_matches
                             (elibrary_id,author_order,teacher_id,method,status) VALUES (%s,%s,%s,%s,%s)
                             ON CONFLICT DO NOTHING''', (item_id, number, tid, method, status))

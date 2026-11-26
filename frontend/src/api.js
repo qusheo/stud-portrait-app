@@ -543,6 +543,16 @@ async getCsrfToken() {
         return fetch(`${HOST}/portrait/teachers/get_teachers_table/`);
     }
 
+    /** @description Scientific activity filtered by institution, publication year or teacher. */
+    getScientificActivity({ teacherId, institutionId, year, page = 1 } = {}) {
+        const params = new URLSearchParams({ page: String(page) });
+        if (teacherId) params.set('teacher_id', String(teacherId));
+        if (institutionId) params.set('institution_id', String(institutionId));
+        if (year) params.set('year', String(year));
+        const path = teacherId ? 'teachers/scientific-activity' : 'science/statistics';
+        return fetch(`${HOST}/portrait/${path}/?${params}`, { credentials: 'include' });
+    }
+
     getTeacherById(teacherId) {
         const params = new URLSearchParams({ teacher_id: String(teacherId) });
         return fetch(`${HOST}/portrait/teachers/byId/?${params}`);

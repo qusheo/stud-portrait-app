@@ -347,3 +347,8 @@ TEACHER_FIELDS = {
     "professional_development": "Повышение квалификации",
     "professional_retraining": "Профессиональная переподготовка",
 }
+
+
+class ScientificActivity:
+    PAGE_SIZE = 20
+    TOPIC_LIMIT = 20
