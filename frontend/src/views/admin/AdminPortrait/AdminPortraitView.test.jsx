@@ -7,7 +7,7 @@ import {
     beforeEach,
     afterEach
 } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import {
     QueryClient,
     QueryClientProvider
@@ -59,15 +59,19 @@ vi.mock('react-apexcharts', () => ({
 vi.mock('@constants', () => ({
     COMPETENCIES_NAMES: {
         res_comp_leadership: 'Лидерство',
-        res_comp_planning: 'Планирование'
+        res_comp_planning: 'Планирование',
+        res_comp_info_analysis: 'Анализ информации'
     },
     VALUES_NAMES: {
         res_val_humanism: 'Гуманизм',
-        res_val_health: 'Здоровье'
+        res_val_health: 'Здоровье',
+        res_val_honesty_justice: 'Честность и справедливость'
     },
     MOTIVATORS_NAMES: {
         res_mot_salary: 'Зарплата',
-        res_mot_career: 'Карьера'
+        res_mot_career: 'Карьера',
+        res_mot_autonomy: 'Автономия',
+        res_mot_challenge: 'Интересная работа'
     }
 }));
 
@@ -169,12 +173,58 @@ function portraitData(overrides = {}) {
         courses: [
             {
                 leadership: 88,
-                communication: 76
+                communication: 76,
+                an_dec: 600
             }
         ],
         ...overrides
     };
 }
+
+const multiYearPortrait = {
+    student_info: {
+        stud_name: 'Иванова Анна Петровна',
+        rsv_id: 'RSV-42',
+        gender: 'Женский',
+        institution: 'Университет 1',
+        specialty: 'Математика',
+        edu_level: 'Высшее',
+        study_form: 'Очная',
+        current_course: 3
+    },
+    test_results: [
+        {
+            year: '2023/2024',
+            competencies: {
+                res_comp_info_analysis: 500,
+                res_comp_planning: 620
+            },
+            motivators: {
+                res_mot_autonomy: 650,
+                res_mot_salary: 350,
+                res_mot_challenge: 450
+            },
+            values: {
+                res_val_honesty_justice: 1,
+                res_val_health: 1
+            }
+        },
+        {
+            year: '2024/2025',
+            competencies: {
+                res_comp_info_analysis: 700
+            },
+            motivators: {
+                res_mot_autonomy: 300
+            },
+            values: {
+                res_val_humanism: 1
+            }
+        }
+    ],
+    academic_performance: [],
+    courses: []
+};
 
 describe('AdminPortraitView', () => {
     beforeEach(() => {
@@ -232,6 +282,63 @@ describe('AdminPortraitView', () => {
         ).toBeInTheDocument();
     });
 
+    it('ищет студента и загружает портрет после выбора результата', async () => {
+        mocks.location.state = null;
+        mocks.getStudentById.mockResolvedValue({ data: {} });
+        mocks.getStudentsList.mockResolvedValue({
+            data: [
+                {
+                    id: 42,
+                    rsv_id: 'RSV-42',
+                    institution: 'Университет 1',
+                    specialty: 'Математика',
+                    course: 3
+                }
+            ]
+        });
+
+        renderView();
+
+        const input = screen.getByPlaceholderText(
+            'Введите ID студента, ФИО или название вуза...'
+        );
+        fireEvent.change(input, { target: { value: 'Иванова' } });
+
+        await waitFor(() =>
+            expect(mocks.getStudentsList).toHaveBeenCalledWith('Иванова', 20)
+        );
+
+        fireEvent.click(
+            await screen.findByText(/Университет 1 • Математика • 3 курс/)
+        );
+
+        await waitFor(() =>
+            expect(mocks.getStudentPortrait).toHaveBeenCalledWith(42)
+        );
+        await screen.findByText('Иван Иванов');
+    });
+
+    it('переходит к подбору студентов с выбранным studentId', async () => {
+        renderView();
+
+        await screen.findByText('Иван Иванов');
+
+        fireEvent.click(
+            screen.getByRole('button', {
+                name: 'Подбор студентов'
+            })
+        );
+
+        expect(mocks.navigate).toHaveBeenCalledWith(
+            '/admin/grouping',
+            {
+                state: {
+                    studentId: 42
+                }
+            }
+        );
+    });
+
     it('отображает оценки и курсы на вкладке образования', async () => {
         renderView();
 
@@ -252,6 +359,10 @@ describe('AdminPortraitView', () => {
         ).toBeInTheDocument();
         expect(screen.getByText('Лидерство')).toBeInTheDocument();
         expect(screen.getByText('88')).toBeInTheDocument();
+        expect(
+            screen.getByText('Анализ и принятие решений')
+        ).toBeInTheDocument();
+        expect(screen.getByText('600')).toBeInTheDocument();
     });
 
     it('отображает аналитические данные на соответствующих вкладках', async () => {
@@ -281,6 +392,69 @@ describe('AdminPortraitView', () => {
         expect(screen.getByText('Гуманизм')).toBeInTheDocument();
     });
 
+    it('переключает учебный год на вкладке компетенций', async () => {
+        mocks.getStudentPortrait.mockResolvedValue({
+            data: multiYearPortrait
+        });
+        mocks.getStudentById.mockResolvedValue({
+            data: multiYearPortrait.student_info
+        });
+
+        renderView();
+
+        await screen.findByText('Иванова Анна Петровна');
+        fireEvent.click(screen.getByRole('button', { name: 'Компетенции' }));
+        fireEvent.click(screen.getByRole('button', { name: '2024/2025' }));
+
+        const chart = await screen.findByTestId('chart');
+        expect(JSON.parse(chart.getAttribute('data-series'))).toEqual([
+            {
+                name: 'Баллы',
+                data: expect.any(Array)
+            }
+        ]);
+    });
+
+    it('группирует мотиваторы по категориям', async () => {
+        mocks.getStudentPortrait.mockResolvedValue({
+            data: multiYearPortrait
+        });
+        mocks.getStudentById.mockResolvedValue({
+            data: multiYearPortrait.student_info
+        });
+
+        renderView();
+
+        await screen.findByText('Иванова Анна Петровна');
+        fireEvent.click(screen.getByRole('button', { name: 'Мотиваторы' }));
+
+        expect(screen.getAllByText('Мотиваторы').length).toBeGreaterThan(0);
+        expect(screen.getByText('Непроявленные')).toBeInTheDocument();
+        expect(screen.getByText('Демотиваторы')).toBeInTheDocument();
+    });
+
+    it('отображает только заполненные ценности и переключает год', async () => {
+        mocks.getStudentPortrait.mockResolvedValue({
+            data: multiYearPortrait
+        });
+        mocks.getStudentById.mockResolvedValue({
+            data: multiYearPortrait.student_info
+        });
+
+        renderView();
+
+        await screen.findByText('Иванова Анна Петровна');
+        fireEvent.click(screen.getByRole('button', { name: 'Ценности' }));
+
+        expect(
+            screen.getByText('Честность и справедливость')
+        ).toBeInTheDocument();
+        expect(screen.getByText('Здоровье')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: '2024/2025' }));
+        expect(screen.getByText('Гуманизм')).toBeInTheDocument();
+    });
+
     it('показывает пустые состояния при отсутствии оценок и курсов', async () => {
         mocks.getStudentPortrait.mockResolvedValue({
             data: portraitData({
@@ -303,6 +477,19 @@ describe('AdminPortraitView', () => {
 
         expect(
             screen.getByText('Нет данных о пройденных курсах')
+        ).toBeInTheDocument();
+    });
+
+    it('показывает сообщение при пустом ответе API', async () => {
+        mocks.getStudentPortrait.mockResolvedValue({ data: null });
+        mocks.getStudentById.mockReturnValue(new Promise(() => {}));
+
+        renderView();
+
+        expect(
+            await screen.findByText(
+                'Не удалось загрузить данные студента'
+            )
         ).toBeInTheDocument();
     });
 
@@ -335,26 +522,5 @@ describe('AdminPortraitView', () => {
         );
 
         consoleError.mockRestore();
-    });
-
-    it('переходит к подбору студентов с выбранным studentId', async () => {
-        renderView();
-
-        await screen.findByText('Иван Иванов');
-
-        fireEvent.click(
-            screen.getByRole('button', {
-                name: 'Подбор студентов'
-            })
-        );
-
-        expect(mocks.navigate).toHaveBeenCalledWith(
-            '/admin/grouping',
-            {
-                state: {
-                    studentId: 42
-                }
-            }
-        );
     });
 });

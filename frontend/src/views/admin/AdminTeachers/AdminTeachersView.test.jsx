@@ -130,6 +130,13 @@ const teacher = {
     professional_retraining: ['Программа 1']
 };
 
+function mockTeachersTable(data) {
+    useQuery.mockReturnValue({
+        data: { data },
+        isPending: false
+    });
+}
+
 beforeEach(() => {
     vi.clearAllMocks();
 });
@@ -144,10 +151,7 @@ describe('AdminTeachersView', () => {
         const { rerender } = render(<AdminTeachersView />);
         expect(screen.getByText('Загрузка таблицы')).toBeInTheDocument();
 
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         rerender(<AdminTeachersView />);
         expect(screen.getByTestId('row-1')).toBeInTheDocument();
@@ -173,10 +177,7 @@ describe('AdminTeachersView', () => {
     });
 
     it('открывает карточку выбранного преподавателя и закрывает ее', () => {
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         render(<AdminTeachersView />);
         fireEvent.click(screen.getByTestId('name-1'));
@@ -191,10 +192,7 @@ describe('AdminTeachersView', () => {
     });
 
     it('открывает подробности образования для выбранного преподавателя', () => {
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         render(<AdminTeachersView />);
         fireEvent.click(screen.getByTestId('education-1'));
@@ -208,11 +206,24 @@ describe('AdminTeachersView', () => {
         expect(screen.queryByText(/Тип образования:/)).not.toBeInTheDocument();
     });
 
+    it('не открывает окно образования при пустом списке образования', () => {
+        mockTeachersTable([
+            {
+                name: 'Петров Пётр',
+                education: [],
+                education_details: []
+            }
+        ]);
+
+        render(<AdminTeachersView />);
+
+        expect(
+            screen.queryByText(/Тип образования:/)
+        ).not.toBeInTheDocument();
+    });
+
     it('открывает полный список дисциплин и закрывает его вне области', () => {
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         render(<AdminTeachersView />);
         fireEvent.click(screen.getByTestId('disciplines-1'));
@@ -225,10 +236,7 @@ describe('AdminTeachersView', () => {
     });
 
     it('выбирает преподавателя через поиск и открывает его карточку', () => {
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         render(<AdminTeachersView />);
 
@@ -243,21 +251,18 @@ describe('AdminTeachersView', () => {
     });
 
     it('отображает fallback для отсутствующих полей в карточке', () => {
-        useQuery.mockReturnValue({
-            data: {
-                data: [{
-                    ...teacher,
-                    gender: '',
-                    position: null,
-                    academic_degree: null,
-                    academic_title: null,
-                    experience: null,
-                    education: [],
-                    education_details: []
-                }]
-            },
-            isPending: false
-        });
+        mockTeachersTable([
+            {
+                ...teacher,
+                gender: '',
+                position: null,
+                academic_degree: null,
+                academic_title: null,
+                experience: null,
+                education: [],
+                education_details: []
+            }
+        ]);
 
         render(<AdminTeachersView />);
         fireEvent.click(screen.getByTestId('name-1'));
@@ -266,10 +271,7 @@ describe('AdminTeachersView', () => {
     });
 
     it('передает выбранного преподавателя на переход к профилю', () => {
-        useQuery.mockReturnValue({
-            data: { data: [teacher] },
-            isPending: false
-        });
+        mockTeachersTable([teacher]);
 
         render(<AdminTeachersView />);
         fireEvent.click(screen.getByTestId('name-1'));

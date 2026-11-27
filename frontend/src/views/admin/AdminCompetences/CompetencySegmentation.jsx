@@ -232,6 +232,8 @@ export default function CompetencySegmentation({ filters }) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        let cancelled = false;
+
         setLoading(true);
         setError(null);
         AdminService.getCompetencySegmentation({
@@ -240,15 +242,22 @@ export default function CompetencySegmentation({ filters }) {
             specialty: filters?.specialty || null,
             year: filters?.year || null
         })
-            .then(resp => setData(resp))
+            .then(resp => {
+                if (!cancelled) setData(resp);
+            })
             .catch(err => {
+                if (cancelled) return;
                 console.error('Ошибка загрузки сегментации:', err);
                 setError('Сервер недоступен');
             })
-            .finally(() => setLoading(false));
-    }, [competency, filters?.institute, filters?.specialty, filters?.year]);
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
 
-    if (error) return <Empty type="charts" title="Нет данных для сегментации" />;
+        return () => {
+            cancelled = true;
+        };
+    }, [competency, filters?.institute, filters?.specialty, filters?.year]);
 
     return (
         <div
@@ -310,6 +319,9 @@ export default function CompetencySegmentation({ filters }) {
 
             {/* Состояния */}
             {loading && <Loading type="charts" title="Загрузка сегментации..." />}
+            {!loading && error && (
+                <Empty type="charts" title="Нет данных для сегментации" />
+            )}
             {!loading && !error && data && data.groups.length === 0 && (
                 <Empty type="charts" title="Нет данных для выбранных фильтров." />
             )}

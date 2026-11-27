@@ -44,6 +44,11 @@ def get_year_metrics(year, filters):
         aggregations[f'low_{i}'] = Count(
             'pk', filter=Q(**{f'{field}__lt': 400})
         )
+        # NULL означает «нет данных», а не «мотиватор не выявлен»:
+        # процент считается по студентам с заполненным значением.
+        aggregations[f'filled_{i}'] = Count(
+            'pk', filter=Q(**{f'{field}__isnull': False})
+        )
 
     data = qs.aggregate(**aggregations)
 
@@ -55,8 +60,12 @@ def get_year_metrics(year, filters):
 
     if total:
         for i, field in enumerate(fields):
-            high = round(data[f'high_{i}'] / total * 100, 2)
-            low = round(data[f'low_{i}'] / total * 100, 2)
+            filled = data[f'filled_{i}'] or 0
+
+            # Доля студентов, у которых признак является мотиватором
+            # (демотиватором), среди студентов с заполненным значением.
+            high = round(data[f'high_{i}'] / filled * 100, 2) if filled else 0
+            low = round(data[f'low_{i}'] / filled * 100, 2) if filled else 0
 
             if high > max_mot['count']:
                 max_mot = {'name': field, 'count': high}
@@ -69,18 +78,33 @@ def get_year_metrics(year, filters):
         for field in COMP.list
     }
 
-    valid_values = [v for v in avgs.values() if v is not None]
+    # Балл компетенции не может быть ниже 200: незаполненные (NULL)
+    # и значения ниже порога засчитываются как 200. Для года без
+    # результатов сохраняются нули.
+    if total:
+        all_comps = {
+            field: round(value, 2) if (value is not None and value >= 200) else 200
+            for field, value in avgs.items()
+        }
+    else:
+        all_comps = {
+            field: 0
+            for field in COMP.list
+        }
+
     total_avg = (
-        sum(valid_values) / len(COMP.list)
-        if valid_values else 0
+        sum(all_comps.values()) / len(COMP.list)
+        if COMP.list else 0
     )
 
     students_with_courses = 0
 
     if total_students:
+        # У студента может быть несколько записей о курсах; считаем
+        # студентов с хотя бы одним курсом, а не записи курсов.
         students_with_courses = Courseresults.objects.filter(
             course_participant_id__in=qs.values('res_participant_id')
-        ).count()
+        ).values('course_participant_id').distinct().count()
 
     course_percent = (
         students_with_courses / total_students * 100
@@ -90,10 +114,7 @@ def get_year_metrics(year, filters):
     return {
         'total_avg': round(total_avg, 2),
         'course_percent': round(course_percent, 1),
-        'all_comps': {
-            field: round(avgs[field] or 0, 2)
-            for field in COMP.list
-        },
+        'all_comps': all_comps,
         'motivator': max_mot,
         'demotivator': max_demot,
         'participated': {
