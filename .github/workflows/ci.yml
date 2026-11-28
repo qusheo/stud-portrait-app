@@ -72,9 +72,13 @@ jobs:
         working-directory: backend
         run: pip install -r requirements.txt
 
+      - name: Prepare test database
+        working-directory: backend/src
+        run: python -m portrait.tests.bootstrap_test_db
+
       - name: Run backend tests
         working-directory: backend/src
-        run: pytest portrait/test -v
+        run: pytest portrait/tests -v
 
   api-tests:
     name: API
@@ -128,7 +132,7 @@ jobs:
         run: docker compose exec -T backend python src/manage.py check
 
       - name: Run backend test suite against running stack
-        run: docker compose exec -T backend sh -c "cd src && pytest portrait/test -v"
+        run: docker compose exec -T backend sh -c "cd src && python -m portrait.tests.bootstrap_test_db && pytest portrait/tests -v"
 
       - name: Stop application
         if: always()

@@ -125,15 +125,14 @@ backend/
 - **Отдельный сервис с логикой** → `endpoints/<имя>Service/` (своя папка, модули внутри; в `urls.py` импортируется из папки).
 - **DDL** живёт в `create_database.sql`; изменения схемы для Django — миграциями в `portrait/migrations/`. Физические таблицы, которые Django не создаёт (например, `teacher`), миграция создаёт через `RunSQL` с `IF NOT EXISTS`.
 - **Парсер внешнего источника** → `endpoints/parsers/` (инструменты в `tools/`), отдельный долгоживущий модуль сбора — как `elibrary/` со своими `sql/` и `tests/`.
-- **Тесты**: рядом с модулем в `test/`/`tests/` папке (`portrait/test/`, `endpoints/parsers/test/`, `elibrary/tests/`), имена `test_*.py`, запуск `pytest` (конфиг — `src/pytest.ini`, `--no-migrations --reuse-db`).
+- **Тесты**: в `portrait/tests/<тема>/` — папка по теме (`parsers/`, `matching/`, `analytics/`, `upload/`, `stats/`, `students/`, `teachers/`, `selection/`, `audit/`, `auth/`, `gendox/`); все парсеры — в `tests/parsers/`. Имена `test_*.py`, запуск `pytest portrait/tests` (конфиг — `src/pytest.ini`, `--no-migrations --reuse-db`). Перед прогоном на чистой БД — `python -m portrait.tests.bootstrap_test_db` из `backend/src`. Тесты eLIBRARY — отдельно в `elibrary/tests/`.
 - **Константы бэкенда** — в `portrait/constants.py` (классы-группы `RsvCompetencies`, `RsvMotivators`, `RsvValues`, `RsvCourses`, имена таблиц `Table*`), общие константы и утилиты запросов — `endpoints/helpers/common.py`. Внутри модулей разрозненные константы не заводятся.
 
 ### Тесты и нагрузочное тестирование
 
 | Что | Где | Запуск |
 | --- | --- | --- |
-| Юнит и интеграционные тесты приложения | `backend/src/portrait/test/` | `pytest` из `backend/src` |
-| Тесты парсеров | `backend/src/portrait/endpoints/parsers/test/` | `pytest` |
+| Юнит и интеграционные тесты приложения | `backend/src/portrait/tests/<тема>/` | `pytest portrait/tests` из `backend/src` (на чистой БД сначала `python -m portrait.tests.bootstrap_test_db`) |
 | Тесты модуля eLIBRARY | `backend/src/portrait/elibrary/tests/` | `pytest src/portrait/elibrary` |
 | Нагрузочные тесты (Locust) | `backend/load_tests/` | `locust -f locustfile.py` / `scenarios_locustfile.py` |
 

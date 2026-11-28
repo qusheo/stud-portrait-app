@@ -163,10 +163,10 @@ def method(method):
     def inner(func):
         @wraps(func)
         @csrf_exempt
-        def wrapper(request):
+        def wrapper(request, *args, **kwargs):
             if request.method != method:
                 return notAllowedResponse()
-            return func(request)
+            return func(request, *args, **kwargs)
         return wrapper
     return inner
 
@@ -180,9 +180,9 @@ def jsonResponse(func):
     """
     @wraps(func)
     @csrf_exempt
-    def wrapper(request):
+    def wrapper(request, *args, **kwargs):
         try:
-            return successResponse(func(request))
+            return successResponse(func(request, *args, **kwargs))
         except ResponseError as e:
             # print(e.message)
             return errorResponse(e.message, e.status)
@@ -202,9 +202,9 @@ def httpResponse(func):
     """
     @wraps(func)
     @csrf_exempt
-    def wrapper(request):
+    def wrapper(request, *args, **kwargs):
         try:
-            return func(request)
+            return func(request, *args, **kwargs)
         except ResponseError as e:
             # print(e.message)
             return errorResponse(e.message, e.status)

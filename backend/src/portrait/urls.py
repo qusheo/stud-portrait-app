@@ -64,7 +64,7 @@ urlpatterns = [
     path('analyze-student-discipline-impact/',  analysis_end.analyze_student_discipline_impact,  name='analyze_student_discipline_impact'),
 
     path('get-competency-level-flow/',        analysis_end.get_competency_level_flow,        name='get_competency_level_flow'),
-    path('get-competency-level-flow-yearly/', analysis_end.get_competency_level_flow_yearly, name='get_competency_level_flow'),
+    path('get-competency-level-flow-yearly/', analysis_end.get_competency_level_flow_yearly, name='get_competency_level_flow_yearly'),
     path('ai-analytics-summary/',             analysis_end.ai_analytics_summary,             name='ai_analytics_summary'),
     path('get-disciplines/',                  analysis_end.get_disciplines,                  name='get-disciplines'),   
     

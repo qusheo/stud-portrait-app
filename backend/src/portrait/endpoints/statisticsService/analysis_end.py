@@ -2126,10 +2126,10 @@ def get_boxplot_data(request):
             if score is None:
                 continue
             if effective_group_by == 'institution':
-                group_id = r.res_institution
+                group_id = r.res_institution_id
                 group_name = r.res_institution.inst_name if r.res_institution else 'Не указан'
             else:
-                group_id = r.res_edu_specialty
+                group_id = r.res_edu_specialty_id
                 group_name = r.res_edu_specialty.spec_name if r.res_edu_specialty else 'Не указано'
 
             if group_id not in groups_data:
