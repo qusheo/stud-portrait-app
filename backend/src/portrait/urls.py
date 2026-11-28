@@ -1,4 +1,5 @@
 from portrait.endpoints import auth
+from portrait.endpoints import science
 from django.urls import path
 from . import status
 
@@ -106,6 +107,8 @@ urlpatterns = [
     path('competency-segmentation/', stat.get_competency_segmentation, name='competency_segmentation'),
 
     # teachers
+    path('science/statistics/', science.statistics, name='science_statistics'),
+    path('teachers/scientific-activity/', teachers.scientific_activity, name='teacher_scientific_activity'),
     path('teachers/get_teachers_table/', teachers.get_teachers_table, name='teachers_table'),
     path('teachers/byId/', teachers.get_teacher_by_id, name='teacher_by_id'),
 

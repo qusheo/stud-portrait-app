@@ -3,6 +3,17 @@
     height: 100%;
     overflow-x: hidden;
     padding-right: 8px;
+    &__science {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        margin: 8px 0 24px;
+        > .ScientificActivity {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
     &__table {
         width: 100%;
         height: 90%;
@@ -13,12 +24,16 @@
         justify-content: flex-end;
         margin: 8px;
     }
-    &__export-button button{
+    &__export-button button {
         cursor: pointer;
         height: 25px !important;
         padding: 0 8px !important;
     }
     &__search {
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin: 16px 0;
         padding-bottom: 8px;
         display: flex;
         flex-direction: row;
@@ -39,11 +54,11 @@
             cursor: pointer;
             font-size: 14px;
         }
-		&_actions{
-			display: flex;
-        	flex-direction: row;
-			gap: 16px;
-		}
+        &_actions {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+        }
     }
 
     &__list-modal {

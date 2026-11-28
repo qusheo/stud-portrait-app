@@ -1,0 +1,29 @@
+.ScientificActivity {
+    @include card-style;
+    color: $grey-900;
+    padding: 16px;
+    &__filters,
+    &__metrics,
+    &__pages {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 16px 0;
+    }
+    &__filters label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    &__metrics p {
+        padding: 16px;
+        border: 1px solid #d7dce2;
+        border-radius: 8px;
+    }
+    &__topics li {
+        margin: 8px 0;
+    }
+    &__publications li {
+        margin: 12px 0;
+    }
+}

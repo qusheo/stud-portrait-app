@@ -1,4 +1,4 @@
-"""Run with: python -m unittest discover -s src/tools -p test_parse_elibrary.py"""
+"""Run with: pytest portrait/elibrary"""
 import json
 from argparse import Namespace
 from pathlib import Path
@@ -7,6 +7,17 @@ import unittest
 from unittest.mock import Mock
 
 from parse_elibrary import PageError, Store, TeacherIndex, browser_options, listing_form, page_html, parse_article, parse_listing
+from parse_elibrary import match_card_author
+
+
+class ExpandedAuthorMatchingTests(unittest.TestCase):
+    def test_full_name_takes_precedence_over_ambiguous_initials(self):
+        index=TeacherIndex([(1,'Иванов Иван Иванович'),(2,'Иванов Игорь Иванович')])
+        self.assertEqual(match_card_author(index,{'name':'Иванов И.И.','full_name':'Иванов Иван Иванович'}),[(1,'full_name','confirmed')])
+
+    def test_different_full_name_does_not_match_initials(self):
+        index=TeacherIndex([(1,'Иванов Иван Иванович')])
+        self.assertEqual(match_card_author(index,{'name':'Иванов И.И.','full_name':'Иванов Илья Иванович'}),[])
 
 
 ARTICLE = '''<html><head><meta charset="utf-8">

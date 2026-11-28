@@ -4,6 +4,18 @@ from django.views.decorators.http import require_GET
 from portrait.models import Teacher
 
 
+@require_GET
+def scientific_activity(request):
+    try:
+        teacher_id = int(request.GET.get('teacher_id', ''))
+        if teacher_id < 1:
+            raise ValueError()
+    except (ValueError, TypeError):
+        return JsonResponse({'ok': False, 'message': 'Invalid teacher_id'}, status=400)
+    from portrait.endpoints.science import response
+    return response(request, teacher_id=teacher_id)
+
+
 def serialize_teacher(teacher):
     educations = [
         {

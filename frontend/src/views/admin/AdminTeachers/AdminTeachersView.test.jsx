@@ -278,7 +278,7 @@ describe('AdminTeachersView', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Перейти к профилю' }));
 
         expect(navigate).toHaveBeenCalledWith('/admin/portrait', {
-            state: { studentId: null }
+            state: { teacherId: 10 }
         });
     });
 });

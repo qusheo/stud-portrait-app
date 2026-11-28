@@ -11,6 +11,7 @@ import { buildColumns } from './buildTeachersTable.js';
 import TeacherService from '@services/TeacherService.ts';
 
 import TeacherView from './TeacherView.jsx';
+import ScientificActivity from '@components/science/ScientificActivity';
 import DataTable from '@components/tables/DataTable';
 import Loading from '@components/ui/Loading.jsx';
 import { AutocompleteInput, Button } from '../../../components/index.js';
@@ -28,9 +29,12 @@ const formatEducationDetails = details => {
 };
 
 const educationDetailsItems = teacher => {
-    const educations = Array.isArray(teacher.education) && teacher.education.length
-        ? teacher.education
-        : (Array.isArray(teacher.educationDetails) ? teacher.educationDetails : []);
+    const educations =
+        Array.isArray(teacher.education) && teacher.education.length
+            ? teacher.education
+            : Array.isArray(teacher.educationDetails)
+              ? teacher.educationDetails
+              : [];
     return educations.map(item => {
         if (typeof item === 'string') return item;
         const parts = Object.entries(EDUCATION_DETAILS_LABELS)
@@ -52,7 +56,7 @@ function AdminTeachersView() {
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const modalRef = useRef(null);
 
-	const navigate = useNavigate();
+    const navigate = useNavigate();
 
     const { data: teachersResponse, isPending: isTableLoading } = useQuery({
         queryKey: ['admin', 'teachers-table'],
@@ -123,11 +127,11 @@ function AdminTeachersView() {
         setShowTeacherView(!showTeacherView);
         setShownTeacher(null);
     }
-	function redirectToPortrait() {
-		if (shownTeacher) {
-            navigate('/admin/portrait', { state: { studentId: null } }); //shownTeacher.rowId
+    function redirectToPortrait() {
+        if (shownTeacher) {
+            navigate('/admin/portrait', { state: { teacherId: shownTeacher.id } });
         }
-	}
+    }
 
     const getExportValue = (teacher, columnId) => {
         switch (columnId) {
@@ -160,9 +164,7 @@ function AdminTeachersView() {
             }));
 
             selectedRows.forEach(teacher => {
-                worksheet.addRow(
-                    Object.fromEntries(exportColumns.map(column => [column.id, getExportValue(teacher, column.id)]))
-                );
+                worksheet.addRow(Object.fromEntries(exportColumns.map(column => [column.id, getExportValue(teacher, column.id)])));
             });
 
             worksheet.getRow(1).font = { bold: true };
@@ -206,6 +208,7 @@ function AdminTeachersView() {
 
     return (
         <div className="AdminTeachersView">
+            <ScienceTab />
             <div className="AdminTeachersView__search">
                 <AutocompleteInput
                     type="text"
@@ -215,15 +218,18 @@ function AdminTeachersView() {
                     options={searchOptions}
                 />
                 {showTeacherView && (
-					<div className="AdminTeachersView__search_actions">
-						<Button text={'Перейти к профилю'} onClick={() => redirectToPortrait()}/>
-						<Button
-							text={'X Закрыть'}
-							type="cancel"
-							className="AdminTeachersView__search-close"
-							onClick={() => handleCloseTeacher()}
-						/>
-					</div>
+                    <div className="AdminTeachersView__search_actions">
+                        <Button
+                            text={'Перейти к профилю'}
+                            onClick={() => redirectToPortrait()}
+                        />
+                        <Button
+                            text={'X Закрыть'}
+                            type="cancel"
+                            className="AdminTeachersView__search-close"
+                            onClick={() => handleCloseTeacher()}
+                        />
+                    </div>
                 )}
             </div>
             {showTeacherView && (
@@ -231,21 +237,34 @@ function AdminTeachersView() {
                     <TeacherView teacher={shownTeacher} />
                 </div>
             )}
-            {selectedRows.length > 0 && <div className='AdminTeachersView__btn-container'><Button type="accept" text={exportLoading ? 'Загрузка...' : `Выгрузить выбранные (${selectedRows.length})`} loading={exportLoading} onClick={handleExportSelected}/></div>}
+            {selectedRows.length > 0 && (
+                <div className="AdminTeachersView__btn-container">
+                    <Button
+                        type="accept"
+                        text={exportLoading ? 'Загрузка...' : `Выгрузить выбранные (${selectedRows.length})`}
+                        loading={exportLoading}
+                        onClick={handleExportSelected}
+                    />
+                </div>
+            )}
             <div className="AdminTeachersView__table">
-            {isTableLoading ? (
-                <Loading type="table" title="Загрузка таблицы" />
-            ) : (
-                <DataTable
-                    rows={tableRows}
-                    columns={columns}
-                    cellClickHandlers={cellClickHandler}
-                    rowKey={'rowId'}
-                    pageSize={10}
-                    _selectedRows={shownTeacher ? [shownTeacher] : []}
-                    onSelectionChange={setSelectedRows}
-                />
-            )}</div>
+                {isTableLoading ? (
+                    <Loading
+                        type="table"
+                        title="Загрузка таблицы"
+                    />
+                ) : (
+                    <DataTable
+                        rows={tableRows}
+                        columns={columns}
+                        cellClickHandlers={cellClickHandler}
+                        rowKey={'rowId'}
+                        pageSize={10}
+                        _selectedRows={shownTeacher ? [shownTeacher] : []}
+                        onSelectionChange={setSelectedRows}
+                    />
+                )}
+            </div>
 
             {openListModal && (
                 <div
@@ -273,3 +292,14 @@ function AdminTeachersView() {
 }
 
 export default AdminTeachersView;
+
+/** @description Toggle the scientific activity dashboard from the teachers page. */
+function ScienceTab() {
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="AdminTeachersView__science">
+            <Button text={open ? 'Скрыть научную деятельность' : 'Научная деятельность'} onClick={() => setOpen(!open)} />
+            {open && <ScientificActivity />}
+        </div>
+    );
+}
