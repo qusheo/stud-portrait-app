@@ -137,6 +137,31 @@ async getCsrfToken() {
         return promise;
     }
 
+    /* *** UPLOAD *** */
+
+    postUploadRsvResults(file) {
+        return this.postUploadFile(file, 'rsv');
+    }
+
+    postUploadGrades(file) {
+        return this.postUploadFile(file, 'grades');
+    }
+
+    postUploadTeachers(file) {
+        return this.postUploadFile(file, 'teachers');
+    }
+
+    postUploadFile(file, type) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
+        const promise = fetch(`${HOST}/portrait/upload/import/`, {
+            method: 'POST',
+            body: formData
+        });
+        return promise;
+    }
+
     // Шаблоны загрузки
     getDataloadExpectedFields() {
         const promise = fetch(`${HOST}/portrait/dataload/expected-fields/`);

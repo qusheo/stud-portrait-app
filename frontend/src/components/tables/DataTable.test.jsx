@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import DataTable from './DataTable.jsx';
+import { buildColumnFilter, buildTableColumns } from './buildTableFilters';
 
 const observerInstances = [];
 
@@ -15,7 +16,9 @@ vi.mock('antd', () => ({
                         type="checkbox"
                         checked={value.includes(option.value)}
                         onChange={event => {
-                            const next = event.target.checked ? [...value, option.value] : value.filter(item => item !== option.value);
+                            const next = event.target.checked
+                                ? [...value, option.value]
+                                : value.filter(item => item !== option.value);
                             onChange(next);
                         }}
                     />
@@ -66,10 +69,53 @@ beforeEach(() => {
         }
     }
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+    vi.stubGlobal(
+        'ResizeObserver',
+        class MockResizeObserver {
+            observe() {}
+            disconnect() {}
+            unobserve() {}
+        }
+    );
 });
 
 afterEach(() => {
     vi.unstubAllGlobals();
+});
+
+describe('buildColumnFilter', () => {
+    it('возвращает null для нефильтруемой колонки', () => {
+        expect(buildColumnFilter({ id: 'name', filterable: false }, rows)).toBeNull();
+    });
+
+    it('собирает select-фильтр из уникальных непустых значений строк', () => {
+        const filter = buildColumnFilter({ id: 'category', filterable: true }, rows);
+        expect(filter.type).toBe('select');
+        expect(filter.options).toEqual([
+            { value: 'А', label: 'А' },
+            { value: 'Б', label: 'Б' }
+        ]);
+    });
+
+    it('собирает input-фильтр с операторами для числовой колонки', () => {
+        const filter = buildColumnFilter({ id: 'score', filterable: true, filterType: 'number' }, rows);
+        expect(filter).toEqual({ type: 'input', operators: ['=', '>', '<'] });
+    });
+
+    it('собирает combined-фильтр с отсортированными опциями из массивов значений', () => {
+        const filter = buildColumnFilter({ id: 'subjects', filterable: true, filterType: 'combined' }, rows);
+        expect(filter.type).toBe('combined');
+        expect(filter.operators).toEqual(['=', '>', '<']);
+        expect(filter.options.map(option => option.value)).toEqual(['Математика', 'Физика', 'Химия']);
+    });
+
+    it('buildTableColumns добавляет filter к каждой колонке', () => {
+        const built = buildTableColumns(columns, rows);
+        expect(built).toHaveLength(columns.length);
+        expect(built[0].filter).toBeNull();
+        expect(built[2].filter.type).toBe('select');
+        expect(built[3].filter.type).toBe('combined');
+    });
 });
 
 describe('DataTable', () => {
@@ -121,6 +167,28 @@ describe('DataTable', () => {
         expect(rowNames()).toEqual(['Студент 10', 'Студент 2', 'Альфа', 'Без оценки']);
     });
 
+    it('не сортирует по колонке без sortable и сортирует массивы по длине', () => {
+        const sortableColumns = [
+            { id: 'name', title: 'Имя' },
+            { id: 'subjects', title: 'Дисциплины', sortable: true, filterType: 'combined' }
+        ];
+        render(
+            <DataTable
+                columns={sortableColumns}
+                rows={rows}
+                selection={false}
+            />
+        );
+
+        const nameHeader = headerFor('Имя').querySelector('.data-table__header-title');
+        expect(nameHeader.textContent).not.toContain('↕');
+        fireEvent.click(nameHeader);
+        expect(rowNames()).toEqual(rows.map(row => row.name));
+
+        fireEvent.click(headerFor('Дисциплины').querySelector('.data-table__header-title'));
+        expect(rowNames()).toEqual(['Без оценки', 'Студент 2', 'Студент 10', 'Альфа']);
+    });
+
     it('ищет без учёта регистра, очищает поиск и сочетает его с фильтром', () => {
         render(
             <DataTable
@@ -158,6 +226,7 @@ describe('DataTable', () => {
         );
 
         let panel = openFilter('Категория');
+        expect(panel.querySelectorAll('select option')).toHaveLength(3);
         fireEvent.change(panel.querySelector('select'), { target: { value: 'Б' } });
         expect(rowNames()).toEqual(['Студент 2']);
         fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
@@ -178,6 +247,24 @@ describe('DataTable', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
         expect(rowNames()).toEqual(rows.map(row => row.name));
+    });
+
+    it('подсвечивает кнопку активного фильтра', () => {
+        render(
+            <DataTable
+                columns={columns}
+                rows={rows}
+            />
+        );
+        const filterButton = headerFor('Категория').querySelector('.data-table__header-button');
+        expect(filterButton).not.toHaveClass('data-table__header-button--active');
+
+        const panel = openFilter('Категория');
+        fireEvent.change(panel.querySelector('select'), { target: { value: 'А' } });
+        expect(filterButton).toHaveClass('data-table__header-button--active');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Сбросить' }));
+        expect(filterButton).not.toHaveClass('data-table__header-button--active');
     });
 
     it('фильтрует combined-колонку по количеству и выбранным значениям дисциплин', () => {
@@ -221,13 +308,62 @@ describe('DataTable', () => {
 
         const panel = openFilter('Категория');
         fireEvent.change(panel.querySelector('select'), { target: { value: 'А' } });
-        fireEvent.click(document.querySelector('thead .data-table__select-cell input'));
+        const headerCheckbox = document.querySelector('thead .data-table__select-cell input');
+        expect(headerCheckbox.checked).toBe(false);
+
+        fireEvent.click(headerCheckbox);
         expect(onSelectionChange).toHaveBeenLastCalledWith([rows[0], rows[2]]);
+        expect(headerCheckbox.checked).toBe(true);
         expect(Array.from(rowCheckboxes()).every(checkbox => checkbox.checked)).toBe(true);
 
-        fireEvent.click(document.querySelector('thead .data-table__select-cell input'));
+        fireEvent.click(headerCheckbox);
         expect(onSelectionChange).toHaveBeenLastCalledWith([]);
         expect(Array.from(rowCheckboxes()).every(checkbox => !checkbox.checked)).toBe(true);
+    });
+
+    it('снимает выбор строки повторным кликом', () => {
+        const onSelectionChange = vi.fn();
+        render(
+            <DataTable
+                columns={columns}
+                rows={rows}
+                onSelectionChange={onSelectionChange}
+            />
+        );
+
+        const checkbox = document.querySelector('tbody .data-table__select-cell input');
+        fireEvent.click(checkbox);
+        expect(onSelectionChange).toHaveBeenLastCalledWith([rows[0]]);
+
+        fireEvent.click(checkbox);
+        expect(onSelectionChange).toHaveBeenLastCalledWith([]);
+    });
+
+    it('выделяет строки, переданные через _selectedRows, и обновляет выделение при изменении props', () => {
+        const { rerender } = render(
+            <DataTable
+                columns={columns}
+                rows={rows}
+                _selectedRows={[rows[1]]}
+            />
+        );
+
+        const getSelectedRows = () => Array.from(document.querySelectorAll('.data-table__row--selected'));
+
+        expect(getSelectedRows()).toHaveLength(1);
+        expect(getSelectedRows()[0]).toHaveTextContent('Студент 2');
+
+        rerender(
+            <DataTable
+                columns={columns}
+                rows={rows}
+                _selectedRows={[rows[0], rows[2]]}
+            />
+        );
+
+        expect(getSelectedRows()).toHaveLength(2);
+        expect(getSelectedRows()[0]).toHaveTextContent('Студент 10');
+        expect(getSelectedRows()[1]).toHaveTextContent('Альфа');
     });
 
     it('вызывает обработчик клика ячейки и форматирует значения результата', () => {
@@ -275,6 +411,9 @@ describe('DataTable', () => {
         fireEvent.click(cells[0][3]);
         expect(clickHandler).toHaveBeenCalledWith(rows[0], expect.any(Object));
 
+        fireEvent.click(cells[0][0]);
+        expect(clickHandler).toHaveBeenCalledTimes(1);
+
         const functionHandler = vi.fn();
         const { container: functionHandlerContainer } = render(
             <DataTable
@@ -321,6 +460,32 @@ describe('DataTable', () => {
         expect(observerInstances.at(-1).disconnect).toHaveBeenCalled();
     });
 
+    it('сбрасывает пагинацию при смене фильтров', () => {
+        const manyRows = Array.from({ length: 5 }, (_, index) => ({
+            id: index + 1,
+            name: `Студент ${index + 1}`,
+            category: index === 0 ? 'А' : 'Б'
+        }));
+        render(
+            <DataTable
+                columns={[
+                    { id: 'name', title: 'Имя' },
+                    { id: 'category', title: 'Категория', filterable: true }
+                ]}
+                rows={manyRows}
+                selection={false}
+                pageSize={2}
+            />
+        );
+
+        act(() => observerInstances.at(-1).callback([{ isIntersecting: true }]));
+        expect(rowNames()).toHaveLength(4);
+
+        const panel = openFilter('Категория');
+        fireEvent.change(panel.querySelector('select'), { target: { value: 'А' } });
+        expect(rowNames()).toEqual(['Студент 1']);
+    });
+
     it('закрывает фильтр по повторному нажатию и по клику вне панели', () => {
         render(
             <DataTable
@@ -343,31 +508,22 @@ describe('DataTable', () => {
         expect(document.querySelector('.data-table__filter-popover')).not.toBeInTheDocument();
     });
 
-    it('выделяет строки, переданные через _selectedRows, и обновляет выделение при изменении props', () => {
-        const { rerender } = render(
+    it('использует rowKey для идентификации строк', () => {
+        const onSelectionChange = vi.fn();
+        const keyedRows = [
+            { uid: 'a', name: 'Первая' },
+            { uid: 'b', name: 'Вторая' }
+        ];
+        render(
             <DataTable
-                columns={columns}
-                rows={rows}
-                _selectedRows={[rows[1]]}
+                columns={[{ id: 'name', title: 'Имя' }]}
+                rows={keyedRows}
+                rowKey="uid"
+                onSelectionChange={onSelectionChange}
             />
         );
 
-        const getSelectedRows = () =>
-            Array.from(document.querySelectorAll('.data-table__row--selected'));
-
-        expect(getSelectedRows()).toHaveLength(1);
-        expect(getSelectedRows()[0]).toHaveTextContent('Студент 2');
-
-        rerender(
-            <DataTable
-                columns={columns}
-                rows={rows}
-                _selectedRows={[rows[0], rows[2]]}
-            />
-        );
-
-        expect(getSelectedRows()).toHaveLength(2);
-        expect(getSelectedRows()[0]).toHaveTextContent('Студент 10');
-        expect(getSelectedRows()[1]).toHaveTextContent('Альфа');
+        fireEvent.click(document.querySelector('tbody .data-table__select-cell input'));
+        expect(onSelectionChange).toHaveBeenLastCalledWith([keyedRows[0]]);
     });
 });

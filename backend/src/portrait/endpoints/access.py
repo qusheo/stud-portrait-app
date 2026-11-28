@@ -25,6 +25,7 @@ ACCESS_PERMISSION_KEYS = (
     "canViewHelp",
     "canViewAudit",
     "canViewUpload",
+    "canUploadData",
     "canViewSql",
     "canViewOwnPortrait",
     "canViewOwnReport",

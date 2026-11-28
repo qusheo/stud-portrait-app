@@ -18,6 +18,7 @@ from .endpoints.matchingService import matching
 from .endpoints.parsers import curriculum_end
 from .endpoints.selectionService import student_selection
 from .endpoints.statisticsService import analysis_end, stat, statsresult
+from .endpoints.upload import views as upload_views
 
 urlpatterns = [
     path("auth/csrf/", auth.csrf_token, name="auth_csrf"),
@@ -120,6 +121,9 @@ urlpatterns = [
     path('parse-curriculum/',          curriculum_end.parse_curriculum_view, name='parse_curriculum'),
     path('parse-curriculum/log/',      curriculum_end.get_parse_log,         name='parse_curriculum_log'),
     path('parse-curriculum/mappings/', curriculum_end.get_saved_mappings,    name='parse_curriculum_mappings'),
+
+    # UPLOAD module
+    path('upload/import/', upload_views.import_upload, name='upload_import'),
 
     # GENDOX module
     path('gendox/generate-resume-docx/', gendox.generate_docx_resume,      name='gendox_generate_resume_docx'),

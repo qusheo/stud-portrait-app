@@ -36,6 +36,7 @@ import {
 
 import UserView from './views/user/UserView';
 import UserReportView from './views/user/UserReportView';
+import UploadView from './views/upload/UploadView';
 
 import SuperAuditView from './views/super/SuperAuditView';
 import SuperSqlView from './views/super/SuperSqlView';
@@ -110,6 +111,8 @@ const router = createBrowserRouter([
                     { path: '/admin/AP', element: <AdminAPView />, handle: { permission: Permission.AP } },
                     { path: '/admin/portrait', element: <AdminPortraitView />, handle: { permission: Permission.PORTRAIT } },
                     { path: '/admin/teachers', element: <AdminTeachersView />, handle: { permission: Permission.TEACHERS } },
+
+                    { path: '/upload', element: <UploadView />, handle: { permission: Permission.UPLOAD_DATA } },
 
                     { path: '/super/audit', element: <SuperAuditView />, handle: { permission: Permission.AUDIT } },
                     { path: '/super/upload', element: <SuperUploadView />, handle: { permission: Permission.UPLOAD } },

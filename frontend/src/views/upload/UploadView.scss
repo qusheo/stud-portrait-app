@@ -1,0 +1,23 @@
+.UploadView {
+    padding: 24px;
+
+    .upload-type-select {
+        min-width: 320px;
+    }
+
+    .success-banner {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 6px;
+        background: #e8f7ee;
+        color: #1d7a3e;
+    }
+
+    .error-banner {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 6px;
+        background: #fdecec;
+        color: #b3261e;
+    }
+}

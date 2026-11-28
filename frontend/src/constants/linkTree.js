@@ -39,6 +39,10 @@ export const LINK_TREE = [
             //{ title: 'Аномальные студенты', to: '/admin/analysis/anomalous-students', permission: Permission.ANOMALOUS_STUDENTS },
             //{ title: 'Дублирующиеся аккаунты', to: '/admin/analysis/dublicate-accounts', permission: Permission.DUPLICATE_ACCOUNTS }
         ]
+    },
+    {
+        category: 'Управление данными',
+        links: [{ title: 'Загрузка данных', to: '/upload', permission: Permission.UPLOAD_DATA }]
     }
 ];
 

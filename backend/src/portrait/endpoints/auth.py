@@ -34,6 +34,7 @@ ACCESS_PERMISSION_KEYS = (
     "canViewHelp",
     "canViewAudit",
     "canViewUpload",
+    "canUploadData",
     "canViewSql",
     "canViewOwnPortrait",
     "canViewOwnReport",
@@ -223,7 +224,7 @@ def get_user_permissions(request):
     ):
         permissions = dict.fromkeys(ACCESS_PERMISSION_KEYS, True)
 
-    # АУП получает аналитические права, но не служебные разделы.
+    # АУП получает аналитические права, загрузку данных, но не служебные разделы.
     elif account_type == PortraitUser.AccountType.INSTITUTION_ADMIN:
         institution_admin_permissions = (
             "canViewStats",
@@ -245,6 +246,7 @@ def get_user_permissions(request):
             "canViewAnomalousStudents",
             "canViewDuplicateAccounts",
             "canViewHelp",
+            "canUploadData",
         )
         permissions.update(
             dict.fromkeys(institution_admin_permissions, True)

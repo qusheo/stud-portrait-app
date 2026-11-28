@@ -22,6 +22,7 @@ export interface UserPermissions {
     canViewHelp: boolean;
     canViewAudit: boolean;
     canViewUpload: boolean;
+    canUploadData: boolean;
     canViewSql: boolean;
     canViewOwnPortrait: boolean;
     canViewOwnReport: boolean;
@@ -52,6 +53,7 @@ export const Permission = {
     HELP: 'canViewHelp',
     AUDIT: 'canViewAudit',
     UPLOAD: 'canViewUpload',
+    UPLOAD_DATA: 'canUploadData',
     SQL: 'canViewSql',
     OWN_PORTRAIT: 'canViewOwnPortrait',
     OWN_REPORT: 'canViewOwnReport'
@@ -98,6 +100,7 @@ const ALL_PERMISSIONS: UserPermissions = {
     canViewHelp: false,
     canViewAudit: false,
     canViewUpload: false,
+    canUploadData: false,
     canViewSql: false,
     canViewOwnPortrait: false,
     canViewOwnReport: false
